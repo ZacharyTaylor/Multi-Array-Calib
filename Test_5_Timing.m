@@ -9,7 +9,7 @@
 range = 50:4000;
 
 %number of scans to use
-scansRange = 200:20:2000;
+scansRange = 2000;%200:20:2000;
 
 %number of times to perform test
 reps = 100;
@@ -25,6 +25,8 @@ addpath('./tformInterp');
 addpath('./imageMetric');
 
 addpath('./genKittiCam');
+
+addpath('./StoredTforms');
 
 %hand eye calibration
 addpath('./handEye/');
@@ -66,6 +68,7 @@ tformIdx = tformIdx + 1;
 %% find transformations
 
 T = cell(length(sensorData),1);
+S = cell(length(sensorData),1);
 t = cell(length(sensorData),1);
 for i = 1:length(sensorData)
     [~,idx] = sort(sensorData{i}.time);
@@ -75,6 +78,10 @@ for i = 1:length(sensorData)
     
     %get absolute angle magnitude
     T{i} = sqrt(sum(sensorData{i}.T_S1_Sk(idx,4:6).^2,2));
+    
+    sensorData{i}.T_Cov_Skm1_Sk(sensorData{i}.T_Cov_Skm1_Sk(:) > 100) = 100;
+    sensorData{i}.T_Cov_S1_Sk = cumsum(sensorData{i}.T_Cov_Skm1_Sk);
+    S{i} = sqrt(sum(sensorData{i}.T_Cov_S1_Sk(idx,4:6).^2,2));
 end
 
 Res2 = zeros(reps,length(T),length(scansRange));
@@ -90,14 +97,16 @@ for w = 1:reps;
         
         %get scans
         Ti = cell(length(sensorData),1);
+        Si = cell(length(sensorData),1);
         ti = cell(length(sensorData),1);
         for j = 1:length(T)
             valid = and(t{j} <= idx(2), t{j} >= idx(1));
             Ti{j} = T{j}(valid);
+            Si{j} = S{j}(valid);
             ti{j} = t{j}(valid) + offset(j);
         end
         
-        out = findErr2(Ti,ti,samples) - offset;
+        out = findErr2(Ti,Si,ti,samples) - offset;
         
         Res2(w,:,i) = out';
     end
