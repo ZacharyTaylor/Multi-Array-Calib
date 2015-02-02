@@ -11,9 +11,6 @@ scansTimeRange = 100;%5:5:100;
 %number of times to perform test
 reps = 10;
 
-%number of bootstrap iterations to perform
-bootNum = 10;
-
 %% setup folders
 
 %contains most of the presentable code
@@ -25,39 +22,8 @@ addpath('./imageMetric');
 %hand eye calibration
 addpath('./handEye/');
 
-%% clear previous data
-tformIdx = 1;
-clear tform;
-clear tformVar;
-clear sensorType;
-clear sensorData;
-
-%% process velodyne
-load('kittiVelData.mat');
-sensorData{tformIdx,1} = velData;
-tformIdx = tformIdx + 1;
-
-%% process cameras
-load('kittiCam1Data2.mat');
-sensorData{tformIdx,1} = cam1Data;
-tformIdx = tformIdx + 1;
-
-load('kittiCam2Data2.mat');
-sensorData{tformIdx,1} = cam2Data;
-tformIdx = tformIdx + 1;
-% 
-% load('kittiCam3Data2.mat');
-% sensorData{tformIdx} = cam3Data;
-% tformIdx = tformIdx + 1;
-% 
-% load('kittiCam4Data2.mat');
-% sensorData{tformIdx} = cam4Data;
-% tformIdx = tformIdx + 1;
-
-%% process nav
-load('kittiNavData.mat');
-sensorData{tformIdx,1} = navData;
-tformIdx = tformIdx + 1;
+%% load sensor data
+sensorData = loadSensorData('Kitti', 'Vel', 'Cam1', 'Cam2', 'Nav');
 
 %% find transformations
 

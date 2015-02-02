@@ -25,7 +25,8 @@ addpath('./finalClean');
 addpath('./tformInterp');
 addpath('./imageMetric');
 
-addpath('./genKittiCam');
+addpath('./genCam');
+addpath('./genVel');
 
 %hand eye calibration
 addpath('./handEye/');

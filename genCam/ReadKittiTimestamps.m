@@ -1,6 +1,32 @@
 function [epoch, epochStart, epochEnd] = ReadKittiTimestamps( path )
-%READKITTITIMESTAMPS
-%reads in the timestamp kitti file and converts to microseconds since 1970
+%READKITTITIMESTAMPS reads in the timestamp kitti file and converts to 
+%   microseconds since 1970
+%--------------------------------------------------------------------------
+%   Required Inputs:
+%--------------------------------------------------------------------------
+%   path- path to where the timestamps are stored
+%
+%--------------------------------------------------------------------------
+%   Outputs:
+%--------------------------------------------------------------------------
+%   epoch, nx1 list of epoch timestamps when the images were taken
+%   epochStart, first timestamp
+%   epochEnd, last timestamp
+%
+%--------------------------------------------------------------------------
+%   References:
+%--------------------------------------------------------------------------
+%   This function is part of the Multi-Array-Calib toolbox 
+%   https://github.com/ZacharyTaylor/Multi-Array-Calib
+%   
+%   This code was written by Zachary Taylor
+%   zacharyjeremytaylor@gmail.com
+%   http://www.zjtaylor.com
+
+validateattributes(path,{'char'},{'vector'});
+if(~exist(path,'dir'))
+    error('%s is not a valid directory');
+end
 
 fid = fopen([path 'timestamps.txt'],'r');
 
