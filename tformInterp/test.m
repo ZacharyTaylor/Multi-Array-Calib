@@ -1,1 +1,0 @@
-[ out ] = alignTforms2( sensorData, 10000 );

@@ -11,23 +11,21 @@ scansTimeRange = 100;%5:5:100;
 %number of times to perform test
 reps = 10;
 
+%samples
+samples = 5000;
+
 %% setup folders
 
-%contains most of the presentable code
-addpath('./finalClean');
-
-addpath('./tformInterp');
-addpath('./imageMetric');
-
-%hand eye calibration
-addpath('./handEye/');
-
 %% load sensor data
-sensorData = loadSensorData('Kitti', 'Vel', 'Cam1', 'Cam2', 'Nav');
+sensorData = LoadSensorData('Kitti', 'Cam1', 'Cam2', 'Nav');
+
+%% fix timestamps
+[sensorData, offsets] = CorrectTimestamps(sensorData, samples);
+
+%% evenly sample data
+sensorData = SampleData( sensorData, samples);
 
 %% find transformations
-
-sensorData = addOffset(sensorData, 4000);
 
 RErr = zeros(reps,3,size(scansTimeRange(:),1));
 TErr = zeros(reps,3,size(scansTimeRange(:),1));

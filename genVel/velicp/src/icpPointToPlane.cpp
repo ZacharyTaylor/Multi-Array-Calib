@@ -50,9 +50,9 @@ double IcpPointToPlane::fitStep (double *T,double *time,const int32_t T_num,Matr
       int32_t idx = active[i];
 
       // transform point according to R|t
-      query[0] = (r00*T[idx*3+0] + r01*T[idx*3+1] + r02*T[idx*3+2] + t0 -T[idx*3+0])*(1-time[idx]) + T[idx*3+0];
-      query[1] = (r10*T[idx*3+0] + r11*T[idx*3+1] + r12*T[idx*3+2] + t1 -T[idx*3+1])*(1-time[idx]) + T[idx*3+1];
-      query[2] = (r20*T[idx*3+0] + r21*T[idx*3+1] + r22*T[idx*3+2] + t2 -T[idx*3+2])*(1-time[idx]) + T[idx*3+2];
+      query[0] = (r00*T[idx*3+0] + r01*T[idx*3+1] + r02*T[idx*3+2] + t0 -T[idx*3+0])*(1+time[idx]) + T[idx*3+0];
+      query[1] = (r10*T[idx*3+0] + r11*T[idx*3+1] + r12*T[idx*3+2] + t1 -T[idx*3+1])*(1+time[idx]) + T[idx*3+1];
+      query[2] = (r20*T[idx*3+0] + r21*T[idx*3+1] + r22*T[idx*3+2] + t2 -T[idx*3+2])*(1+time[idx]) + T[idx*3+2];
 
       // search nearest neighbor
       M_tree->n_nearest(query,1,result);

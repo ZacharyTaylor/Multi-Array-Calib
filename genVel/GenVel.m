@@ -103,10 +103,10 @@ for frame = 2:size(velData.files,1)
 
     %find transformation
     try
-        [velData.T_Skm1_Sk(frame,:), velData.T_Var_Skm1_Sk(frame,:)] = GetVelTform(velCurr, velPrev, tCurr, tPrev, velData.T_Skm1_Sk(frame-1,:),10000,10);
+        [velData.T_Skm1_Sk(frame,:), velData.T_Var_Skm1_Sk(frame,:)] = GetVelTform(velCurr, velPrev, tCurr, tPrev, velData.T_Skm1_Sk(frame-1,:),20000,10);
     catch
-       velData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
-       velData.T_Cov_Skm1_Sk(frame,:) = 1000*ones(1,6);
+      velData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
+      velData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
     end
        
     %generate absolute transformations

@@ -53,14 +53,14 @@ tformPrev = double(tformPrev);
 %subsample velodyne lidar down to subsample most salient points
 [velCurr,idx] = SubVel(velCurr,subSample);
 tFracCurr = tFracCurr(idx);
-velPrev = SubVel(velPrev,subSample);
+[velPrev,idx] = SubVel(velPrev,subSample);
 tFracPrev = tFracPrev(idx);
 
 %correct previous scans motion error
 velPrev = VelCorrect(velPrev, tFracPrev, tformPrev);
 
 %find transformation
-tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.5,'point_to_plane');
+tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.5,'point_to_point');
 tform = T2V(inv(tform));
 
 %bootstrap scans

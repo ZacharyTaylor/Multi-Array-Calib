@@ -46,6 +46,7 @@ subB = sub-subA;
 
 %get index of subsampled points
 idx = [diff(1:subA); datasample(diff(subA+1:end),subB,1,'Replace',false)];
+%idx = diff(1:sub);
 
 %subsample
 subVel = vel(idx,:);

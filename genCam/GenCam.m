@@ -119,10 +119,10 @@ for frame = 2:size(camData.files,1)
 
     %find transformation
     try
-        [camData.T_Skm1_Sk(frame,:), camData.T_Cov_Skm1_Sk(frame,:)] = GetCamTform(image, imageOld, [], camData.mask, camData.K,50000);
+        [camData.T_Skm1_Sk(frame,:), camData.T_Var_Skm1_Sk(frame,:)] = GetCamTform(image, imageOld, [], camData.mask, camData.K,50000);
     catch
         camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
-        camData.T_Cov_Skm1_Sk(frame,:) = 1000*ones(1,6);
+        camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
     end
        
     %generate absolute transformations
