@@ -88,13 +88,19 @@ end
 %set sensor type
 navData.type = 'nav';
 
+tempAbs = navData.T_S1_Sk;
+navData.T_S1_Sk(:) = 0;
+
 %find transform for each velodyne scan
 for frame = 2:size(navData.files,1)
     
     UpdateMessage('Finding Transform for nav point %i of %i', frame-1, size(navData.files,1));
 
     %find sensor transforms
-    navData.T_Skm1_Sk(frame,:) = T2V(inv(V2T(navData.T_S1_Sk(frame-1,:))\V2T(navData.T_S1_Sk(frame,:))));
+    navData.T_Skm1_Sk(frame,:) = T2V(inv(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:))));
+    
+    %generate absolute camera transformations
+    navData.T_S1_Sk(frame,:) = T2V(V2T(navData.T_S1_Sk(frame-1,:))*V2T(navData.T_Skm1_Sk(frame,:)));
         
     if(plotNav)
         %plot points

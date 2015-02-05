@@ -6,24 +6,26 @@
 %% user set variables
 
 %number of scans to use
-scansTimeRange = 100;%5:5:100;
+%scansTimeRange = 100;
+scansTimeRange = 5:5:100;
 
 %number of times to perform test
 reps = 10;
 
 %samples
+timeSamples = 10000;
 samples = 5000;
 
 %% setup folders
 
 %% load sensor data
-sensorData = LoadSensorData('Kitti', 'Cam1', 'Cam2', 'Nav');
+sensorData = LoadSensorData('Kitti', 'Vel', 'Nav');
 
 %% fix timestamps
-[sensorData, offsets] = CorrectTimestamps(sensorData, samples);
+[sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
 
 %% evenly sample data
-sensorData = SampleData( sensorData, samples);
+sensorData = SampleData(sensorData, samples);
 
 %% find transformations
 
@@ -38,33 +40,36 @@ TErrEqual = zeros(reps,3,size(scansTimeRange(:),1));
 
 for w = 1:reps
     for s = 1:size(scansTimeRange(:),1)
+        
         %get random contiguous scans to use
-        sData = randTformsTime(sensorData, scansTimeRange(s));
+        sData = RandTformTimes(sensorData, scansTimeRange(s));
 
         %Create equal weighted variance
         sDataE = sData;
         for i = 1:size(sData,1)
-            sDataE{i}.T_Cov_Skm1_Sk = ones(size(sData{1}.T_Cov_Skm1_Sk));
+            sDataE{i}.T_Var_Skm1_Sk = ones(size(sData{1}.T_Var_Skm1_Sk));
         end
-
-        sData = rejectPoints(sData);
         
         %find equal weighted results
-        rotVec = roughR(sDataE);
-        tranVec = roughT(sDataE, rotVec);
+        rotVec = RoughR(sDataE);
+        tranVec = RoughT(sDataE, rotVec);
 
         %write out results
         RErrEqual(w,:,s) = rotVec(2,:);
         TErrEqual(w,:,s) = tranVec(2,:);
 
+        %remove uninformative data
+        sData = RejectPoints(sData, 3, 0.001);
+        
         %find rotation
-        sData = rejectPoints(sData);
-        rotVec = roughR(sData);
-        [rotVec, rotVar] = optR(sData, rotVec);
+        rotVec = RoughR(sData);
+        rotVec = OptR(sData, rotVec);
+        rotVar = ErrorEstR(sensorData, rotVec);
         
         %find translation
-        tranVec = roughT(sData, rotVec);
-        [tranVec, tranVar] = optT(sData, tranVec, rotVec);
+        tranVec = RoughT(sData, rotVec);
+        tranVec = OptT(sData, tranVec, rotVec);
+        tranVar = ErrorEstT(sData, tranVec, rotVec);
 
         %bootstrap
         %[tranVar, rotVar] = bootTform(sData, tranVec, rotVec, bootNum);

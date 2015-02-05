@@ -29,7 +29,7 @@ addpath('./handEye');
 %% process sensors
 
 %do things in parrallel to save time
-for i = 1
+for i = 2
     switch i
         case 1
             kittiVelData = GenVel(dataPath, plotTforms, [], dataset);

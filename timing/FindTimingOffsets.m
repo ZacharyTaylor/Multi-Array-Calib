@@ -64,8 +64,8 @@ end
 
 %get all possible comibnations of sensors
 P = nchoosek(1:length(Mag),2);
-v = zeros(size(P,1),1);
-x = zeros(size(P,1),length(Mag));
+v = zeros(size(P,1)+1,1);
+x = zeros(size(P,1)+1,length(Mag));
 
 %for every sensor pair
 for i = 1:size(P,1)
@@ -76,6 +76,8 @@ for i = 1:size(P,1)
     x(i,P(i,1)) =val;
     x(i,P(i,2)) = -val;
 end
+
+x(end,1) = 1;
 
 %solve matrix for offsets
 offsets = ((tMax-tMin)/samples)*(x\v);

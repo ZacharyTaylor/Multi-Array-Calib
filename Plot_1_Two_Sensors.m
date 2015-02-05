@@ -1,12 +1,12 @@
 load('Test_1_Res.mat');
 
 %convert from position to error
-%actualR = [-0.0148243143349357,0.00203019194952995,0.000770383764607292];
-%actualT = [0.810543972031926,-0.307054372250861,0.802723994558354];
+actualR = [-0.0148243143349357,0.00203019194952995,0.000770383764607292];
+actualT = [0.810543972031926,-0.307054372250861,0.802723994558354];
 
-actualR = [1.21437851395341,-1.20575830275602,1.20140448755769];
+%actualR = [1.21437851395341,-1.20575830275602,1.20140448755769];
 %actualR = [1.21996288528502,-1.19352066735096,1.20328692800518];
-actualT = [-0.0137776900000000,-0.0554211700000000,-0.291858900000000];
+%actualT = [-0.0137776900000000,-0.0554211700000000,-0.291858900000000];
 
 RErr = RErr - repmat(actualR,[size(RErr,1),1,size(RErr,3)]);
 RErrEqual = RErrEqual - repmat(actualR,[size(RErrEqual,1),1,size(RErrEqual,3)]);
@@ -35,14 +35,14 @@ for i = 1:20
     temp = zeros(100,3);
     %use sampling approach to transfer variance
     for j = 1:100
-        [r,p,y] = dcm2angle(vec2rot(pop(j,1:3)'));
+        [r,p,y] = dcm2angle(V2R(pop(j,1:3)));
         temp(j,:) = abs([r,p,y]*180/pi);
     end
     RVar(i,1:3) = std(temp);
     
-    [r,p,y] = dcm2angle(vec2rot(RErr(i,1:3)'));
+    [r,p,y] = dcm2angle(V2R(RErr(i,1:3)));
     RErr(i,1:3) = abs([r,p,y])*180/pi;
-    [r,p,y] = dcm2angle(vec2rot(RErrEqual(i,1:3)'));
+    [r,p,y] = dcm2angle(V2R(RErrEqual(i,1:3)));
     RErrEqual(i,1:3) = abs([r,p,y])*180/pi;
 end
 

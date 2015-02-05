@@ -66,3 +66,5 @@ for i = 1:length(navData.files)
     navData.T_S1_Sk(i,:) = T2V(tformMat);
     navData.T_Var_Skm1_Sk(i,:) = tformVar;
 end
+
+navData.T_Var_Skm1_Sk(2:end,4:6) = navData.T_Var_Skm1_Sk(2:end,4:6).*repmat(diff(double(navData.time)/1000000),1,3);

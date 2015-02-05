@@ -40,7 +40,7 @@ for i = 1:length(sensorData)
 end
 
 %turn points into times
-times = tMin:(tMax-tMin)/(samples-1):tMax;
+times = tMin:(tMax-tMin)/(samples):tMax;
 
 %interpolate at set times
 sensorData = IntSensorData(sensorData, times);
