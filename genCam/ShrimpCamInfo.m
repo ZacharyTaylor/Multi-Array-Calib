@@ -27,7 +27,7 @@ camData = struct;
 %check inputs
 validateattributes(shrimpPath,{'char'},{'vector'});
 validateattributes(idx,{'numeric'},{'scalar','integer','positive','nonzero'});
-if(~exist(fordPath,7))
+if(~exist(shrimpPath,'dir'))
     error('%s is not a valid directory');
 end
 
@@ -92,7 +92,7 @@ switch idx
 end
 
 %timestamps
-camData.time = readTimeData([shrimpPath '/Processed/ladybug/timestamps.bin']);
+camData.time = ReadTimeData([shrimpPath '/Processed/ladybug/timestamps.bin']);
    
 end
         

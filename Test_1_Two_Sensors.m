@@ -6,8 +6,8 @@
 %% user set variables
 
 %number of scans to use
-%scansTimeRange = 100;
-scansTimeRange = 5:5:100;
+scansTimeRange = 100;
+%scansTimeRange = 5:5:100;
 
 %number of times to perform test
 reps = 10;
@@ -16,10 +16,8 @@ reps = 10;
 timeSamples = 10000;
 samples = 5000;
 
-%% setup folders
-
 %% load sensor data
-sensorData = LoadSensorData('Kitti', 'Vel', 'Nav');
+sensorData = LoadSensorData('Kitti', 'Vel', 'Cam1');
 
 %% fix timestamps
 [sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);

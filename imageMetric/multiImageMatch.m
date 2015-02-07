@@ -1,5 +1,4 @@
-function [ T, T_Var ] = multiImageMatch( camB, camA )
-matchNum = 5;
+function [ T, T_Var ] = multiImageMatch( camB, camA, matchNum )
 dataNum = datasample(1:size(camA.files,1),matchNum,'Replace',false);
 
 pointsA = cell(matchNum,1);
@@ -128,8 +127,6 @@ function [points] = getPoints(pointsA,pointsB,T,KA,KB)
 
         [~, ~, V] = svd(A);
         points(i,1:3) = V(1:3,4)'/V(4,4);
-        %temp = T*[points(i,1:3),1]';
-        %points(i,4:6) = temp(1:3);
     end
 end
 

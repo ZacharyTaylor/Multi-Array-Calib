@@ -5,83 +5,24 @@
 
 %% user set variables
 
-%data range (start excluded as not all sensors running)
-range = 50:4000;
-
 %number of scans to use
-scans = 1000;
+scansTimeRange = 200;
+%scansTimeRange = 5:5:100;
 
 %number of times to perform test
-reps = 100;
+reps = 10;
 
-%number of bootstrap iterations to perform
-bootNum = 100;
+%samples
+timeSamples = 10000;
+samples = 1000;
 
-%% setup folders
 
-%contains most of the presentable code
-addpath('./finalClean');
+%% load sensor data
+sensorData = LoadSensorData('Kitti', 'Vel', 'Cam1');
 
-addpath('./tformInterp');
-addpath('./imageMetric');
-
-addpath('./genCam');
-addpath('./genVel');
-
-%hand eye calibration
-addpath('./handEye/');
-
-%% clear previous data
-tformIdx = 1;
-clear tform;
-clear tformVar;
-clear sensorType;
-clear sensorData;
-
-%% process velodyne
-load('kittiVelData2.mat');
-sensorData{tformIdx,1} = velData;
-tformIdx = tformIdx + 1;
-
-%% process nav
-% load('kittiNavData.mat');
-% sensorData{tformIdx,1} = navData;
-% tformIdx = tformIdx + 1;
-
-%% process cameras
-load('kittiCam1Data.mat');
-sensorData{tformIdx,1} = cam1Data;
-tformIdx = tformIdx + 1;
-% 
-% load('kittiCam2Data.mat');
-% sensorData{tformIdx,1} = cam2Data;
-% tformIdx = tformIdx + 1;
-% 
-% load('kittiCam3Data.mat');
-% sensorData{tformIdx,1} = cam3Data;
-% tformIdx = tformIdx + 1;
-% 
-% load('kittiCam4Data.mat');
-% sensorData{tformIdx,1} = cam4Data;
-% tformIdx = tformIdx + 1;
-
-%% find transformations
-
-%  for i = 1:length(sensorData)
-%     if(i > 1)
-%         sensorData{i} = matchTforms(sensorData{i}, sensorData{1},range, false);
-%     else
-%         sensorData{i}.T_Skm1_Sk = sensorData{i}.T_Skm1_Sk(range,:);
-%         sensorData{i}.T_S1_Sk = sensorData{i}.T_S1_Sk(range,:);
-%         sensorData{i}.T_Cov_Skm1_Sk = sensorData{i}.T_Cov_Skm1_Sk(range,:);
-%         sensorData{i}.time = sensorData{i}.time(range,:);
-%         sensorData{i}.files = sensorData{i}.files(range,:);
-%     end
-% end
-
-sensorData = addOffset(sensorData, 5000);
-sensorData = rejectPoints(sensorData);
-
+%% fix timestamps
+[sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
+    
 outT = cell(100,1);
 outV = cell(100,1);
 
@@ -90,31 +31,35 @@ outVB = cell(100,1);
 
 for w = 1:reps
     tic
+    
     %get random contiguous scans to use
-    sData = randTforms(sensorData, scans);
+    sDataBase = RandTformTimes(sensorData, scansTimeRange);
+    
+    %evenly sample data
+    sData = SampleData(sDataBase, samples);
+    
+    %remove uninformative data
+    sData = RejectPoints(sData, 3, 0.001);
 
     %find rotation
-    fprintf('Finding rotation\n');
-    rotVec = roughR(sData);
-    sData = findInR(sData, rotVec);
-    [rotVec, rotVar] = optR(sData, rotVec);
+    fprintf('Finding Rotation\n');
+    rotVec = RoughR(sData);
+    rotVec = OptR(sData, rotVec);
+    rotVar = ErrorEstR(sData, rotVec);
 
     %find translation
-    fprintf('Finding translation\n');
-    tranVec = roughT(sData, rotVec);
-    [tranVec, tranVar] = optT(sData, tranVec, rotVec);
+    fprintf('Finding Translation\n');
+    tranVec = RoughT(sData, rotVec);
+    tranVec = OptT(sData, tranVec, rotVec);
+    tranVar = ErrorEstT(sData, tranVec, rotVec);
 
-    %bootstrap
-%     fprintf('Bootstrapping results\n');
-%     [tranVar2, rotVar2] = bootTform(sData, tranVec, rotVec, bootNum);
-    
     %get grid of transforms
     fprintf('Generating transformation grid\n');
-    [tGrid, vGrid] = genGrid(tranVec, rotVec, tranVar, rotVar);
+    [tGrid, vGrid] = GenTformGrid(tranVec, rotVec, tranVar, rotVar);
     
     %refine transforms using metrics
     fprintf('Refining transformations\n');
-    [tGridR, vGridR] = metricRefine(tGrid, vGrid, sData);
+    [tGridR, vGridR] = metricRefine(tGrid, vGrid, sDataBase,0.1,20);
     
     %correct for differences in grid
     fprintf('Combining results\n');

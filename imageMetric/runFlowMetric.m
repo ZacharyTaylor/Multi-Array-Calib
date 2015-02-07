@@ -9,7 +9,7 @@ if(isempty(tnow))
     run = 0;
 end
 
-T = vec2tran(tform);
+T = V2T(tform');
 if(invert)
     T = inv(T);
 end
@@ -21,24 +21,17 @@ error = zeros(size(scans,1),1);
 for i = 1:size(scans,1)
     [pro1, valid1] = projectLidar(T, K, scans{i}(:,1:3), ims(1:2));
     [pro2, valid2] = projectLidar(T, K, scans{i}(:,4:6), ims(1:2));
-
-    %d = sqrt(sum(scans{i}(:,1:3).^2,2));
     
     valid = and(valid1,valid2);
     pro1c = pro1(valid,:);
     pro2c = pro2(valid,:);
-    %d = d(valid);
 
     pro1 = interpolateImageUint8(images{i,1}, pro1c(:,1:2));
     pro2 = interpolateImageUint8(images{i,2}, pro2c(:,1:2));
-    pro3 = interpolateImageUint8(images{i,3}, pro1c(:,1:2));
-    pro4 = interpolateImageUint8(images{i,4}, pro2c(:,1:2));
     
     %valid = and(pro1>0,pro2>0);
     
-    err = abs((pro1(:)-pro2(:)))./(pro3(:) + pro4(:));
-    %err = err./d;
-    %err = err(valid);
+    err = (pro1(:)-pro2(:)).^2;
     
     %err = sort(err);
     %err = err(1:round(size(err,1)*0.9));
@@ -51,7 +44,7 @@ for i = 1:size(scans,1)
     end
 end
 
-error = mean(error(:),1);
+error = sqrt(mean(error(:),1));
 
 run = run+1;
 i = 1;

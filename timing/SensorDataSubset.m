@@ -50,6 +50,5 @@ function [ sData ] = FindSubset( sData, idx )
     sData.T_S1_Sk = sData.T_S1_Sk(idx,:);
     sData.T_Var_Skm1_Sk = sData.T_Var_Skm1_Sk(idx,:);
     sData.T_Var_S1_Sk = sData.T_Var_S1_Sk(idx,:);
-
 end
 

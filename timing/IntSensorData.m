@@ -43,6 +43,7 @@ function[ sensorInt ] = IntData( sensorData, times )
     sensorInt = sensorData;
     sensorInt.T_S1_Sk = zeros(length(times),6);
     sensorInt.T_Skm1_Sk = zeros(length(times),6);
+    sensorInt.T_Skm1_Sk_raw = zeros(length(times),6);
     sensorInt.T_Var_S1_Sk = zeros(length(times),6);
     sensorInt.T_Var_Skm1_Sk = zeros(length(times),6);
     sensorInt.time = times(:);
@@ -100,6 +101,16 @@ function[ sensorInt ] = IntData( sensorData, times )
 % 
 %         sensorInt.T_S1_Sk(i,:) = T2V(tform);
 %     end
+
+    %for each time point
+    for i = 1:length(times)
+
+        %find closest matching time
+        [~,idx] = min(abs(double(times(i)) - double(sensorData.time)));
+        if(size(sensorData.files,1) > 1)
+            sensorInt.files(i) = sensorData.files(idx);
+        end
+    end
 
     sensorInt.T_Var_S1_Sk = interp1(double(sensorData.time), sensorData.T_Var_S1_Sk, double(sensorInt.time),'pchip');
     sensorInt.T_S1_Sk = interp1(double(sensorData.time), sensorData.T_S1_Sk, double(sensorInt.time),'pchip');

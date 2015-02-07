@@ -5,7 +5,7 @@ function [ varVec ] = ErrorEstT( sensorData, tranVec, rotVec )
 %   Required Inputs:
 %--------------------------------------------------------------------------
 %   sensorData- nx1 cell containing sensor data sturcts
-%   tranVec- nx3 matrix of rotations for each sensor
+%   tranVec- nx3 matrix of translations for each sensor
 %   rotVec- nx3 matrix of rotations for each sensor
 %
 %--------------------------------------------------------------------------

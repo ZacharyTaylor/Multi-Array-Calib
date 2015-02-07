@@ -110,7 +110,7 @@ for frame = 2:size(velData.files,1)
     end
        
     %generate absolute transformations
-    velData.T_S1_Sk(frame,:) = tran2vec(vec2tran(velData.T_S1_Sk(frame-1,:)')*vec2tran(velData.T_Skm1_Sk(frame,:)'))';
+    velData.T_S1_Sk(frame,:) = T2V(V2T(velData.T_S1_Sk(frame-1,:))*V2T(velData.T_Skm1_Sk(frame,:)));
     velData.T_Var_S1_Sk(frame,:) = velData.T_Var_S1_Sk(frame-1,:) + velData.T_Var_Skm1_Sk(frame,:);
 end
 

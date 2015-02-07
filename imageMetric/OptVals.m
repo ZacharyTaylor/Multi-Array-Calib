@@ -1,23 +1,25 @@
-function [ TOut, TBoot ] = OptVals(TMean,TVar, lidar, cam, invert)
+function [ TOut, TBoot ] = OptVals(TMean,TVar, lidar, cam, invert, matchNum)
 
 %% get data
-matchNum = 40;
-depth = 1;
-dataNum = datasample((1+depth):(size(cam.files,1)),matchNum,'Replace',false);
+dataNum = datasample(2:length(cam.files),matchNum,'Replace',false);
 
 warning('off','images:initSize:adjustingMag');
 
 %load images
-images = cell(matchNum,4);
+images = cell(matchNum,2);
 
-G = fspecial('gaussian',[50 50],1);
+G = fspecial('gaussian',[50 50],3);
 
 %previous image
 for j = 1:matchNum
-    images{j,1} = imread([cam.folder cam.files(dataNum(j)-depth).name]);
+    images{j,1} = imread([cam.folder cam.files(dataNum(j)-1).name]);
     if(size(images{j,1},3) == 3)
         images{j,1} = rgb2gray(images{j,1});
     end
+    
+    [x,y] = gradient(double(images{j,1}));
+    images{j,1} = sqrt(x.^2 + y.^2);
+    images{j,1} = MyHistEq(images{j,1})*255;
     
     images{j,1} = imfilter(images{j,1},G,'same');
     
@@ -25,14 +27,8 @@ for j = 1:matchNum
         images{j,1}(~cam.mask) = 0;
     end
     
+    
     images{j,1} = undistort(double(images{j,1}), cam.D, cam.K(1:3,1:3));
-    
-    [x,y] = gradient(images{j,1});
-    images{j,3} = sqrt(x.^2 + y.^2);
-    images{j,3} = images{j,3} - min(images{j,3}(:));
-    images{j,3} = uint8(254*(images{j,3} ./ max(images{j,3}(:)))+1);
-    images{j,3} = gpuArray(images{j,3});
-    
     images{j,1} = gpuArray(uint8(images{j,1}));
 end
 
@@ -42,6 +38,10 @@ for j = 1:matchNum
         images{j,2} = rgb2gray(images{j,2});
     end
     
+    [x,y] = gradient(double(images{j,2}));
+    images{j,2} = sqrt(x.^2 + y.^2);
+    images{j,2} = MyHistEq(images{j,2})*255;
+    
     images{j,2} = imfilter(images{j,2},G,'same');
     
     if(isfield(cam,'mask'))
@@ -49,13 +49,6 @@ for j = 1:matchNum
     end
     
     images{j,2} = undistort(double(images{j,2}), cam.D, cam.K(1:3,1:3));
-    
-    [x,y] = gradient(images{j,2});
-    images{j,4} = sqrt(x.^2 + y.^2);
-    images{j,4} = images{j,4} - min(images{j,4}(:));
-    images{j,4} = uint8(254*(images{j,4} ./ max(images{j,4}(:)))+1);
-    images{j,4} = gpuArray(images{j,4});
-   
     images{j,2} = gpuArray(uint8(images{j,2}));
 end
 
@@ -68,36 +61,33 @@ scans = cell(matchNum,1);
 cmap = colormap(jet(256));
 for i = 1:matchNum
     
-    time = double(lidar.time) - double(cam.time(dataNum(i)-depth));
+    time = double(lidar.time) - double(cam.time(dataNum(i)-1));
     [~,idxPrev] = min(abs(time));
     tPrev = double(lidar.time(idxPrev));
     
-    if(strcmp(lidar.files(idxPrev).name(end-2:end),'ply'))
-        temp = ply_read ([lidar.folder lidar.files(idxPrev).name]);
-        temp = [temp.vertex.x, temp.vertex.y, temp.vertex.z, temp.vertex.intensity/255, temp.vertex.valid];
-        temp = temp(temp(:,5)>0,1:4);
-    else
-        temp = dlmread([lidar.folder lidar.files(idxPrev).name],' ');
-    end
+    [xyz, intensity, timeFrac] = ReadVelData([lidar.folder lidar.files(idxPrev).name]);
     
     time = double(lidar.time) - double(cam.time(dataNum(i)));
     [~,idxCurr] = min(abs(time));
     tCurr = double(lidar.time(idxCurr));
-    tDiff = idxCurr-idxPrev;
     
-    tform = vec2tran(lidar.T_S1_Sk(idxPrev,:)')\vec2tran(lidar.T_S1_Sk(idxCurr,:)');
+    %correct for motion during scan
+    points = VelCorrect(xyz, timeFrac, lidar.T_Skm1_Sk(idxPrev,:));
+    %points = xyz;
     
-    %offset = -(tPrev-double(cam.time(dataNum(i)-depth)))/(tCurr - tPrev);
-    offset = 0;
+    tform = V2T(lidar.T_S1_Sk(idxPrev,:))\V2T(lidar.T_S1_Sk(idxCurr,:));
     
-    %temp(:,1:3) = tformInterp3(tform,zeros(size(temp,1),1),temp(:,1:3));
-    temp(:,1:3) = tformInterp3(inv(tform),(offset + (getTime(temp, 0)/tDiff)),temp(:,1:3));
+    %get difference in points
+    dPoints = (tform*[points, ones(size(points,1),1)]')';
+    dPoints = dPoints(:,1:3) - points;
     
-    comp = (tform*[temp(:,1:3), ones(size(temp,1),1)]')';
+    tStartFrac = (double(cam.time(dataNum(i)-1)-tPrev))/(tCurr - tPrev);
+    tEndFrac = (double(cam.time(dataNum(i))-tPrev))/(tCurr - tPrev);
     
-    temp = [temp(:,1:3), comp(:,1:3) temp(:,4)];
+    %combine
+    points = [points + tStartFrac*dPoints, points + tEndFrac*dPoints, intensity];
     
-    scans{i} = temp;
+    scans{i} = points;
     scans{i}(:,7:9) = cmap(round(255*scans{i}(:,7))+1,:);
     scans{i} = gpuArray(single(scans{i}));
 end
@@ -111,6 +101,8 @@ opts.SaveVariables = 'off';
 opts.MaxIter = 500;
 opts.DispFinal = 'off';
 opts.DispModulo = inf;
+TMean = TMean';
+rangeT = rangeT';
 
 TMean(TMean > opts.UBounds) = opts.UBounds(TMean > opts.UBounds);
 TMean(TMean < opts.LBounds) = opts.LBounds(TMean < opts.LBounds);

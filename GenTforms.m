@@ -4,10 +4,11 @@
 %% user set variables
 
 %dataset type
-dataset = 'Kitti';
+dataset = 'Shrimp';
 
 %path to data
-dataPath = '/home/z/Documents/Datasets/Kitti/2011_10_03_drive_0027_extract/';
+dataPath = '/home/z/Documents/Datasets/Shrimp/high-clutter-2/';
+%dataPath = '/home/z/Documents/Datasets/Kitti/2011_10_03_drive_0027_extract/';
 
 %Sets if the sensor transforms will be plotted
 plotTforms = false;
@@ -29,14 +30,14 @@ addpath('./handEye');
 %% process sensors
 
 %do things in parrallel to save time
-for i = 2
+parfor i = 1:8
     switch i
         case 1
             kittiVelData = GenVel(dataPath, plotTforms, [], dataset);
             parsave('kittiVelData.mat', kittiVelData, 'velData');
         case 2
-            NavData = GenNav(dataPath, plotTforms, [], dataset);
-            parsave([dataset 'NavData.mat'], NavData, 'navData'); 
+            %NavData = GenNav(dataPath, plotTforms, [], dataset);
+            %parsave([dataset 'NavData.mat'], NavData, 'navData'); 
         case 3
             CamData = GenCam(dataPath, plotTforms, [], dataset, 1);
             parsave([dataset 'Cam1Data.mat'], CamData, 'cam1Data');

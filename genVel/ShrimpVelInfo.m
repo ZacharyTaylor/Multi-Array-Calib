@@ -36,7 +36,7 @@ velData.folder = [shrimpPath '/Processed/velodyne/'];
 velData.files = dir([velData.folder,'*.ply']);
 
 %timestamps
-velData.time = readTimeData([shrimpPath '/Processed/velodyne/timestamps.bin']);
+velData.time = ReadTimeData([shrimpPath '/Processed/velodyne/timestamps.bin']);
    
 end
         
