@@ -69,6 +69,7 @@ for a = 1:length(sensorData)
             
             if(strcmp(sensorData{a}.type,'camera'))
                 if(strcmp(sensorData{b}.type,'camera'))
+                    continue;
                     temp = (estA(1,:).^2.*estB(2,:).^2 + estA(1,:).^2.*estB(3,:).^2 - 2.*estA(1,:).*estA(2,:).*estB(1,:).*estB(2,:) - 2.*estA(1,:).*estA(3,:).*estB(1,:).*estB(3,:) + estA(2,:).^2.*estB(1,:).^2 + estA(2,:).^2.*estB(3,:).^2 - 2.*estA(2,:).*estA(3,:).*estB(2,:).*estB(3,:) + estA(3,:).^2.*estB(1,:).^2 + estA(3,:).^2.*estB(2,:).^2);
                     
                     tempA = sum(estA.*[err(1,:).*estB(2,:).^2 - estB(1,:).*err(2,:).*estB(2,:) + err(1,:).*estB(3,:).^2 - estB(1,:).*err(3,:).*estB(3,:); err(2,:).*estB(1,:).^2 - estB(2,:).*err(1,:).*estB(1,:) + err(2,:).*estB(3,:).^2 - estB(2,:).*err(3,:).*estB(3,:); err(3,:).*estB(1,:).^2 - estB(3,:).*err(1,:).*estB(1,:) + err(3,:).*estB(2,:).^2 - estB(3,:).*err(2,:).*estB(2,:)])./temp;
@@ -103,7 +104,8 @@ for a = 1:length(sensorData)
             end
            
             temp = cprobR(err.^2, VA, VB, Rab);
-            temp = sqrt(sum(temp(:)));
+            temp = sum(temp);
+            temp = sum(sqrt(temp));
             prob = prob + temp;
         end
     end

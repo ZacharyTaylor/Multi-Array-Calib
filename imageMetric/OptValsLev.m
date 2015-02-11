@@ -1,11 +1,10 @@
-function [ TOut, TBoot ] = OptValsLev(TMean,TVar,lidar,cam, invert)
+function [ TOut, TBoot ] = OptValsLev(TMean,TVar,lidar,cam, invert,matchNum)
 
 %% get data
-matchNum = 50;
 dataNum = datasample(1:size(lidar.files,1),matchNum,'Replace',false);
 
 %load images
-images = cell(matchNum,1);
+images = cell(matchNum+1,1);
  
 for j = 1:matchNum
     images{j} = imread([cam.folder cam.files(dataNum(j)).name]);
@@ -13,6 +12,11 @@ for j = 1:matchNum
         images{j} = rgb2gray(images{j});
     end
     images{j} = undistort(double(images{j}), cam.D, cam.K(1:3,1:3));
+    
+    if(j == 1)
+        images{end} = images{1};
+    end
+    
     images{j} = LevImage(single(images{j}));
     images{j} = gpuArray(single(images{j}));
 
@@ -34,13 +38,18 @@ K = gpuArray(single(K));
 
 %load scans
 scans = cell(matchNum,1);
+cmap = colormap(jet(256));
 for i = 1:matchNum
-    %scans{i} = ReadKittiVelDataSingle([lidar.folder lidar.files(dataNum(i)).name]);
-    scans{i} = dlmread([lidar.folder lidar.files(dataNum(i)).name],' ');
-    %scans{i} = ply_read ([lidar.folder lidar.files(dataNum(i)).name]);
-    %scans{i} = [scans{i}.vertex.x, scans{i}.vertex.y, scans{i}.vertex.z, scans{i}.vertex.intensity, scans{i}.vertex.valid];
-    %scans{i} = scans{i}(scans{i}(:,5)>0,1:4);
-    scans{i} = LevLidar(scans{i});
+    time = double(lidar.time) - double(cam.time(dataNum(i)));
+    [~,idx] = min(abs(time));
+    t = double(lidar.time(idx));
+    
+    xyz = ReadVelData([lidar.folder lidar.files(idx).name]);
+    
+    scans{i} = LevLidar(xyz);
+    scans{i}(:,4) = scans{i}(:,4)./max(scans{i}(:,4));
+    scans{i} = [scans{i}(:,1:4),cmap(round(255*scans{i}(:,4))+1,:)];
+    
     scans{i} = gpuArray(single(scans{i}));
 end
 
@@ -48,11 +57,13 @@ rangeT = sqrt(TVar);
 
 opts.LBounds = [-3,-3,-3,-pi/2,-pi/2,-pi]'; opts.UBounds = [3,3,3,pi/2,pi/2,pi]'; 
 opts.TolX = 1e-9;
-opts.TolFun = 0.01;
+opts.TolFun = 0.0001;
 opts.SaveVariables = 'off';
 opts.MaxIter = 500;
 opts.DispFinal = 'off';
 opts.DispModulo = inf;
+TMean = TMean(:);
+rangeT = rangeT(:);
 
 TMean(TMean > opts.UBounds) = opts.UBounds(TMean > opts.UBounds);
 TMean(TMean < opts.LBounds) = opts.LBounds(TMean < opts.LBounds);

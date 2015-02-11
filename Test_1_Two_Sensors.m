@@ -11,13 +11,14 @@ scansTimeRange = 100;
 
 %number of times to perform test
 reps = 10;
+%bootNum = 100;
 
 %samples
-timeSamples = 10000;
-samples = 5000;
+timeSamples = 100000;
+samples = 2000;
 
 %% load sensor data
-sensorData = LoadSensorData('Kitti', 'Vel', 'Cam1');
+sensorData = LoadSensorData('Kitti', 'Vel', 'Nav', 'Cam1', 'Cam2');
 
 %% fix timestamps
 [sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);

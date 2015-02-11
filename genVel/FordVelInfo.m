@@ -35,7 +35,7 @@ velData.folder = [fordPath '/Processed/velodyne/'];
 velData.files = dir([velData.folder,'*.ply']);
 
 %timestamps
-velData.time = readTimeData([fordPath '/Processed/velodyne/timestamps.bin']);
+velData.time = ReadTimeData([fordPath '/Processed/velodyne/timestamps.bin']);
    
 end
         

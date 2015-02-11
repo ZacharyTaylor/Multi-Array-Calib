@@ -11,14 +11,14 @@ function [ tranVar, rotVar ] = bootTform( sensorData, tranVec, rotVec, numBoot )
         bootIdx = datasample((1:size(sensorData{1}.T_Skm1_Sk,1))',size(sensorData{1}.T_Skm1_Sk,1));
         for j = 1:size(sensorData,1)
             sensorDataB{j}.T_Skm1_Sk = sensorData{j}.T_Skm1_Sk(bootIdx,:);
-            sensorDataB{j}.T_Cov_Skm1_Sk = sensorData{j}.T_Cov_Skm1_Sk(bootIdx,:);
+            sensorDataB{j}.T_Var_Skm1_Sk = sensorData{j}.T_Var_Skm1_Sk(bootIdx,:);
         end
 
-        rotVar(:,:,i) = roughR(sensorDataB);
-        tranVar(:,:,i) = roughT(sensorDataB, rotVar(:,:,i));
+        rotVar(:,:,i) = RoughR(sensorDataB);
+        tranVar(:,:,i) = RoughT(sensorDataB, rotVar(:,:,i));
         
-        %rotVar(:,:,i) = optR(sensorDataB, rotVec);
-        %tranVar(:,:,i) = optT(sensorDataB, tranVec, rotVar(:,:,i));
+        %rotVar(:,:,i) = OptR(sensorDataB, rotVec);
+        %tranVar(:,:,i) = OptT(sensorDataB, tranVec, rotVar(:,:,i));
 
     end
 

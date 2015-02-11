@@ -8,7 +8,7 @@ warning('off','images:initSize:adjustingMag');
 %load images
 images = cell(matchNum,2);
 
-G = fspecial('gaussian',[50 50],3);
+G = fspecial('gaussian',[50 50],2);
 
 %previous image
 for j = 1:matchNum
@@ -17,11 +17,10 @@ for j = 1:matchNum
         images{j,1} = rgb2gray(images{j,1});
     end
     
-    [x,y] = gradient(double(images{j,1}));
-    images{j,1} = sqrt(x.^2 + y.^2);
+    images{j,1} = imfilter(double(images{j,1}),G,'same');
+    %images{j,1} = imgradient(images{j,1});
+    %images{j,1} = images{j,1}./max(images{j,1}(:));
     images{j,1} = MyHistEq(images{j,1})*255;
-    
-    images{j,1} = imfilter(images{j,1},G,'same');
     
     if(isfield(cam,'mask'))
         images{j,1}(~cam.mask) = 0;
@@ -38,11 +37,10 @@ for j = 1:matchNum
         images{j,2} = rgb2gray(images{j,2});
     end
     
-    [x,y] = gradient(double(images{j,2}));
-    images{j,2} = sqrt(x.^2 + y.^2);
+    images{j,2} = imfilter(double(images{j,2}),G,'same');
+    %images{j,2} = imgradient(images{j,2});
+    %images{j,2} = images{j,2}./max(images{j,2}(:));
     images{j,2} = MyHistEq(images{j,2})*255;
-    
-    images{j,2} = imfilter(images{j,2},G,'same');
     
     if(isfield(cam,'mask'))
         images{j,2}(~cam.mask) = 0;
@@ -83,6 +81,8 @@ for i = 1:matchNum
     
     tStartFrac = (double(cam.time(dataNum(i)-1)-tPrev))/(tCurr - tPrev);
     tEndFrac = (double(cam.time(dataNum(i))-tPrev))/(tCurr - tPrev);
+    %tStartFrac = 0;
+    %tEndFrac = 1;
     
     %combine
     points = [points + tStartFrac*dPoints, points + tEndFrac*dPoints, intensity];
@@ -95,6 +95,7 @@ end
 rangeT = sqrt(TVar);
 
 opts.LBounds = [-3,-3,-3,-pi/2,-pi/2,-pi]'; opts.UBounds = [3,3,3,pi/2,pi/2,pi]'; 
+%opts.LBounds = [-3,-3,-3]'; opts.UBounds = [3,3,3]'; 
 opts.TolX = 1e-9;
 opts.TolFun = 0.0001;
 opts.SaveVariables = 'off';
@@ -109,7 +110,10 @@ TMean(TMean < opts.LBounds) = opts.LBounds(TMean < opts.LBounds);
 %TMean(1:3) = 0;
 rangeT(rangeT > 0.7*opts.UBounds) = 0.7*opts.UBounds(rangeT > 0.7*opts.UBounds);
 
-TOut = cmaes(@(tform) runFlowMetric( tform, K, scans, images, invert ), TMean, rangeT, opts);
+TMean(1:3) = 0;
+rangeT(1:3) = 0.5;
+
+TOut = cmaes(@(tform) runFlowMetric( tform, K, scans, images, invert), TMean,rangeT, opts);
 
 TOut = TOut(:);
 

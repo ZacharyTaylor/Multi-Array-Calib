@@ -60,7 +60,7 @@ tFracPrev = tFracPrev(idx);
 velPrev = VelCorrect(velPrev, tFracPrev, tformPrev);
 
 %find transformation
-tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.5,'point_to_point');
+tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',1,'point_to_plane');
 tform = T2V(inv(tform));
 
 %bootstrap scans
@@ -73,7 +73,7 @@ for i = 1:bootnum
     subVelPrev = datasample(velPrev,numPoints);
 
     %find bootstrap tform
-    tformVar(i,:) = T2V(inv(icpMex(subVelPrev',subVelCurr',inv(V2T(tform)),subTFracCurr',0.5,'point_to_point')))';
+    tformVar(i,:) = T2V(inv(icpMex(subVelPrev',subVelCurr',inv(V2T(tform)),subTFracCurr',1,'point_to_point')))';
 end
 
 %find variance

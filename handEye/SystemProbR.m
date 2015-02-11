@@ -60,9 +60,9 @@ for a = 1:length(sensorData)
             
             %find weighted error
             temp = cprobR(err, VA, VB, Rab);
-            
-            %temp = sum(sqrt(temp(:)));
-            temp = sqrt(sum(temp(:)));
+            temp = sum(temp);
+            temp = sum(sqrt(temp));
+            %temp = sqrt(sum(temp(:)));
             
             %add error
             prob = prob + temp;

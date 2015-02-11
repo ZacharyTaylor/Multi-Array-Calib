@@ -13,8 +13,8 @@ scansTimeRange = 200;
 reps = 10;
 
 %samples
-timeSamples = 10000;
-samples = 1000;
+timeSamples = 100000;
+samples = 500;
 
 
 %% load sensor data
@@ -59,7 +59,7 @@ for w = 1:reps
     
     %refine transforms using metrics
     fprintf('Refining transformations\n');
-    [tGridR, vGridR] = metricRefine(tGrid, vGrid, sDataBase,0.1,20);
+    [tGridR, vGridR] = metricRefine(tGrid, vGrid, sDataBase,0.1,10);
     
     %correct for differences in grid
     fprintf('Combining results\n');

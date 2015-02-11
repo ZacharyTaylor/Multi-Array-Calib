@@ -27,7 +27,7 @@ camData = struct;
 %check inputs
 validateattributes(fordPath,{'char'},{'vector'});
 validateattributes(idx,{'numeric'},{'scalar','integer','positive','nonzero'});
-if(~exist(fordPath,7))
+if(~exist(fordPath,'dir'))
     error('%s is not a valid directory');
 end
 
@@ -85,7 +85,7 @@ switch idx
 end
 
 %timestamps
-camData.time = readTimeData([fordPath '/Processed/ladybug/timestamps.bin']);
+camData.time = ReadTimeData([fordPath '/Processed/ladybug/timestamps.bin']);
    
 end
         

@@ -12,6 +12,7 @@ idx = knnsearch(sphere(:,1:2),sphere(:,1:2),'k',9);
 
 dis = abs(sphere(:,3) - mean(reshape(sphere(idx(:),3),size(idx)),2))./sphere(:,3);
 
+cloud = [cloud, dis];
 points = cloud(dis > 0.03,:);
 
 %remove centre points to stop wrap round issue

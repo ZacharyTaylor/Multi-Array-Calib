@@ -3,15 +3,13 @@
 
 %% user set variables
 
-%dataset type
-dataset = 'Shrimp';
-
 %path to data
-dataPath = '/home/z/Documents/Datasets/Shrimp/high-clutter-2/';
-%dataPath = '/home/z/Documents/Datasets/Kitti/2011_10_03_drive_0027_extract/';
+dataPath = '/home/z/Documents/Datasets/IJRR-Dataset-1/'; dataset = 'Ford';
+%dataPath = '/home/z/Documents/Datasets/Shrimp/high-clutter-2/'; dataset = 'Shrimp';
+%dataPath = '/home/z/Documents/Datasets/Kitti/2011_10_03_drive_0027_extract/'; dataset = 'Kitti';
 
 %Sets if the sensor transforms will be plotted
-plotTforms = false;
+plotTforms = true;
 
 %% setup folders
 
@@ -34,7 +32,7 @@ parfor i = 1:8
     switch i
         case 1
             kittiVelData = GenVel(dataPath, plotTforms, [], dataset);
-            parsave('kittiVelData.mat', kittiVelData, 'velData');
+            parsave([dataset 'VelData.mat'], kittiVelData, 'velData');
         case 2
             %NavData = GenNav(dataPath, plotTforms, [], dataset);
             %parsave([dataset 'NavData.mat'], NavData, 'navData'); 

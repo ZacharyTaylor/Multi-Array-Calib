@@ -64,8 +64,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         
         //get probability
         double* probOut = &prob[3*i];
-        probOut[0] = invV[0]*e[0] + invV[3]*e[1] + invV[6]*e[2];
-        probOut[1] = invV[1]*e[0] + invV[4]*e[1] + invV[7]*e[2];
-        probOut[2] = invV[2]*e[0] + invV[5]*e[1] + invV[8]*e[2];
+        //probOut[0] = invV[0]*e[0] + invV[3]*e[1] + invV[6]*e[2];
+        //probOut[1] = invV[1]*e[0] + invV[4]*e[1] + invV[7]*e[2];
+        //probOut[2] = invV[2]*e[0] + invV[5]*e[1] + invV[8]*e[2];
+        probOut[0] = invV[0]*e[0];
+        probOut[1] = invV[4]*e[1];
+        probOut[2] = invV[8]*e[2];
     }
 }

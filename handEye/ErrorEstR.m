@@ -41,9 +41,13 @@ for b = 2:length(sensorData)
 
     estA = sensorData{1}.T_Skm1_Sk(:,4:6)';
     estB = sensorData{b}.T_Skm1_Sk(:,4:6)';
+    
+    varA = sensorData{1}.T_Var_Skm1_Sk(:,4:6)';
+    varB = sensorData{b}.T_Var_Skm1_Sk(:,4:6)';
 
     err = Rab*estA - estB;
-    err = diag(var(err'))/(estA*estA');
+    %err = diag(var(err'))/(estA*estA');
+    err = (varA*varA')/(estA*estA');
     varVec(b,:) = diag(err);
 end
 

@@ -138,9 +138,9 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
         eB = RB - T_Ckm1_Ck(1:3,1:3); eB = sum(eB(:).^2);
         
         if (eB > eA)
-            T_Cov_Ckm1_Ck(i,:) = tran2vec([RA,T;[0,0,0,1]]);
+            T_Cov_Ckm1_Ck(i,:) = T2V([RA,T;[0,0,0,1]]);
         else
-            T_Cov_Ckm1_Ck(i,:) = tran2vec([RB,T;[0,0,0,1]]);
+            T_Cov_Ckm1_Ck(i,:) = T2V([RB,T;[0,0,0,1]]);
         end
     end
     T_Cov_Ckm1_Ck = var(T_Cov_Ckm1_Ck);
@@ -149,7 +149,7 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
     badPoints = or(sqrt(sum(points.^2,2)) > 1000, points(:,3) < 0);
     inliers(badPoints) = 0;
     
-    T_Ckm1_Ck = tran2vec(T_Ckm1_Ck);
+    T_Ckm1_Ck = T2V(T_Ckm1_Ck);
 end
 
 function [points] = getPoints(mNew,mOld,T,K)

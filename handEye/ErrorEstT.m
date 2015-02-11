@@ -61,8 +61,8 @@ for b = 1:length(sensorData)
         Rab = Tab(1:3,1:3);
         temp = Tab(1:3,4);
 
-        VA = sensorData{a}.T_Var_Skm1_Sk(:,1:3)';
-        VB = sensorData{b}.T_Var_Skm1_Sk(:,1:3)';
+        varA = sensorData{a}.T_Var_Skm1_Sk(:,1:3)';
+        varB = sensorData{b}.T_Var_Skm1_Sk(:,1:3)';
 
         estA = sensorData{a}.T_Skm1_Sk(:,1:3)';
         estB = sensorData{b}.T_Skm1_Sk(:,1:3)';
@@ -78,6 +78,7 @@ for b = 1:length(sensorData)
 
         if(strcmp(sensorData{a}.type,'camera'))
             if(strcmp(sensorData{b}.type,'camera'))
+                continue;
                 temp = (estA(1,:).^2.*estB(2,:).^2 + estA(1,:).^2.*estB(3,:).^2 - 2.*estA(1,:).*estA(2,:).*estB(1,:).*estB(2,:) - 2.*estA(1,:).*estA(3,:).*estB(1,:).*estB(3,:) + estA(2,:).^2.*estB(1,:).^2 + estA(2,:).^2.*estB(3,:).^2 - 2.*estA(2,:).*estA(3,:).*estB(2,:).*estB(3,:) + estA(3,:).^2.*estB(1,:).^2 + estA(3,:).^2.*estB(2,:).^2);
 
                 tempA = sum(estA.*[err(1,:).*estB(2,:).^2 - estB(1,:).*err(2,:).*estB(2,:) + err(1,:).*estB(3,:).^2 - estB(1,:).*err(3,:).*estB(3,:); err(2,:).*estB(1,:).^2 - estB(2,:).*err(1,:).*estB(1,:) + err(2,:).*estB(3,:).^2 - estB(2,:).*err(3,:).*estB(3,:); err(3,:).*estB(1,:).^2 - estB(3,:).*err(1,:).*estB(1,:) + err(3,:).*estB(2,:).^2 - estB(3,:).*err(2,:).*estB(2,:)])./temp;
@@ -96,7 +97,7 @@ for b = 1:length(sensorData)
                 temp = sum(err.*estA)./sum(estA.^2);
                 temp = repmat(temp,3,1);
 
-                VA = abs(temp).*VA;
+                varA = abs(temp).*varA;
                 err = err - temp.*estA;  
             end
 
@@ -106,13 +107,14 @@ for b = 1:length(sensorData)
             temp = sum(err.*estB)./sum(estB.^2);
             temp = repmat(temp,3,1);
 
-            VB = abs(temp).*VB;
+            varB = abs(temp).*varB;
             err = err - temp.*estB;    
         else               
             err = estAB' + estA + estB;
         end
 
-        err = diag(var(err'))/(estAB'*estAB);
+        err = (var*var')/(estA*estA');
+        %err = diag(var(err'))/(estAB'*estAB);
         varVec(b,:) = diag(err);
 
     end

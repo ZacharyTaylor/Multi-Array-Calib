@@ -58,6 +58,7 @@ for i = 1:length(Mag)
 
     %histogram equalize
     Mag{i} = MyHistEq(Mag{i});
+    
     %remove bias
     Mag{i} = (Mag{i} - mean(Mag{i})) / std(Mag{i});
 end
@@ -70,7 +71,8 @@ x = zeros(size(P,1)+1,length(Mag));
 %for every sensor pair
 for i = 1:size(P,1)
     %find offset between sensors
-    temp = wncc(Mag{P(i,1)},Mag{P(i,2)},(Var{P(i,1)}+Var{P(i,2)}));
+    %temp = wncc(Mag{P(i,1)},Mag{P(i,2)},(Var{P(i,1)}+Var{P(i,2)}));
+    temp = wncc(Mag{P(i,1)},Mag{P(i,2)},ones(1,samples));
     [val,idx] = imax(temp);
     v(i) = val*(ceil(samples/2) - idx);
     x(i,P(i,1)) =val;

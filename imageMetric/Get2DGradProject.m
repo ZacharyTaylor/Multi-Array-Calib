@@ -29,7 +29,7 @@ img(~isfinite(img(:))) = 0;
 
 img = MyHistEq(img);
 
-G = fspecial('gaussian',[50 50],0.3);
+G = fspecial('gaussian',[50 50],1);
 img = imfilter(img,G,'same');
 
 %find gradients

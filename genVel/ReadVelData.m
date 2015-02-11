@@ -37,14 +37,16 @@ ext = velFile(end-2:end);
 switch(lower(ext))
     case('ply')
         %read in ply data
-        data = ply_read(velFile);
+        data = ReadPly(velFile);
         xyz = [data.vertex.x, data.vertex.y, data.vertex.z];
         intensity = data.vertex.intensity;
         time = data.vertex.timeOffset;
         valid = data.vertex.valid > 0;
         
+        intensity = intensity./max(intensity);
+        
         %get valid sections
-        xyz = xyz(valid);
+        xyz = xyz(valid,:);
         intensity = intensity(valid);
         time = time(valid);
         
@@ -80,7 +82,7 @@ switch(lower(ext))
         
         %throw away ends of scans (timing too unreliable)
         xyz = xyz(valid,:);
-        intensity = intensity(valid);
+        intensity = intensity(valid,:);
         timeFrac = timeFrac(valid);
         
     otherwise

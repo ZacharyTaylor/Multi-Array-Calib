@@ -112,6 +112,12 @@ for frame = 2:size(velData.files,1)
     %generate absolute transformations
     velData.T_S1_Sk(frame,:) = T2V(V2T(velData.T_S1_Sk(frame-1,:))*V2T(velData.T_Skm1_Sk(frame,:)));
     velData.T_Var_S1_Sk(frame,:) = velData.T_Var_S1_Sk(frame-1,:) + velData.T_Var_Skm1_Sk(frame,:);
+    
+    %plot
+    if(plotVel)
+        plot3(velData.T_S1_Sk(frame-1:frame,1),velData.T_S1_Sk(frame-1:frame,2),velData.T_S1_Sk(frame-1:frame,3));
+        drawnow;
+    end
 end
 
 fprintf('\n');

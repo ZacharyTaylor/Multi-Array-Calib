@@ -29,14 +29,14 @@ for i = 1:size(scans,1)
     pro1 = interpolateImageUint8(images{i,1}, pro1c(:,1:2));
     pro2 = interpolateImageUint8(images{i,2}, pro2c(:,1:2));
     
-    %valid = and(pro1>0,pro2>0);
+    valid = and(pro1>0,pro2>0);
     
-    err = (pro1(:)-pro2(:)).^2;
+    err = (pro1(valid)-pro2(valid)).^2;
     
     %err = sort(err);
     %err = err(1:round(size(err,1)*0.9));
     
-    err = mean(err(isfinite(err)));
+    err = median(err(isfinite(err)));
     
     error(i) = gather(err);
     if(isnan(error(i)))
