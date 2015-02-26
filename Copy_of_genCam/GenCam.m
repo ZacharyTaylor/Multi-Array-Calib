@@ -100,11 +100,11 @@ end
 image = imread([camData.folder camData.files(1).name]); 
 if(size(image,3) == 3)
     image = rgb2gray(image);
+    image = Undistort(image, camData.D, camData.K);
 end
-image = Undistort(image, camData.D, camData.K);
 
 %find the transforms for each image
-for frame = 2:(size(camData.files,1)-1)
+for frame = 2:size(camData.files,1)
 
     UpdateMessage('Finding Transform for image %i of %i for camera %i', frame,size(camData.files,1),idx);
 
@@ -114,21 +114,16 @@ for frame = 2:(size(camData.files,1)-1)
     image = imread([camData.folder camData.files(frame).name]); 
     if(size(image,3) == 3)
         image = rgb2gray(image);
+        image = Undistort(image, camData.D, camData.K);
     end
-    image = Undistort(image, camData.D, camData.K);
-    imageNext = imread([camData.folder camData.files(frame+1).name]); 
-    if(size(imageNext,3) == 3)
-        imageNext = rgb2gray(imageNext);
-    end
-    imageNext = Undistort(imageNext, camData.D, camData.K);
 
     %find transformation
-    %try
-        [camData.T_Skm1_Sk(frame,:), camData.T_Var_Skm1_Sk(frame,:)] = GetCamTform3(imageOld, image, imageNext, camData.mask, camData.K);
-    %catch
-    %    camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
-    %    camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
-    %end
+    try
+        [camData.T_Skm1_Sk(frame,:), camData.T_Var_Skm1_Sk(frame,:)] = GetCamTform(image, imageOld, [], camData.mask, camData.K,50000);
+    catch
+        camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
+        camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
+    end
        
     %generate absolute transformations
     camData.T_S1_Sk(frame,:) = T2V(V2T(camData.T_S1_Sk(frame-1,:))*V2T(camData.T_Skm1_Sk(frame,:)));

@@ -57,7 +57,7 @@ valid = and(valid,all(Var < 1,2));
 %get points that move at a speed of at least minMove
 valid = and(valid,all((Mag./times) > minMove,2));
 
-%get points with negitive variance
+%get points with non-positve variance
 for i = 1:size(sensorData,1)
     valid = and(valid,all(sensorData{i}.T_Var_Skm1_Sk > 0,2));
 end

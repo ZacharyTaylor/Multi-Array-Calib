@@ -39,6 +39,8 @@ pNew = pNew(notMasked,:);
 
 points = [pOld;pNew];
 
+[ var ] = EstPointVar( image, points )
+
 pointTracker = vision.PointTracker('MaxBidirectionalError', 2);
 initialize(pointTracker, points, imageOld);
 [pointsOut, matches] = step(pointTracker, image);
@@ -46,8 +48,6 @@ release(pointTracker);
 
 points = points(matches,:);
 pointsOut = pointsOut(matches,:);
-
-pointsVar = EstPointVar( image, pointsOut );
 
 [T_Ckm1_Ck, T_Cov_Ckm1_Ck, ~, inliers] = getTandPoints(pointsOut,points,K);
 

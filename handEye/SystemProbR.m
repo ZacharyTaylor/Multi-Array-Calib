@@ -56,13 +56,14 @@ for a = 1:length(sensorData)
             
             %find position error
             err = Rab*estA - estB;
-            err = err.^2;
+            %err = err.^2;
             
             %find weighted error
-            temp = cprobR(err, VA, VB, Rab);
-            temp = sum(temp);
-            temp = sum(sqrt(temp));
+            %temp = cprobR(err, VA, VB, Rab);
+            %temp = sum(temp);
+            %temp = sum(sqrt(temp));
             %temp = sqrt(sum(temp(:)));
+            temp = -logpdf(err,VA,VB,Rab);
             
             %add error
             prob = prob + temp;

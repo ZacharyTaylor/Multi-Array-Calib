@@ -1,4 +1,4 @@
-function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, matches, points, pointsOut] = GetCamTform( image, imageOld, pOld, mask, K, maxPoints )
+function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, scale, scaleV] = GetCamTform3( im1, im2, im3, mask, K )
 %GENCAM Gets normalized camera transform given two images and K
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -29,44 +29,42 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, matches, points, pointsOut] = GetCamTform( i
 %   zacharyjeremytaylor@gmail.com
 %   http://www.zjtaylor.com
 
-%detect features in images
-pNew = detectMinEigenFeatures(imageOld);
-pNew = pNew.Location;
+%detect features in first image
+points = detectMinEigenFeatures(im1);
+points = points.Location;
 
 %mask points
-notMasked = mask(round(pNew(:,2))+size(mask,1)*(round(pNew(:,1))-1)) ~= 0;
-pNew = pNew(notMasked,:);
+notMasked = mask(round(points(:,2))+size(mask,1)*(round(points(:,1))-1)) ~= 0;
+points = points(notMasked,:);
 
-points = [pOld;pNew];
-
-pointTracker = vision.PointTracker('MaxBidirectionalError', 2);
-initialize(pointTracker, points, imageOld);
-[pointsOut, matches] = step(pointTracker, image);
+%track points
+pointTracker = vision.PointTracker('MaxBidirectionalError', 1);
+initialize(pointTracker, points, im1);
+[points2, ~] = step(pointTracker, im2);
+[points3, ~] = step(pointTracker, im3);
+[points1, matches] = step(pointTracker, im1);
 release(pointTracker);
 
+%get matching points
+matches = and(matches,sum((points1-points).^2,2)<1);
 points = points(matches,:);
-pointsOut = pointsOut(matches,:);
+points2 = points2(matches,:);
+points3 = points3(matches,:);
 
-pointsVar = EstPointVar( image, pointsOut );
+[T_Ckm1_Ck, T_Cov_Ckm1_Ck, p12, inliers] = getTandPoints(points2,points,K);
+points = points(inliers,:); points2 = points2(inliers,:); points3 = points3(inliers,:);
+[~,~, p23, inliers] = getTandPoints(points3,points2,K);
+p12 = p12(inliers,:);
 
-[T_Ckm1_Ck, T_Cov_Ckm1_Ck, ~, inliers] = getTandPoints(pointsOut,points,K);
-
-matches(matches)  = inliers;
-matches = matches(1:size(pOld,1));
-points = points(inliers,:);
-pointsOut = pointsOut(inliers,:);
-
-if(size(points,1) > maxPoints)
-    points = points(1:maxPoints,:);
-    pointsOut = pointsOut(1:maxPoints,:);
-end
-
+scale = sqrt(sum(p12(:,4:6).^2,2))./sqrt(sum(p23(:,1:3).^2,2));
+scaleV = var(scale);
+scale = mean(scale);
 end
 
 function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K)
 
     %get fundemental matrix
-    [F, inliers] = estimateFundamentalMatrix(mOld,mNew,'NumTrials',500,'DistanceThreshold',0.001);
+    [F, inliers] = estimateFundamentalMatrix(mOld,mNew,'Method','MSAC','DistanceThreshold',0.01);
     mOld = mOld(inliers,:);
     mNew = mNew(inliers,:);
     
@@ -153,6 +151,7 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
     %filter out negitive and distant point matches
     badPoints = or(sqrt(sum(points.^2,2)) > 1000, points(:,3) < 0);
     inliers(badPoints) = 0;
+    points = points(~badPoints,:);
     
     T_Ckm1_Ck = T2V(T_Ckm1_Ck);
 end

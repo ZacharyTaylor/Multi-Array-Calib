@@ -18,7 +18,7 @@ timeSamples = 100000;
 samples = 2000;
 
 %% load sensor data
-sensorData = LoadSensorData('Shrimp', 'Vel','Cam1');
+sensorData = LoadSensorData('Shrimp', 'Vel', 'Cam2');
 
 %% fix timestamps
 [sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
@@ -63,12 +63,12 @@ for w = 1:reps
         %find rotation
         rotVec = RoughR(sData);
         rotVec = OptR(sData, rotVec);
-        rotVar = ErrorEstCR(sData, rotVec, 0.001);
+        %rotVar = ErrorEstR(sensorData, rotVec);
         
         %find translation
         tranVec = RoughT(sData, rotVec);
         tranVec = OptT(sData, tranVec, rotVec);
-        tranVar = ErrorEstCRT(sData, tranVec, rotVec,0.001);
+        %tranVar = ErrorEstT(sData, tranVec, rotVec);
 
         %bootstrap
         %[tranVar, rotVar] = bootTform(sData, tranVec, rotVec, bootNum);

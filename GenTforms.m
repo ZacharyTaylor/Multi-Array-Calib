@@ -4,9 +4,9 @@
 %% user set variables
 
 %path to data
-dataPath = '/home/z/Documents/Datasets/IJRR-Dataset-1/'; dataset = 'Ford';
+%dataPath = '/home/z/Documents/Datasets/IJRR-Dataset-1/'; dataset = 'Ford';
 %dataPath = '/home/z/Documents/Datasets/Shrimp/high-clutter-2/'; dataset = 'Shrimp';
-%dataPath = '/home/z/Documents/Datasets/Kitti/2011_10_03_drive_0027_extract/'; dataset = 'Kitti';
+dataPath = '/home/z/Documents/Datasets/Kitti/2011_10_03_drive_0027_extract/'; dataset = 'Kitti';
 
 %Sets if the sensor transforms will be plotted
 plotTforms = true;
@@ -28,7 +28,7 @@ addpath('./handEye');
 %% process sensors
 
 %do things in parrallel to save time
-parfor i = 1:8
+for i = 3:8
     switch i
         case 1
             kittiVelData = GenVel(dataPath, plotTforms, [], dataset);
