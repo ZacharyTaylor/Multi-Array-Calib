@@ -87,7 +87,7 @@ camData.T_S1_Sk = zeros(size(camData.files(:),1),6);
 
 camData.T_Var_Skm1_Sk = zeros(size(camData.files(:),1),6);
 camData.T_Var_S1_Sk = zeros(size(camData.files(:),1),6);
-camData.T_Var_Skm1_Sk(1,:) = 1000*ones(1,6);
+camData.T_Var_Skm1_Sk(1:2,:) = 1000*ones(2,6);
 
 %setup for plotting
 if(plotCam)
@@ -101,13 +101,21 @@ image = imread([camData.folder camData.files(1).name]);
 if(size(image,3) == 3)
     image = rgb2gray(image);
 end
+imageOld = Undistort(image, camData.D, camData.K);
+
+%load the second image
+image = imread([camData.folder camData.files(2).name]); 
+if(size(image,3) == 3)
+    image = rgb2gray(image);
+end
 image = Undistort(image, camData.D, camData.K);
 
 %find the transforms for each image
-for frame = 2:(size(camData.files,1)-1)
+for frame = 3:size(camData.files,1)
 
     UpdateMessage('Finding Transform for image %i of %i for camera %i', frame,size(camData.files,1),idx);
 
+    imageOldest = imageOld;
     imageOld = image;
     
     %read new data
@@ -116,19 +124,14 @@ for frame = 2:(size(camData.files,1)-1)
         image = rgb2gray(image);
     end
     image = Undistort(image, camData.D, camData.K);
-    imageNext = imread([camData.folder camData.files(frame+1).name]); 
-    if(size(imageNext,3) == 3)
-        imageNext = rgb2gray(imageNext);
-    end
-    imageNext = Undistort(imageNext, camData.D, camData.K);
 
     %find transformation
-    %try
-        [camData.T_Skm1_Sk(frame,:), camData.T_Var_Skm1_Sk(frame,:)] = GetCamTform3(imageOld, image, imageNext, camData.mask, camData.K);
-    %catch
-    %    camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
-    %    camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
-    %end
+    try
+        [camData.T_Skm1_Sk(frame,:), camData.T_Var_Skm1_Sk(frame,:)] = GetCamTform3(imageOldest,imageOld,image, camData.mask, camData.K);
+    catch
+        camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
+        camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
+    end
        
     %generate absolute transformations
     camData.T_S1_Sk(frame,:) = T2V(V2T(camData.T_S1_Sk(frame-1,:))*V2T(camData.T_Skm1_Sk(frame,:)));

@@ -28,7 +28,11 @@ validateattributes(vel,{'numeric'},{'2d'});
 if(size(vel,2) < 3)
     error('vel must have atleast 3 columns');
 end
-validateattributes(sub,{'numeric'},{'scalar','integer','positive','nonzero','<',size(vel,1)});
+if(size(vel,1) < sub)
+    subVel = vel;
+    idx = 1:size(vel,1);
+    return;
+end
 
 %get distance
 dist = sqrt(sum(vel(:,1:3).^2,2));

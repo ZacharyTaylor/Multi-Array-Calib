@@ -21,5 +21,5 @@
 
 mex('icpMex.cpp','../src/icp.cpp','../src/icpPointToPoint.cpp',...
     '../src/icpPointToPlane.cpp','../src/kdtree.cpp',...
-    '../src/matrix.cpp','-I../src','-IC:\Users\Zachary\Downloads\boost_1_55_0');
-mex('sparsifyMex.cpp','../src/kdtree.cpp','-I../src','-IC:\Users\Zachary\Downloads\boost_1_55_0');
+    '../src/matrix.cpp','-I../src','-IC:\boost');
+mex('sparsifyMex.cpp','../src/kdtree.cpp','-I../src','-IC:\boost');

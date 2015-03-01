@@ -1,4 +1,4 @@
-function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, scale, scaleV] = GetCamTform3( im1, im2, im3, mask, K )
+function [T_Ckm1_Ck, T_Cov_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
 %GENCAM Gets normalized camera transform given two images and K
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -51,20 +51,24 @@ points = points(matches,:);
 points2 = points2(matches,:);
 points3 = points3(matches,:);
 
-[T_Ckm1_Ck, T_Cov_Ckm1_Ck, p12, inliers] = getTandPoints(points2,points,K);
-points = points(inliers,:); points2 = points2(inliers,:); points3 = points3(inliers,:);
-[~,~, p23, inliers] = getTandPoints(points3,points2,K);
+[~,~, p12, inliers] = getTandPoints(points2,points,K);
+points2 = points2(inliers,:); points3 = points3(inliers,:);
+[T_Ckm1_Ck, T_Cov_Ckm1_Ck, p23, inliers] = getTandPoints(points3,points2,K);
 p12 = p12(inliers,:);
 
 scale = sqrt(sum(p12(:,4:6).^2,2))./sqrt(sum(p23(:,1:3).^2,2));
-scaleV = var(scale);
-scale = mean(scale);
+
+%reject silly points
+scale = scale(and(scale > 0.5, scale < 2));
+
+T_Cov_Ckm1_Ck(3) = var(scale);
+T_Ckm1_Ck(3) = T_Ckm1_Ck(3)*mean(scale);
 end
 
 function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K)
 
     %get fundemental matrix
-    [F, inliers] = estimateFundamentalMatrix(mOld,mNew,'Method','MSAC','DistanceThreshold',0.01);
+    [F, inliers] = estimateFundamentalMatrix(mOld,mNew);%,'Method','MSAC','DistanceThreshold',0.01);
     mOld = mOld(inliers,:);
     mNew = mNew(inliers,:);
     
@@ -150,7 +154,8 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
     
     %filter out negitive and distant point matches
     badPoints = or(sqrt(sum(points.^2,2)) > 1000, points(:,3) < 0);
-    inliers(badPoints) = 0;
+    in = find(inliers);
+    inliers(in(badPoints)) = 0;
     points = points(~badPoints,:);
     
     T_Ckm1_Ck = T2V(T_Ckm1_Ck);
