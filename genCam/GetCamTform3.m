@@ -1,11 +1,12 @@
-function [T_Ckm1_Ck, T_Cov_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
-%GENCAM Gets normalized camera transform given two images and K
+function [T_Ckm1_Ck, T_Var_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
+%GENCAMTFORM3 Gets normalized camera transform scaled with respect to the
+%   previous transformation given three images and K
 %--------------------------------------------------------------------------
 %   Required Inputs:
 %--------------------------------------------------------------------------
-%   image- n by m image
-%   fOld- features in previous image ([] if there is no previous image)
-%   pOld- points in previous image ([] if there is no previous image)
+%   im1- n by m image, the first of three images
+%   im2- n by m image, the second of three images
+%   im3- n by m image, the last of three images
 %   mask- n by m logical matrix. If zero points at this location will not
 %   be used( allows removal of parts of vechile in view)
 %   K- camera matrix
@@ -13,11 +14,11 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
 %--------------------------------------------------------------------------
 %   Outputs:
 %--------------------------------------------------------------------------
-%   T_Ckm1_Ck - normalized camera transform from previous image to image
-%   matches- matches between previous points matches(:,1) and new points
-%   matches(:,2)
-%   fNew- features in current image
-%   pNew- points in current image
+%   T_Ckm1_Ck - camera transformation vector from im2 to im3. The scale is
+%       estimated assuming the transformation vector from im1 to im2 has a
+%       magnitude of 1.
+%   T_Var_Ckm1_Ck - a vector giving the estimated variance of each element
+%       of T_Ckm1_Ck
 %
 %--------------------------------------------------------------------------
 %   References:
@@ -51,17 +52,20 @@ points = points(matches,:);
 points2 = points2(matches,:);
 points3 = points3(matches,:);
 
+%find transformation and 3d point positions
 [~,~, p12, inliers] = getTandPoints(points2,points,K);
 points2 = points2(inliers,:); points3 = points3(inliers,:);
-[T_Ckm1_Ck, T_Cov_Ckm1_Ck, p23, inliers] = getTandPoints(points3,points2,K);
+[T_Ckm1_Ck, T_Var_Ckm1_Ck, p23, inliers] = getTandPoints(points3,points2,K);
 p12 = p12(inliers,:);
 
+%estimate scale from 3d points
 scale = sqrt(sum(p12(:,4:6).^2,2))./sqrt(sum(p23(:,1:3).^2,2));
 
-%reject silly points
+%reject points assuming that speed will not more then double or halve in a frame
 scale = scale(and(scale > 0.5, scale < 2));
 
-T_Cov_Ckm1_Ck(3) = var(scale);
+%get mean and varinace of scale
+T_Var_Ckm1_Ck(3) = var(scale);
 T_Ckm1_Ck(3) = T_Ckm1_Ck(3)*mean(scale);
 end
 

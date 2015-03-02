@@ -1,13 +1,44 @@
 function [ T ] = V2T( V )
-%V2T converts 1x6 vector into 4x4 transformation matrix
-%   Inputs -
-%   V - 1x6 vector of form [x,y,z,rx,ry,rz] where x,y,z is the translation
-%   and rx,ry,rz is an angle-axis representation of the angle where the
-%   unit vector representing the axis has been multipled by the angle of
-%   rotation about it
+%V2T converts a 1x6 transformation vector into a 4x4 transformation matrix
+%--------------------------------------------------------------------------
+%   Required Inputs:
+%--------------------------------------------------------------------------
+%    V - 1x6 vector of form [nx,ny,s,rx,ry,rz] where nx,ny,s is the 
+%       translation. This is formed by converting the X,Y,Z position to
+%       a normalized vector + scale [nx,ny,nz,s]. This is multiplied by the
+%       sign of nz to give the final values. This system is now overdefined
+%       as the value of nz can be uniquely recovered given [nx,ny,s] and so
+%       is discarded.
 %
-%   Outputs -
-%   T - a standard 4x4 transformation matrix
+%       rx,ry,rz is an angle-axis representation of the angle where the
+%       unit vector representing the axis has been multipled by the angle 
+%       of rotation about it
+%
+%       while a little unconventional this vector was found to be a clean
+%       and compact way of representing transformation data that allowed
+%       easy use in hand-eye calibration and allowed clear representation
+%       of the unknown absolute scale of camera sensors
+%
+%--------------------------------------------------------------------------
+%   Outputs:
+%--------------------------------------------------------------------------
+%	T - a standard 4x4 transformation matrix
+%
+%--------------------------------------------------------------------------
+%   References:
+%--------------------------------------------------------------------------
+%   This function is part of the Multi-Array-Calib toolbox 
+%   https://github.com/ZacharyTaylor/Multi-Array-Calib
+%   
+%   This code was written by Zachary Taylor
+%   zacharyjeremytaylor@gmail.com
+%   http://www.zjtaylor.com
+%
+%   Some of the lines and ideas were originally borrowed from 
+%   http://asrl.utias.utoronto.ca/code/barfoot_tro14.zip and the paper
+%   "Associating Uncertainty with Three-Dimensional Poses for use in
+%   Estimation Problems". Though I belive apart from both representations
+%   using angle axis systems there is now little similarity
 
 validateattributes(V, {'numeric'},{'size',[1,6]});
 

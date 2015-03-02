@@ -37,9 +37,8 @@ function [ V ] = T2V( T )
 %   Some of the lines and ideas were originally borrowed from 
 %   http://asrl.utias.utoronto.ca/code/barfoot_tro14.zip and the paper
 %   "Associating Uncertainty with Three-Dimensional Poses for use in
-%   Estimation Problems". Though I belive apart from both representations
-%   using angle axis systems there is now little similarity
-
+%   Estimation Problems". Though I belive the representations 
+%
 validateattributes(T, {'numeric'},{'size',[4,4]});
 
 T = double(T);

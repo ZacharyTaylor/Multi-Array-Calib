@@ -25,7 +25,8 @@ function [ R ] = V2R( V )
 %   Some of the lines and ideas were originally borrowed from 
 %   http://asrl.utias.utoronto.ca/code/barfoot_tro14.zip and the paper
 %   "Associating Uncertainty with Three-Dimensional Poses for use in
-%   Estimation Problems".
+%   Estimation Problems". Though I belive apart from both representations
+%   using angle axis systems there is now little similarity
 
 validateattributes(V, {'numeric'},{'size',[1,3]});
 
