@@ -127,7 +127,11 @@ for frame = 3:size(camData.files,1)
 
     %find transformation
     try
-        [camData.T_Skm1_Sk(frame,:), camData.T_Var_Skm1_Sk(frame,:)] = GetCamTform3(imageOldest,imageOld,image, camData.mask, camData.K);
+        [temp, tempVar] = GetCamTform3(imageOldest,imageOld,image, camData.mask, camData.K);
+        temp(~isfinite(temp)) = 0;
+        tempVar(~isfinite(temp)) = 1000;
+        camData.T_Skm1_Sk(frame,:) = temp;
+        camData.T_Var_Skm1_Sk(frame,:) = tempVar;
     catch
         camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
         camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);

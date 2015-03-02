@@ -67,6 +67,13 @@ scale = scale(and(scale > 0.5, scale < 2));
 %get mean and varinace of scale
 T_Var_Ckm1_Ck(3) = var(scale);
 T_Ckm1_Ck(3) = T_Ckm1_Ck(3)*mean(scale);
+
+%ensure sample is of decent size
+if(length(scale) < 20)
+    T_Var_Ckm1_Ck(3) = 1000;
+    T_Ckm1_Ck(3) = 0;
+end
+
 end
 
 function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K)
