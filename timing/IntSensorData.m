@@ -41,11 +41,11 @@ end
 function[ sensorInt ] = IntData( sensorData, times )
     %setup ouput
     sensorInt = sensorData;
-    sensorInt.T_S1_Sk = zeros(length(times),6);
-    sensorInt.T_Skm1_Sk = zeros(length(times),6);
-    sensorInt.T_Skm1_Sk_raw = zeros(length(times),6);
-    sensorInt.T_Var_S1_Sk = zeros(length(times),6);
-    sensorInt.T_Var_Skm1_Sk = zeros(length(times),6);
+    sensorInt.T_S1_Sk = zeros(length(times),7);
+    sensorInt.T_Skm1_Sk = zeros(length(times),7);
+    sensorInt.T_Skm1_Sk_raw = zeros(length(times),7);
+    sensorInt.T_Var_S1_Sk = zeros(length(times),7);
+    sensorInt.T_Var_Skm1_Sk = zeros(length(times),7);
     sensorInt.time = times(:);
     if(length(sensorInt.files) > 1)
         sensorInt.files = repmat(sensorInt.files(1),length(times),1);

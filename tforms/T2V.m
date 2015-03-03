@@ -8,21 +8,13 @@ function [ V ] = T2V( T )
 %--------------------------------------------------------------------------
 %   Outputs:
 %--------------------------------------------------------------------------
-%   V - 1x6 vector of form [nx,ny,s,rx,ry,rz] where nx,ny,s is the 
+%    V - 1x7 vector of form [nx,ny,nz,s,rx,ry,rz] where [nx,ny,nz,s] is the 
 %       translation. This is formed by converting the X,Y,Z position to
-%       a normalized vector + scale [nx,ny,nz,s]. This is multiplied by the
-%       sign of nz to give the final values. This system is now overdefined
-%       as the value of nz can be uniquely recovered given [nx,ny,s] and so
-%       is discarded.
+%       a normalized vector + scale [nx,ny,nz,s].
 %
-%       rx,ry,rz is an angle-axis representation of the angle where the
+%       [rx,ry,rz] is an angle-axis representation of the angle where the
 %       unit vector representing the axis has been multipled by the angle 
 %       of rotation about it
-%
-%       while a little unconventional this vector was found to be a clean
-%       and compact way of representing transformation data that allowed
-%       easy use in hand-eye calibration and allowed clear representation
-%       of the unknown absolute scale of camera sensors
 %
 %--------------------------------------------------------------------------
 %   References:
@@ -44,8 +36,8 @@ validateattributes(T, {'numeric'},{'size',[4,4]});
 
 T = double(T);
 
-V(1:3) = [T(1:2,4)'/norm(T(1:3,4)),norm(T(1:3,4))]*sign(T(3,4));
-V(4:6) = R2V(T(1:3,1:3));
+V(1:4) = [T(1:3,4)'/norm(T(1:3,4)),norm(T(1:3,4))];
+V(5:7) = R2V(T(1:3,1:3));
 
 end
 

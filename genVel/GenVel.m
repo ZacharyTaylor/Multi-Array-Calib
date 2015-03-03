@@ -73,12 +73,12 @@ velData.files = velData.files(range);
 velData.time = velData.time(range);
 
 %preallocate memory
-velData.T_Skm1_Sk = zeros(size(velData.files(:),1),6);
-velData.T_S1_Sk = zeros(size(velData.files(:),1),6);
+velData.T_Skm1_Sk = zeros(size(velData.files(:),1),7);
+velData.T_S1_Sk = zeros(size(velData.files(:),1),7);
 
-velData.T_Var_Skm1_Sk = zeros(size(velData.files(:),1),6);
-velData.T_Var_S1_Sk = zeros(size(velData.files(:),1),6);
-velData.T_Var_Skm1_Sk(1,:) = 1000*ones(1,6);
+velData.T_Var_Skm1_Sk = zeros(size(velData.files(:),1),7);
+velData.T_Var_S1_Sk = zeros(size(velData.files(:),1),7);
+velData.T_Var_Skm1_Sk(1,:) = 1000*ones(1,7);
 
 %setup for plotting
 if(plotVel)
@@ -105,8 +105,8 @@ for frame = 2:size(velData.files,1)
     try
         [velData.T_Skm1_Sk(frame,:), velData.T_Var_Skm1_Sk(frame,:)] = GetVelTform(velCurr, velPrev, tCurr, tPrev, velData.T_Skm1_Sk(frame-1,:),20000,10);
     catch
-      velData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
-      velData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
+      velData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0,0];
+      velData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,7);
     end
        
     %generate absolute transformations

@@ -48,21 +48,21 @@ for a = 1:length(sensorData)
         if(a < b)
             %get rotation and variance
             Rab = estMat{b}*estMat{a}';
-            VA = sensorData{a}.T_Var_Skm1_Sk(:,4:6)';
-            VB = sensorData{b}.T_Var_Skm1_Sk(:,4:6)';
+            VA = sensorData{a}.T_Var_Skm1_Sk(:,5:7)';
+            VB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
             
-            estA = sensorData{a}.T_Skm1_Sk(:,4:6)';
-            estB = sensorData{b}.T_Skm1_Sk(:,4:6)';
+            estA = sensorData{a}.T_Skm1_Sk(:,5:7)';
+            estB = sensorData{b}.T_Skm1_Sk(:,5:7)';
             
             %find position error
             err = Rab*estA - estB;
-            %err = err.^2;
             
             %find weighted error
             %temp = cprobR(err, VA, VB, Rab);
             %temp = sum(temp);
             %temp = sum(sqrt(temp));
             %temp = sqrt(sum(temp(:)));
+            
             temp = -logpdf(err,VA,VB,Rab);
             
             %add error

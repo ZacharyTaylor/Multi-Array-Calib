@@ -36,8 +36,8 @@ times = Mag;
 
 %get angle magnitudes
 for i = 1:size(sensorData,1)
-    Mag(:,i) = sqrt(sum(sensorData{i}.T_Skm1_Sk(:,4:6).^2,2));
-    Var(:,i) = sum(sensorData{i}.T_Var_Skm1_Sk(:,4:6),2);
+    Mag(:,i) = sqrt(sum(sensorData{i}.T_Skm1_Sk(:,5:7).^2,2));
+    Var(:,i) = sum(sensorData{i}.T_Var_Skm1_Sk(:,5:7),2);
     
     temp = diff(double(sensorData{i}.time));
     times(:,i) = [temp(1);temp]/1000000;
@@ -60,6 +60,16 @@ valid = and(valid,all((Mag./times) > minMove,2));
 %get points with non-positve variance
 for i = 1:size(sensorData,1)
     valid = and(valid,all(sensorData{i}.T_Var_Skm1_Sk > 0,2));
+end
+
+%get imagniary points
+for i = 1:size(sensorData,1)
+    valid = and(valid,all(imag(sensorData{i}.T_Skm1_Sk) == 0,2));
+end
+
+%get nonfinite points
+for i = 1:size(sensorData,1)
+    valid = and(valid,all(isfinite(sensorData{i}.T_Skm1_Sk),2));
 end
 
 %turn valid into index

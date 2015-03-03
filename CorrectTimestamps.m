@@ -57,8 +57,8 @@ for i = 1:length(sensorData)
     t{i} = double(sensorData{i}.time);
     
     %get absolute angle magnitude
-    Mag{i} = sqrt(sum(sensorData{i}.T_S1_Sk(:,4:6).^2,2));
-    Var{i} = sqrt(sum(sensorData{i}.T_Var_S1_Sk(:,4:6).^2,2));
+    Mag{i} = sqrt(sum(sensorData{i}.T_S1_Sk(:,5:7).^2,2));
+    Var{i} = sqrt(sum(sensorData{i}.T_Var_S1_Sk(:,5:7).^2,2));
 end
 
 %find the timing offsets

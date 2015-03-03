@@ -30,6 +30,12 @@ function [T_Ckm1_Ck, T_Var_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
 %   zacharyjeremytaylor@gmail.com
 %   http://www.zjtaylor.com
 
+validateattributes(im1,{'numeric'},{'2d'});
+validateattributes(im2,{'numeric'},{'2d','size',size(im1)});
+validateattributes(im3,{'numeric'},{'2d','size',size(im1)});
+validateattributes(mask,{'logical'},{'2d','size',size(im1)});
+validateattributes(K,{'numeric'},{'size',[4,3]});
+
 %detect features in first image
 points = detectMinEigenFeatures(im1);
 points = points.Location;
@@ -65,18 +71,18 @@ scale = sqrt(sum(p12(:,4:6).^2,2))./sqrt(sum(p23(:,1:3).^2,2));
 scale = scale(and(scale > 0.5, scale < 2));
 
 %get mean and varinace of scale
-T_Var_Ckm1_Ck(3) = var(scale);
-T_Ckm1_Ck(3) = T_Ckm1_Ck(3)*mean(scale);
+T_Var_Ckm1_Ck(4) = var(scale);
+T_Ckm1_Ck(4) = T_Ckm1_Ck(4)*mean(scale);
 
 %ensure sample is of decent size
 if(length(scale) < 20)
-    T_Var_Ckm1_Ck(3) = 1000;
-    T_Ckm1_Ck(3) = 0;
+    T_Var_Ckm1_Ck(4) = 1000;
+    T_Ckm1_Ck(4) = 1;
 end
 
 end
 
-function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K)
+function [T_Ckm1_Ck, T_Var_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K)
 
     %get fundemental matrix
     [F, inliers] = estimateFundamentalMatrix(mOld,mNew);%,'Method','MSAC','DistanceThreshold',0.01);
@@ -123,7 +129,7 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
     T_Ckm1_Ck = T_Ckm1_Ck(:,:,idx);
     
     %sample data
-    T_Cov_Ckm1_Ck = zeros(100,6);
+    T_Var_Ckm1_Ck = zeros(100,7);
     for i = 1:100
         %get sampled points
         [mOBS,idx] = datasample(mOld,size(mOld,1));
@@ -156,12 +162,12 @@ function [T_Ckm1_Ck, T_Cov_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
         eB = RB - T_Ckm1_Ck(1:3,1:3); eB = sum(eB(:).^2);
         
         if (eB > eA)
-            T_Cov_Ckm1_Ck(i,:) = T2V([RA,T;[0,0,0,1]]);
+            T_Var_Ckm1_Ck(i,:) = T2V([RA,T;[0,0,0,1]]);
         else
-            T_Cov_Ckm1_Ck(i,:) = T2V([RB,T;[0,0,0,1]]);
+            T_Var_Ckm1_Ck(i,:) = T2V([RB,T;[0,0,0,1]]);
         end
     end
-    T_Cov_Ckm1_Ck = var(T_Cov_Ckm1_Ck);
+    T_Var_Ckm1_Ck = var(T_Var_Ckm1_Ck);
     
     %filter out negitive and distant point matches
     badPoints = or(sqrt(sum(points.^2,2)) > 1000, points(:,3) < 0);

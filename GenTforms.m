@@ -6,8 +6,8 @@
 %path to data
 %dataPath = '/home/z/Documents/Datasets/IJRR-Dataset-1/'; dataset = 'Ford';
 %dataPath = '/home/z/Documents/Datasets/Shrimp/high-clutter-2/'; dataset = 'Shrimp';
-%dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_10_03_drive_0027_extract\'; dataset = 'Kitti';
-dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_09_26_drive_0035_extract\'; dataset = 'Kitti';
+dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_10_03_drive_0027_extract\'; dataset = 'Kitti';
+%dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_09_26_drive_0035_extract\'; dataset = 'Kitti';
 
 %Sets if the sensor transforms will be plotted
 plotTforms = false;
@@ -22,33 +22,33 @@ parfor i = 1:8
     switch i
         case 1
             kittiVelData = GenVel(dataPath, plotTforms, [], dataset);
-            parsave(['./results/' dataset 'VelData.mat'], kittiVelData, 'velData');
+            ParSave(['./storedTforms/' dataset 'VelData.mat'], kittiVelData, 'velData');
         case 2
             %NavData = GenNav(dataPath, plotTforms, [], dataset);
-            %parsave(['./results/'  dataset'NavData.mat'], NavData, 'navData'); 
+            %ParSave(['./storedTforms/'  dataset'NavData.mat'], NavData, 'navData'); 
         case 3
             CamData = GenCam(dataPath, plotTforms, [], dataset, 1);
-            parsave(['./results/' dataset 'Cam1Data.mat'], CamData, 'cam1Data');
+            ParSave(['./storedTforms/' dataset 'Cam1Data.mat'], CamData, 'cam1Data');
         case 4
             CamData = GenCam(dataPath, plotTforms, [], dataset, 2);
-            parsave(['./results/' dataset 'Cam2Data.mat'], CamData, 'cam2Data');
+            ParSave(['./storedTforms/' dataset 'Cam2Data.mat'], CamData, 'cam2Data');
         case 5
             CamData = GenCam(dataPath, plotTforms, [], dataset, 3);
-            parsave(['./results/' dataset 'Cam3Data.mat'], CamData, 'cam3Data');
+            ParSave(['./storedTforms/' dataset 'Cam3Data.mat'], CamData, 'cam3Data');
         case 6
             CamData = GenCam(dataPath, plotTforms, [], dataset, 4);
-            parsave(['./results/' dataset 'Cam4Data.mat'], CamData, 'cam4Data');
+            ParSave(['./storedTforms/' dataset 'Cam4Data.mat'], CamData, 'cam4Data');
         case 7
             %Kitti only has 4 cameras
             if(~strcmpi(dataset,'Kitti'))
                 CamData = GenCam(dataPath, plotTforms, [], dataset, 5);
-                parsave(['./results/' dataset 'Cam5Data.mat'], CamData, 'cam5Data');
+                ParSave(['./storedTforms/' dataset 'Cam5Data.mat'], CamData, 'cam5Data');
             end
         case 8
             %only shrimp has 6 cameras
             if(strcmpi(dataset,'Shrimp'))
                 CamData = GenCam(dataPath, plotTforms, [], dataset, 6);
-                parsave(['./results/' dataset 'Cam6Data.mat'], CamData, 'cam6Data');
+                ParSave(['./storedTforms/' dataset 'Cam6Data.mat'], CamData, 'cam6Data');
             end
         otherwise
             errror('Parfor setup incorrectly');

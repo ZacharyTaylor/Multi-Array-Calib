@@ -12,7 +12,7 @@ function [ tform, tformVar ] = GetVelTform( velCurr, velPrev, tFracCurr, tFracPr
 %       centre of the previous frame. 
 %   tFracPrev- mx1 fractional time for previous scan, same definition as
 %       tFracCurr
-%   tformPrev- 1x6 transformation vector from frame-2 to frame-1
+%   tformPrev- 1x7 transformation vector from frame-2 to frame-1
 %   subSample- scalar, number of points to subsample to before performing 
 %       matching
 %   bootSample- will only using 1 in bootSamlpe points of subsampled
@@ -39,7 +39,7 @@ validateattributes(velCurr,{'numeric'},{'ncols',3});
 validateattributes(velPrev,{'numeric'},{'ncols',3});
 validateattributes(tFracCurr,{'numeric'},{'numel',size(velCurr,1),'>=',-1,'<=',1});
 validateattributes(tFracPrev,{'numeric'},{'numel',size(velPrev,1),'>=',-1,'<=',1});
-validateattributes(tformPrev,{'numeric'},{'size',[1,6]});
+validateattributes(tformPrev,{'numeric'},{'size',[1,7]});
 validateattributes(subSample,{'numeric'},{'scalar','positive','nonzero'});
 validateattributes(bootSample,{'numeric'},{'scalar','positive','nonzero'});
 
@@ -66,7 +66,7 @@ tform = T2V(inv(tform));
 %bootstrap scans
 bootnum = 100;
 numPoints = subSample/bootSample;
-tformVar = zeros(bootnum,6);
+tformVar = zeros(bootnum,7);
 for i = 1:bootnum
     [subVelCurr,idx] = datasample(velCurr,numPoints);
     subTFracCurr = tFracCurr(idx);

@@ -8,7 +8,7 @@ function [ points ] = VelCorrect( points, tFrac, tform )
 %   tFrac- nx1 vector of amount of time that has passed since the point was
 %       recorded. Assumes that last frame occoured at -1 and next frame
 %       will happen at 1
-%   tform- 1x6 vector, tform from previous frame to this one
+%   tform- 1x7 vector, tform from previous frame to this one
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -31,7 +31,7 @@ if(size(points,2) < 3)
     error('points must have atleast 3 columns');
 end
 validateattributes(tFrac,{'numeric'},{'numel',size(points,1),'>=',-1,'<=',1});
-validateattributes(tform,{'numeric'},{'size',[1,6]});
+validateattributes(tform,{'numeric'},{'size',[1,7]});
 
 %ensure inputs are of type doubles
 points = double(points);

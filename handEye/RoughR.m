@@ -29,11 +29,11 @@ end
 estVec = zeros(size(sensorData,1),3);
 for i = 2:size(sensorData,1)
     %takes maximum variance and convert to weighting
-    weight = 1./sqrt((max(sensorData{1}.T_Var_Skm1_Sk(:,4:6),[],2) + max(sensorData{i}.T_Var_Skm1_Sk(:,4:6),[],2)));
+    weight = 1./sqrt((max(sensorData{1}.T_Var_Skm1_Sk(:,5:7),[],2) + max(sensorData{i}.T_Var_Skm1_Sk(:,5:7),[],2)));
     weight = weight(:)';
     
     %use Kabsch to find rotation estimate
-    [temp,~] = Kabsch(sensorData{1}.T_Skm1_Sk(:,4:6)',sensorData{i}.T_Skm1_Sk(:,4:6)',weight);
+    [temp,~] = Kabsch(sensorData{1}.T_Skm1_Sk(:,5:7)',sensorData{i}.T_Skm1_Sk(:,5:7)',weight);
     estVec(i,:) = R2V(temp);
 end
 

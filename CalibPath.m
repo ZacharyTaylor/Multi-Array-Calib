@@ -51,6 +51,9 @@ pathFolders = [pathFolders,'./paperTests'];
 %holds plots for paper
 pathFolders = [pathFolders,'./paperPlots'];
 
+%holds the rest
+pathFolders = [pathFolders,'./misc'];
+
 for i = 1:length(pathFolders)
     if(set)
         addpath(pathFolders{i});

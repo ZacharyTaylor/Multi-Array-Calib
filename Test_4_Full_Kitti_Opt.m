@@ -6,7 +6,7 @@
 %% user set variables
 
 %number of scans to use
-scansTimeRange = 200;
+scansTimeRange = 10;
 %scansTimeRange = 5:5:100;
 
 %number of times to perform test
@@ -18,10 +18,13 @@ samples = 500;
 
 
 %% load sensor data
+CalibPath(true);
 sensorData = LoadSensorData('Kitti', 'Vel', 'Cam1');
 
 %% fix timestamps
 [sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
+
+%% correct camera scale
     
 outT = cell(100,1);
 outV = cell(100,1);
@@ -45,7 +48,11 @@ for w = 1:reps
     fprintf('Finding Rotation\n');
     rotVec = RoughR(sData);
     rotVec = OptR(sData, rotVec);
-    rotVar = ErrorEstR(sData, rotVec);
+    rotVar = ErrorEstCR(sData, rotVec,0.01);
+    
+    %find camera transformation scale
+    fprintf('Finding Camera Scale\n');
+    sData = SolveScale(sData, rotVec);
 
     %find translation
     fprintf('Finding Translation\n');
