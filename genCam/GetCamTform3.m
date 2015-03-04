@@ -34,7 +34,7 @@ validateattributes(im1,{'numeric'},{'2d'});
 validateattributes(im2,{'numeric'},{'2d','size',size(im1)});
 validateattributes(im3,{'numeric'},{'2d','size',size(im1)});
 validateattributes(mask,{'logical'},{'2d','size',size(im1)});
-validateattributes(K,{'numeric'},{'size',[4,3]});
+validateattributes(K,{'numeric'},{'size',[3,4]});
 
 %detect features in first image
 points = detectMinEigenFeatures(im1);

@@ -39,6 +39,9 @@ pathFolders = [pathFolders,'./tforms'];
 %contains timing offset functions and interpolation methods
 pathFolders = [pathFolders,'./timing'];
 
+%contains rough variance approximations used with translation estimates
+pathFolders = [pathFolders,'./varApprox'];
+
 %holds precalculated transformations
 pathFolders = [pathFolders,'./storedTforms'];
 

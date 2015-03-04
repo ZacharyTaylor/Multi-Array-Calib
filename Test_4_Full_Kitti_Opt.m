@@ -52,7 +52,7 @@ for w = 1:reps
     
     %find camera transformation scale
     fprintf('Finding Camera Scale\n');
-    sData = SolveScale(sData, rotVec);
+    sData = SolveScale2(sData, rotVec, rotVar);
 
     %find translation
     fprintf('Finding Translation\n');
