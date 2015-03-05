@@ -1,6 +1,7 @@
 %approximate variance transfer for 1/(R-eye(3))
 
-vec = [0.05, 0.01, 0.03];
+syms A B C
+vec = [A; B; C];
 
 %R-eye(3)
 R = [0,0,0;0,-(vec(1).^2)/2,-vec(1);0,vec(1),-(vec(1).^2)/2];
