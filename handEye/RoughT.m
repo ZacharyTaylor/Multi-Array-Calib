@@ -47,31 +47,15 @@ for b = 2:size(sensorData,1)
     weight = 1./sqrt(max(sensorData{1}.T_Var_Skm1_Sk(:,1:3),[],2) + max(sensorData{b}.T_Var_Skm1_Sk(:,1:3),[],2));
     weight = weight(:);
 
-    %if one sensor is a camera estimate scaling as well
-    if(strcmp(sensorData{b}.type,'camera'))
-               
-        Rb = zeros(3*s,3+s);
-        ta = zeros(3*s,1);
+    Rb = zeros(3*s,3);
+    ta = zeros(3*s,1);
 
-        for j = 1:s
-            Rb(3*j-2:3*j,1:3) = V2R(sensorData{b}.T_Skm1_Sk(j,4:6)) - eye(3);
-            Rb(3*j-2:3*j,j+3) = sensorData{b}.T_Skm1_Sk(j,1:3)';
-            Rb(3*j-2:3*j,:) = weight(j).* Rb(3*j-2:3*j,:);
+    for j = 1:s
+        Rb(3*j-2:3*j,1:3) = V2R(sensorData{b}.T_Skm1_Sk(j,4:6)) - eye(3);
+        Rb(3*j-2:3*j,:) = weight(j).* Rb(3*j-2:3*j,:);
 
-            ta(3*j-2:3*j) = RMat(:,:,b)*sensorData{1}.T_Skm1_Sk(j,1:3)';
-            ta(3*j-2:3*j) = weight(j).* ta(3*j-2:3*j);
-        end
-    else
-        Rb = zeros(3*s,3);
-        ta = zeros(3*s,1);
-
-        for j = 1:s
-            Rb(3*j-2:3*j,1:3) = V2R(sensorData{b}.T_Skm1_Sk(j,4:6)) - eye(3);
-            Rb(3*j-2:3*j,:) = weight(j).* Rb(3*j-2:3*j,:);
-
-            ta(3*j-2:3*j) = RMat(:,:,b)*sensorData{1}.T_Skm1_Sk(j,1:3)' - sensorData{b}.T_Skm1_Sk(j,1:3)';
-            ta(3*j-2:3*j) = weight(j).* ta(3*j-2:3*j);
-        end
+        ta(3*j-2:3*j) = RMat(:,:,b)*sensorData{1}.T_Skm1_Sk(j,1:3)' - sensorData{b}.T_Skm1_Sk(j,1:3)';
+        ta(3*j-2:3*j) = weight(j).* ta(3*j-2:3*j);
     end
 
     temp = (Rb\ta);

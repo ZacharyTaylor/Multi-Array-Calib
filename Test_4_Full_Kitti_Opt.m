@@ -6,7 +6,7 @@
 %% user set variables
 
 %number of scans to use
-scansTimeRange = 10;
+scansTimeRange = 100;
 %scansTimeRange = 5:5:100;
 
 %number of times to perform test
