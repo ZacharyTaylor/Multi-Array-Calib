@@ -57,7 +57,7 @@ for i = 1:length(camData)
         vStore = zeros(size(Vec));
         
         %only bother with denominators
-        for k = [19,20,21,26,27,28]
+        for k = 1:31%[19,20,21,26,27,28]
             tV = Vec;
             tV(k) = tV(k) + sqrt(Var(k))*diff;
 

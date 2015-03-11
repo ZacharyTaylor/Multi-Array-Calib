@@ -74,9 +74,9 @@ navData.T_S1_Sk = navData.T_S1_Sk(range,:);
 navData.T_Var_Skm1_Sk = navData.T_Var_Skm1_Sk;
 
 %preallocate memory
-navData.T_Skm1_Sk = zeros(size(navData.files(:),1),6);
-navData.T_Skm1_Sk(1,:) = tran2vec(eye(4));
-navData.T_Var_S1_Sk = zeros(size(navData.files(:),1),6);
+navData.T_Skm1_Sk = zeros(size(navData.files(:),1),7);
+navData.T_Skm1_Sk(1,:) = T2V(eye(4));
+navData.T_Var_S1_Sk = zeros(size(navData.files(:),1),7);
 
 %setup for plotting    
 if(plotNav)
@@ -93,9 +93,10 @@ navData.T_S1_Sk(:) = 0;
 
 %find transform for each velodyne scan
 for frame = 2:size(navData.files,1)
+    if(mod(frame,1000) == 0)
+        UpdateMessage('Finding Transform for nav point %i of %i', frame-1, size(navData.files,1));
+    end
     
-    UpdateMessage('Finding Transform for nav point %i of %i', frame-1, size(navData.files,1));
-
     %find sensor transforms
     navData.T_Skm1_Sk(frame,:) = T2V(inv(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:))));
     

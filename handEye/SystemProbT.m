@@ -1,4 +1,4 @@
-function [ prob ] = SystemProbT( sensorData, tformMat, estVec, rotMat )
+function [ prob ] = SystemProbT( sensorData, estVec, rotVec, rotVar )
 %SYSTEMPROBT estimate error from variance in trans vectors after alignment
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -30,12 +30,8 @@ validateattributes(sensorData,{'cell'},{'vector'});
 for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
-validateattributes(tformMat,{'cell'},{'vector'});
-for i = 1:length(tformMat)
-    validateattributes(tformMat{i},{'numeric'},{'size',[size(sensorData{1}.T_Skm1_Sk,1),12]});
-end
 validateattributes(estVec,{'numeric'},{'size',[length(sensorData)-1,3]});
-validateattributes(rotMat,{'numeric'},{'size',[3,3,length(sensorData)]});
+%validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 
 %set first element to zeros
 estVec = [0,0,0;estVec];
@@ -45,69 +41,22 @@ prob = 0;
 for a = 1:length(sensorData)
     for b = 1:length(sensorData)
         if(a < b)
-            Ta = [rotMat(:,:,a),estVec(a,:)';[0,0,0,1]];
-            Tb = [rotMat(:,:,b),estVec(b,:)';[0,0,0,1]];
-            Tab = Tb/Ta;
+            R = rotVec{a,b};
+            vR = rotVar{a,b};
             
-            Rab = Tab(1:3,1:3);
-            temp = Tab(1:3,4);
+            t = V2R(rotVec{1,b})*(estVec(b,:) - estVec(a,:))';
             
-            VA = sensorData{a}.T_Var_Skm1_Sk(:,1:3)';
-            VB = sensorData{b}.T_Var_Skm1_Sk(:,1:3)';
+            vtA = (repmat(sensorData{a}.T_Skm1_Sk(:,4),1,3).*abs(sensorData{a}.T_Var_Skm1_Sk(:,1:3)) + repmat(sensorData{a}.T_Var_Skm1_Sk(:,4),1,3).*abs(sensorData{a}.T_Skm1_Sk(:,1:3)))';
+            vtB = (repmat(sensorData{b}.T_Skm1_Sk(:,4),1,3).*abs(sensorData{b}.T_Var_Skm1_Sk(:,1:3)) + repmat(sensorData{b}.T_Var_Skm1_Sk(:,4),1,3).*abs(sensorData{b}.T_Skm1_Sk(:,1:3)))';
             
-            estA = sensorData{a}.T_Skm1_Sk(:,1:3)';
-            estB = sensorData{b}.T_Skm1_Sk(:,1:3)';
+            tA = (repmat(sensorData{a}.T_Skm1_Sk(:,4),1,3).*sensorData{a}.T_Skm1_Sk(:,1:3))';
+            tB = (repmat(sensorData{b}.T_Skm1_Sk(:,4),1,3).*sensorData{b}.T_Skm1_Sk(:,1:3))';
             
-            estA = -Rab*estA;
+            RB = sensorData{b}.T_Skm1_Sk(:,5:7)';
+            vRB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
             
-            estAB = tformMat{b}(:,1:9);
-            estAB(:,1) = estAB(:,1) - 1;
-            estAB(:,5) = estAB(:,5) - 1;
-            estAB(:,9) = estAB(:,9) - 1;
+            temp = -logpdfT(R,vR,tA,vtA,tB,vtB,RB,vRB,t);
             
-            estAB = [estAB(:,1)*temp(1) + estAB(:,4)*temp(2) + estAB(:,7)*temp(3), estAB(:,2)*temp(1) + estAB(:,5)*temp(2) + estAB(:,8)*temp(3), estAB(:,3)*temp(1) + estAB(:,6)*temp(2) + estAB(:,9)*temp(3)];
-            
-            if(strcmp(sensorData{a}.type,'camera'))
-                if(strcmp(sensorData{b}.type,'camera'))
-                    continue;
-                    temp = (estA(1,:).^2.*estB(2,:).^2 + estA(1,:).^2.*estB(3,:).^2 - 2.*estA(1,:).*estA(2,:).*estB(1,:).*estB(2,:) - 2.*estA(1,:).*estA(3,:).*estB(1,:).*estB(3,:) + estA(2,:).^2.*estB(1,:).^2 + estA(2,:).^2.*estB(3,:).^2 - 2.*estA(2,:).*estA(3,:).*estB(2,:).*estB(3,:) + estA(3,:).^2.*estB(1,:).^2 + estA(3,:).^2.*estB(2,:).^2);
-                    
-                    tempA = sum(estA.*[err(1,:).*estB(2,:).^2 - estB(1,:).*err(2,:).*estB(2,:) + err(1,:).*estB(3,:).^2 - estB(1,:).*err(3,:).*estB(3,:); err(2,:).*estB(1,:).^2 - estB(2,:).*err(1,:).*estB(1,:) + err(2,:).*estB(3,:).^2 - estB(2,:).*err(3,:).*estB(3,:); err(3,:).*estB(1,:).^2 - estB(3,:).*err(1,:).*estB(1,:) + err(3,:).*estB(2,:).^2 - estB(3,:).*err(2,:).*estB(2,:)])./temp;
-                    tempA = repmat(tempA,3,1);
-                    tempB = sum(estB.*[err(1,:).*estA(2,:).^2 - estA(1,:).*err(2,:).*estA(2,:) + err(1,:).*estA(3,:).^2 - estA(1,:).*err(3,:).*estA(3,:); err(2,:).*estA(1,:).^2 - estA(2,:).*err(1,:).*estA(1,:) + err(2,:).*estA(3,:).^2 - estA(2,:).*err(3,:).*estA(3,:); err(3,:).*estA(1,:).^2 - estA(3,:).*err(1,:).*estA(1,:) + err(3,:).*estA(2,:).^2 - estA(3,:).*err(2,:).*estA(2,:)])./temp;
-                    tempB = repmat(tempB,3,1);
-                    
-                    VA = VA.*abs(tempA);
-                    VB = VB.*abs(tempB);
-                    
-                    err = err - tempA.*estA - tempB.*estB;
-                else
-                    err = -estAB' - estB;
-                    
-                    temp = sum(err.*estA)./sum(estA.^2);
-                    temp = repmat(temp,3,1);
-                   
-                    VA = abs(temp).*VA;
-                    err = err - temp.*estA;  
-                end
-                
-            elseif(strcmp(sensorData{b}.type,'camera'))
-                err = -estAB' - estA;
-                
-                temp = sum(err.*estB)./sum(estB.^2);
-                temp = repmat(temp,3,1);
-
-                VB = abs(temp).*VB;
-                err = err - temp.*estB;    
-            else               
-                err = estAB' + estA + estB;
-            end
-           
-            temp = -logpdf(err,VA,VB,Rab);
-            
-%             temp = cprobR(err.^2, VA, VB, Rab);
-%             temp = sum(temp);
-%             temp = sum((temp));
             prob = prob + temp;
         end
     end

@@ -18,14 +18,14 @@ CalibPath(true);
 %% process sensors
 
 %do things in parrallel to save time
-parfor i = 1:8
+for i = 2
     switch i
         case 1
             kittiVelData = GenVel(dataPath, plotTforms, [], dataset);
             ParSave(['./storedTforms/' dataset 'VelData.mat'], kittiVelData, 'velData');
         case 2
-            %NavData = GenNav(dataPath, plotTforms, [], dataset);
-            %ParSave(['./storedTforms/'  dataset'NavData.mat'], NavData, 'navData'); 
+            NavData = GenNav(dataPath, plotTforms, [], dataset);
+            ParSave(['./storedTforms/'  dataset 'NavData.mat'], NavData, 'navData'); 
         case 3
             CamData = GenCam(dataPath, plotTforms, [], dataset, 1);
             ParSave(['./storedTforms/' dataset 'Cam1Data.mat'], CamData, 'cam1Data');

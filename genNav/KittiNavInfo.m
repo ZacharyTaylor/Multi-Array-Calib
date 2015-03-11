@@ -30,13 +30,14 @@ navData.folder = [path '/oxts/data/'];
 navData.files = dir([navData.folder,'*.txt']);
 navData.time = ReadKittiTimestamps([navData.folder '../']);
 
-navData.T_S1_Sk = zeros(length(navData.files),6);
-navData.T_Var_Skm1_Sk = zeros(length(navData.files),6);
+navData.T_S1_Sk = zeros(length(navData.files),7);
+navData.T_Var_Skm1_Sk = zeros(length(navData.files),7);
 
 for i = 1:length(navData.files)
-    
-    UpdateMessage('Reading Transform for nav point %i of %i', i, length(navData.files));
-
+    if(mod(i,1000) == 0)
+        UpdateMessage('Reading Transform for nav point %i of %i', i, length(navData.files));
+    end
+        
     fid = fopen([navData.folder navData.files(i).name], 'r');
 
     in = textscan(fid,'%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f','CollectOutput', 1);
@@ -59,7 +60,7 @@ for i = 1:length(navData.files)
     tformMat(1:3,4) = t;
 
     %get variance
-    tformVar = [in(24),in(24),in(24),0.01*pi/180,0.01*pi/180,0.01*pi/180];
+    tformVar = [in(24),in(24),in(24),in(24),0.01*pi/180,0.01*pi/180,0.01*pi/180];
     tformVar = tformVar.^2;
 
     %write to navData

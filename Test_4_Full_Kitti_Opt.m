@@ -14,12 +14,12 @@ reps = 10;
 
 %samples
 timeSamples = 100000;
-samples = 500;
+samples = 1000;
 
 
 %% load sensor data
 CalibPath(true);
-sensorData = LoadSensorData('Kitti', 'Vel', 'Cam1');
+sensorData = LoadSensorData('Kitti', 'Nav', 'Cam1');
 
 %% fix timestamps
 [sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
@@ -53,12 +53,18 @@ for w = 1:reps
     %find camera transformation scale
     fprintf('Finding Camera Scale\n');
     sData = SolveScale2(sData, rotVec, rotVar);
+    
+    %show what we are dealing with
+    PlotData(sData);
+    
+    %clean up large variance
+    sData = ThresholdVar(sData,10);
 
     %find translation
     fprintf('Finding Translation\n');
     tranVec = RoughT(sData, rotVec);
-    tranVec = OptT(sData, tranVec, rotVec);
-    tranVar = ErrorEstT(sData, tranVec, rotVec);
+    tranVec = OptT(sData, tranVec, rotVec, rotVar);
+    tranVar = ErrorEstCT(sData, tranVec, rotVec, rotVar, 0.01);
 
     %get grid of transforms
     fprintf('Generating transformation grid\n');

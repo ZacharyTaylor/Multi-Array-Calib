@@ -1,4 +1,4 @@
-function [ tranVec ] = OptT( sensorData, estVec, rotVec )
+function [ tranVec ] = OptT( sensorData, estVec, rotVec, rotVar )
 %OPTR Optimize translation based on inital guess
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -36,22 +36,26 @@ for i = 1:size(rotMat,3)
     rotMat(:,:,i) = V2R(rotVec(i,:));
 end
 
-%get matrix form of transformations
-tformMat = cell(size(sensorData));
-for i = 1:size(sensorData,1)
-    tformMat{i} = zeros(size(sensorData{i}.T_Skm1_Sk,1),12);
-    for j = 1:size(sensorData{i}.T_Skm1_Sk,1)
-        temp = V2T(sensorData{i}.T_Skm1_Sk(j,:));
-        r = temp(1:3,1:3);
-        t = temp(1:3,4);
-        tformMat{i}(j,:) = [r(:)' t(:)'];
+%combine rotation estimations
+rVec = cell(size(rotVec,1));
+rVar = rVec;
+for i = 1:size(rVec,1)
+    for j = 1:size(rVec,1)
+        if(i < j)
+            temp = zeros(3,100);
+            for k = 1:100
+                temp(:,k) = R2V(V2R(rotVec(j,:) + randn(1,3).*sqrt(rotVar(j,:)))/V2R(rotVec(i,:) + randn(1,3).*sqrt(rotVar(i,:))));
+            end
+            rVec{i,j} = mean(temp,2)';
+            rVar{i,j} = var(temp,[],2)';
+        end
     end
 end
 
 %refine translation estimate and record result
 options = optimset('MaxFunEvals',100000,'MaxIter',5000);
 estVec = estVec(2:end,1:3);
-tranVec = fminsearch(@(estVec) SystemProbT( sensorData, tformMat, estVec, rotMat),estVec, options);
+tranVec = fminsearch(@(estVec) SystemProbT( sensorData, estVec, rVec, rVar),estVec, options);
 tranVec = [0,0,0;tranVec];
 
 end
