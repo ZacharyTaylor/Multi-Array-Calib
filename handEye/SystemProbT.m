@@ -44,13 +44,12 @@ for a = 1:length(sensorData)
             R = rotVec{a,b};
             vR = rotVar{a,b};
             
-            t = V2R(rotVec{1,b})*(estVec(b,:) - estVec(a,:))';
+            t = V2R(rotVec{1,a})'*(estVec(b,:) - estVec(a,:))';
             
-            vtA = (repmat(sensorData{a}.T_Skm1_Sk(:,4),1,3).*abs(sensorData{a}.T_Var_Skm1_Sk(:,1:3)) + repmat(sensorData{a}.T_Var_Skm1_Sk(:,4),1,3).*abs(sensorData{a}.T_Skm1_Sk(:,1:3)))';
-            vtB = (repmat(sensorData{b}.T_Skm1_Sk(:,4),1,3).*abs(sensorData{b}.T_Var_Skm1_Sk(:,1:3)) + repmat(sensorData{b}.T_Var_Skm1_Sk(:,4),1,3).*abs(sensorData{b}.T_Skm1_Sk(:,1:3)))';
-            
-            tA = (repmat(sensorData{a}.T_Skm1_Sk(:,4),1,3).*sensorData{a}.T_Skm1_Sk(:,1:3))';
-            tB = (repmat(sensorData{b}.T_Skm1_Sk(:,4),1,3).*sensorData{b}.T_Skm1_Sk(:,1:3))';
+            [tA,vtA] = ts2t(sensorData{a}.T_Skm1_Sk(:,1:4), sensorData{1}.T_Var_Skm1_Sk(:,1:4));
+            [tB,vtB] = ts2t(sensorData{b}.T_Skm1_Sk(:,1:4), sensorData{b}.T_Var_Skm1_Sk(:,1:4));
+            tA = tA'; vtA = vtA';
+            tB = tB'; vtB = vtB';
             
             RB = sensorData{b}.T_Skm1_Sk(:,5:7)';
             vRB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';

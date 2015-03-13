@@ -1,4 +1,4 @@
-function [] = PlotData( sensorData, fig )
+function [] = PlotData( sensorData, rotVec, fig )
 %PlotData plots sensor data for easy visualization
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -25,7 +25,7 @@ validateattributes(sensorData,{'cell'},{'vector'});
 for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
-if(nargin > 1)
+if(nargin > 2)
     validateattributes(fig,{'Figure'},{});
 else
     fig = figure;
@@ -34,15 +34,17 @@ end
 points = cell(size(sensorData));
 leg = 'legend(';
 
-cmap = jet(length(sensorData));
+cmap = hsv(length(sensorData));
 
 set(0, 'CurrentFigure', fig);
 hold on;
 
 %generate points
 for i = 1:length(sensorData)
+    R = V2R(rotVec(i,:));
     points{i} = zeros(size(sensorData{i}.T_Skm1_Sk,1),3);
     temp= eye(4);
+    temp(1:3,1:3) = R;
     for j = 1:size(sensorData{i}.T_Skm1_Sk,1)
         temp = temp*V2T(sensorData{i}.T_Skm1_Sk(j,:));
         points{i}(j,:) = temp(1:3,4);

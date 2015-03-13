@@ -39,15 +39,15 @@ end
 %combine rotation estimations
 rVec = cell(size(rotVec,1));
 rVar = rVec;
-for i = 1:size(rVec,1)
-    for j = 1:size(rVec,1)
-        if(i < j)
+for a = 1:size(rVec,1)
+    for b = 1:size(rVec,1)
+        if(a <= b)
             temp = zeros(3,100);
             for k = 1:100
-                temp(:,k) = R2V(V2R(rotVec(j,:) + randn(1,3).*sqrt(rotVar(j,:)))/V2R(rotVec(i,:) + randn(1,3).*sqrt(rotVar(i,:))));
+                temp(:,k) = R2V(V2R(rotVec(a,:) + randn(1,3).*sqrt(rotVar(a,:)))\V2R(rotVec(b,:) + randn(1,3).*sqrt(rotVar(b,:))));
             end
-            rVec{i,j} = mean(temp,2)';
-            rVar{i,j} = var(temp,[],2)';
+            rVec{a,b} = mean(temp,2)';
+            rVar{a,b} = var(temp,[],2)';
         end
     end
 end

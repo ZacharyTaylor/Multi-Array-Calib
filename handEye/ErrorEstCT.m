@@ -39,15 +39,15 @@ end
 %combine rotation estimations
 rVec = cell(size(rotVec,1));
 rVar = rVec;
-for i = 1:size(rVec,1)
-    for j = 1:size(rVec,1)
-        if(i < j)
+for a = 1:size(rVec,1)
+    for b = 1:size(rVec,1)
+        if(a <= b)
             temp = zeros(3,100);
             for k = 1:100
-                temp(:,k) = R2V(V2R(rotVec(j,:) + randn(1,3).*sqrt(rotVar(j,:)))/V2R(rotVec(i,:) + randn(1,3).*sqrt(rotVar(i,:))));
+                temp(:,k) = R2V(V2R(rotVec(a,:) + randn(1,3).*sqrt(rotVar(a,:)))\V2R(rotVec(b,:) + randn(1,3).*sqrt(rotVar(b,:))));
             end
-            rVec{i,j} = mean(temp,2)';
-            rVar{i,j} = var(temp,[],2)';
+            rVec{a,b} = mean(temp,2)';
+            rVar{a,b} = var(temp,[],2)';
         end
     end
 end
@@ -57,12 +57,11 @@ p = zeros(3,3);
 for b = 2:length(sensorData)
     R = rVec{1,b};
     vR = rVar{1,b};
-
-    vtA = (repmat(sensorData{1}.T_Skm1_Sk(:,4),1,3).*abs(sensorData{1}.T_Var_Skm1_Sk(:,1:3)) + repmat(sensorData{1}.T_Var_Skm1_Sk(:,4),1,3).*abs(sensorData{1}.T_Skm1_Sk(:,1:3)))';
-    vtB = (repmat(sensorData{b}.T_Skm1_Sk(:,4),1,3).*abs(sensorData{b}.T_Var_Skm1_Sk(:,1:3)) + repmat(sensorData{b}.T_Var_Skm1_Sk(:,4),1,3).*abs(sensorData{b}.T_Skm1_Sk(:,1:3)))';
-
-    tA = (repmat(sensorData{1}.T_Skm1_Sk(:,4),1,3).*sensorData{1}.T_Skm1_Sk(:,1:3))';
-    tB = (repmat(sensorData{b}.T_Skm1_Sk(:,4),1,3).*sensorData{b}.T_Skm1_Sk(:,1:3))';
+    
+    [tA,vtA] = ts2t(sensorData{1}.T_Skm1_Sk(:,1:4), sensorData{1}.T_Var_Skm1_Sk(:,1:4));
+    [tB,vtB] = ts2t(sensorData{b}.T_Skm1_Sk(:,1:4), sensorData{b}.T_Var_Skm1_Sk(:,1:4));
+    tA = tA'; vtA = vtA';
+    tB = tB'; vtB = vtB';
 
     RB = sensorData{b}.T_Skm1_Sk(:,5:7)';
     vRB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
@@ -72,7 +71,6 @@ for b = 2:length(sensorData)
             
             t = (estVec(b,:) - estVec(1,:))';
             t(c) = t(c) + step*(d-2);
-            t = V2R(rVec{1,b})*t;
             
             p(d,c) = logpdfT(R,vR,tA,vtA,tB,vtB,RB,vRB,t);
         end

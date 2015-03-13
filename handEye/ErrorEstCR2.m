@@ -1,10 +1,11 @@
-function [ outVec ] = ErrorEstR( sensorData, estVec, samples )
-%ERRORESTR estimate error from variance in rotation vectors after alignment
+function [ varVec ] = ErrorEstCR( sensorData, estVec, step )
+%ERRORESTR estimate cramer rao lower bound for error variance
 %--------------------------------------------------------------------------
 %   Required Inputs:
 %--------------------------------------------------------------------------
 %   sensorData- nx1 cell containing sensor data sturcts
 %   estVec- nx3 matrix of rotations for each sensor
+%   step- step between test points for numercial differentiation
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -27,17 +28,41 @@ for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
 validateattributes(estVec,{'numeric'},{'size',[length(sensorData),3]});
+validateattributes(step,{'numeric'},{'scalar','positive','nonzero'});
 
-%refine rotation estimate and record result
-options = optimset('MaxFunEvals',100000,'MaxIter',5000);
-
-outVec = zeros([size(estVec),samples]);
-for i = 1:samples
-    %bootstrap data
-    idx = datasample(1:size(sensorData{1}.time,1),size(sensorData{1}.time,1));
-    sData = SensorDataSubset(sensorData, idx);
-    outVec(2:end,:,i) = fminsearch(@(estVec) SystemProbR(sData, estVec),estVec(2:end,:), options);
+%convert vectors to rotation matricies
+estMat = cell(length(sensorData),1);
+estMat{1} = eye(3);
+for i = 2:length(sensorData)
+    estMat{i} = V2R(estVec(i,:));
 end
 
-outVec = var(outVec,[],3);
+varVec = zeros(length(sensorData),3);
+
+p = zeros(6,1);
+for b = 2:length(sensorData)
+    Rab = estMat{b}*estMat{1}';
+    Rab = R2V(Rab);
+
+    estA = sensorData{1}.T_Skm1_Sk(:,5:7)';
+    estB = sensorData{b}.T_Skm1_Sk(:,5:7)';
+    
+    varA = sensorData{1}.T_Var_Skm1_Sk(:,5:7)';
+    varB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
+
+    err = V2R(Rab)*estA - estB;
+    m = logpdf(err,varA,varB,R);
+    
+    for c = 1:3
+        R = Rab;
+        R(c) = R(c) + step*(d-2);
+        R = V2R(R');
+        err = R*estA - estB;
+
+        p(d,c) = logpdf(err,varA,varB,R);
+    end
+    varVec(b,:) = -(step^2)./diff(p,2);
+end
+
+end
 

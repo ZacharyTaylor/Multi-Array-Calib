@@ -151,8 +151,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         
         //transform to variance
         errOff[0] = errOff[0]/(offset*offset);
-		errOff[1] = errOff[1] / (offset*offset);
-		errOff[2] = errOff[2] / (offset*offset);
+		errOff[1] = errOff[1]/(offset*offset);
+		errOff[2] = errOff[2]/(offset*offset);
             
         //find exponential exponent
         double eExp = -0.5*(err[0]*err[0]/errOff[0] + err[1]*err[1]/errOff[1] + err[2]*err[2]/errOff[2]);
