@@ -55,11 +55,25 @@ for b = 2:size(sensorData,1)
         Rb(3*j-2:3*j,1:3) = V2R(sensorData{b}.T_Skm1_Sk(j,5:7)) - eye(3);
         Rb(3*j-2:3*j,:) = weight(j).* Rb(3*j-2:3*j,:);
 
-        ta(3*j-2:3*j) = RMat(:,:,b)*(sensorData{1}.T_Skm1_Sk(j,4).*sensorData{1}.T_Skm1_Sk(j,1:3))' - (sensorData{b}.T_Skm1_Sk(j,4).*sensorData{b}.T_Skm1_Sk(j,1:3))';
+        ta(3*j-2:3*j) = RMat(:,:,b)*(-sensorData{1}.T_Skm1_Sk(j,4).*sensorData{1}.T_Skm1_Sk(j,1:3))' + (sensorData{b}.T_Skm1_Sk(j,4).*sensorData{b}.T_Skm1_Sk(j,1:3))';
         ta(3*j-2:3*j) = weight(j).* ta(3*j-2:3*j);
     end
+    
+    Ra = zeros(3*s,3);
+    tb = zeros(3*s,1);
 
-    temp = (Rb\ta);
+    for j = 1:s
+        Ra(3*j-2:3*j,1:3) = V2R(sensorData{1}.T_Skm1_Sk(j,5:7)) - eye(3);
+        Ra(3*j-2:3*j,:) = weight(j).* Ra(3*j-2:3*j,:);
+
+        tb(3*j-2:3*j) = (sensorData{b}.T_Skm1_Sk(j,4).*sensorData{b}.T_Skm1_Sk(j,1:3))' - RMat(:,:,1)'*(sensorData{1}.T_Skm1_Sk(j,4).*sensorData{1}.T_Skm1_Sk(j,1:3))';
+        tb(3*j-2:3*j) = weight(j).* tb(3*j-2:3*j);
+    end
+
+    temp = ([Ra;Rb]\[tb;ta]);
+    %temp = Ra\tb;
+    %temp = Rb\ta;
+    
     estVecT(b,:) = temp(1:3)';
 end
 

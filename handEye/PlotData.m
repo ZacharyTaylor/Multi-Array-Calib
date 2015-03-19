@@ -44,11 +44,15 @@ for i = 1:length(sensorData)
     R = V2R(rotVec(i,:));
     points{i} = zeros(size(sensorData{i}.T_Skm1_Sk,1),3);
     temp= eye(4);
-    temp(1:3,1:3) = R;
+    adj = eye(4);
+    adj(1:3,1:3) = R;
     for j = 1:size(sensorData{i}.T_Skm1_Sk,1)
         temp = temp*V2T(sensorData{i}.T_Skm1_Sk(j,:));
         points{i}(j,:) = temp(1:3,4);
     end
+    
+    temp = adj*[points{i},ones(size(points{i},1),1)]';
+    points{i} = temp(1:3,:)';
     
     plot3(points{i}(:,1),points{i}(:,2),points{i}(:,3),'Color',cmap(i,:));
     leg =[leg, '''', 'Sensor ', num2str(i),' ', sensorData{i}.type, ''''];

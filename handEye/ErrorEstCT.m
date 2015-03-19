@@ -63,6 +63,8 @@ for b = 2:length(sensorData)
     tA = tA'; vtA = vtA';
     tB = tB'; vtB = vtB';
 
+    RA = sensorData{1}.T_Skm1_Sk(:,5:7)';
+    vRA = sensorData{1}.T_Var_Skm1_Sk(:,5:7)';
     RB = sensorData{b}.T_Skm1_Sk(:,5:7)';
     vRB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
 
@@ -72,7 +74,7 @@ for b = 2:length(sensorData)
             t = (estVec(b,:) - estVec(1,:))';
             t(c) = t(c) + step*(d-2);
             
-            p(d,c) = logpdfT(R,vR,tA,vtA,tB,vtB,RB,vRB,t);
+            p(d,c) = logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t);
         end
     end
     

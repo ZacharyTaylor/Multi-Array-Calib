@@ -51,10 +51,12 @@ for a = 1:length(sensorData)
             tA = tA'; vtA = vtA';
             tB = tB'; vtB = vtB';
             
+            RA = sensorData{a}.T_Skm1_Sk(:,5:7)';
+            vRA = sensorData{a}.T_Var_Skm1_Sk(:,5:7)';
             RB = sensorData{b}.T_Skm1_Sk(:,5:7)';
             vRB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
             
-            temp = -logpdfT(R,vR,tA,vtA,tB,vtB,RB,vRB,t);
+            temp = -logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t);
             
             prob = prob + temp;
         end

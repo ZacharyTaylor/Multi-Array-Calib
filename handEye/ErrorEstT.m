@@ -42,7 +42,7 @@ for i = 1:samples
         end
     end
     
-    outVec(2:end,1:3) = fminsearch(@(estVec) SystemProbT( sData, estVec, rVec, rVar),estVec(2:end,1:3), options);
+    outVec(2:end,1:3,i) = fminsearch(@(estVec) SystemProbT( sData, estVec, rVec, rVar),estVec(2:end,1:3), options);
 end
 
 outVec = var(outVec,[],3);

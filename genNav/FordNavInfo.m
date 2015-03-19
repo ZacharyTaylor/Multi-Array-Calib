@@ -43,8 +43,10 @@ navData.time = Pose.utime;
 
 navData.T_S1_Sk = zeros(length(navData.time),6);
 for i = 1:length(navData.time)
-    navData.T_S1_Sk(i,:) = [R2V([quat2dcm(Pose.orientation(i,:)'));Pose.pos(i,:)'];
+    navData.T_S1_Sk(i,:) = [R2V(quat2dcm(Pose.orientation(i,:)'));Pose.pos(i,:)'];
 end
+
+navData.files = repmat(navData.files,size(navData.T_S1_Sk,1),1);
 
 navData.T_Var_Skm1_Sk = err;
 end

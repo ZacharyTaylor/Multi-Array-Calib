@@ -6,7 +6,7 @@
 %% user set variables
 
 %number of scans to use
-scansTimeRange = 100;
+scansTimeRange = 50;
 %scansTimeRange = 5:5:100;
 
 %number of times to perform test
@@ -49,11 +49,14 @@ for w = 1:reps
     rotVec = RoughR(sData);
     rotVec = OptR(sData, rotVec);
     rotVar = ErrorEstCR(sData, rotVec,0.01);
+    %[ outVec ] = ErrorEstWR(sData,rotVec);
     %rotVar2 = ErrorEstR(sData, rotVec,100);
     
     %find camera transformation scale
     fprintf('Finding Camera Scale\n');
-    sData = SolveScale3(sData, rotVec, rotVar,5);
+    sData = SolveScale3(sData, rotVec, rotVar,1);
+    
+    sData = RejectPoints(sData, 10, 0.0001);
     
     %clean up large variance
     sData = ThresholdVar(sData,10);
@@ -62,10 +65,12 @@ for w = 1:reps
     PlotData(sData,-rotVec);
 
     %find translation
+    %sData = TDiff(sData, rotVec, rotVar);
+    
     fprintf('Finding Translation\n');
     tranVec = RoughT(sData, rotVec);
     tranVec = OptT(sData, tranVec, rotVec, rotVar);
-    tranVar = ErrorEstCT(sData, tranVec, rotVec, rotVar2, 0.01);
+    tranVar = ErrorEstCT(sData, tranVec, rotVec, rotVar, 0.01);
     %tranVar2 = ErrorEstT(sData, tranVec, rotVec, rotVar2, 100);
 
     %get grid of transforms
