@@ -9,34 +9,34 @@ out = zeros(10000,3);
 
 for i = 1:10000
     R = V2R(r + sqrt(rv).*randn(1,3));
-    T = t + sqrt(tv).*randn(1,3);
+    T = V2R(t + sqrt(tv).*randn(1,3));
 
-    out(i,:) = R*T';
+    out(i,:) = R2V(R*T);
 end
 
 var(out)
 
 out = zeros(3,3);
 offset = 0.001;
-base = (V2R(r)*t')';
-for i = 1:6
-    ir = r;
-    it = t;
-    v = 0;
-    if(i > 3)
-        ir(i-3) = ir(i-3) + offset;
-        v = rv(i-3);
-    else
-        it(i) = it(i) + offset;
-        v = tv(i);
-    end
+% base = R2V(V2R(r)*V2R(t));
+% for i = 1:6
+%     ir = r;
+%     it = t;
+%     v = 0;
+%     if(i > 3)
+%         ir(i-3) = ir(i-3) + offset;
+%         v = rv(i-3);
+%     else
+%         it(i) = it(i) + offset;
+%         v = tv(i);
+%     end
+% 
+%     out(i,:) = V2R(ir)*it';
+%     out(i,:) = out(i,:) - base;
+%     out(i,:) = v.*(out(i,:)./offset).^2;
+% end
 
-    out(i,:) = V2R(ir)*it';
-    out(i,:) = out(i,:) - base;
-    out(i,:) = v.*(out(i,:)./offset).^2;
-end
-
-output = @(r,t) (V2R(r)*t');
+output = @(r,t) R2V(V2R(r)*V2R(t));
 [ val, var ] = IndVar(0.001, output, r,rv,t,tv )
 
 

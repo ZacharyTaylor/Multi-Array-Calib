@@ -51,69 +51,69 @@ function[ sensorInt ] = IntData( sensorData, times )
         sensorInt.files = repmat(sensorInt.files(1),length(times),1);
     end
             
-    %for each time point
-    for i = 1:length(times)
-
-        %find closest matching time
-        tdiff = double(times(i)) - double(sensorData.time);
-
-        %get matching index
-        [~,idx] = min(abs(tdiff));
-        tdiff = tdiff(idx);
-
-        %get base transform
-        tform = V2T(sensorData.T_S1_Sk(idx,:));
-        
-        %get base variance
-        sensorInt.T_Var_S1_Sk(i,:) = sensorData.T_Var_S1_Sk(idx,:);
-
-        %get closest file
-        if(size(sensorData.files,1) > 1)
-            sensorInt.files(i) = sensorData.files(idx);
-        end
-
-        %get fractional transform
-        if(idx < length(sensorData.time))
-            %get closest relative tform
-            if(tdiff < 0)
-                tformF = V2T(sensorData.T_Skm1_Sk(idx,:));
-                varF = sensorData.T_Var_Skm1_Sk(idx,:);
-                
-                %get time difference
-                tratio = tdiff/(double(sensorData.time(idx))-double(sensorData.time(idx-1)));
-            
-            else
-                tformF = V2T(sensorData.T_Skm1_Sk(idx+1,:));
-                varF = sensorData.T_Var_Skm1_Sk(idx+1,:);
-                
-                %get time difference
-                tratio = tdiff/(double(sensorData.time(idx+1))-double(sensorData.time(idx)));
-            end
-
-            %interpolate
-            varF = tratio.*varF;
-            tformF = TformInterp(tformF,tratio);
-
-            %add fractional component back to tform
-            tform = tform*tformF;
-            sensorInt.T_Var_S1_Sk(i,:) = sensorInt.T_Var_S1_Sk(i,:) + varF;
-        end
-
-        sensorInt.T_S1_Sk(i,:) = T2V(tform);
-    end
-
 %     %for each time point
 %     for i = 1:length(times)
 % 
 %         %find closest matching time
-%         [~,idx] = min(abs(double(times(i)) - double(sensorData.time)));
+%         tdiff = double(times(i)) - double(sensorData.time);
+% 
+%         %get matching index
+%         [~,idx] = min(abs(tdiff));
+%         tdiff = tdiff(idx);
+% 
+%         %get base transform
+%         tform = V2T(sensorData.T_S1_Sk(idx,:));
+%         
+%         %get base variance
+%         sensorInt.T_Var_S1_Sk(i,:) = sensorData.T_Var_S1_Sk(idx,:);
+% 
+%         %get closest file
 %         if(size(sensorData.files,1) > 1)
 %             sensorInt.files(i) = sensorData.files(idx);
 %         end
-%     end
 % 
-%     sensorInt.T_Var_S1_Sk = interp1(double(sensorData.time), sensorData.T_Var_S1_Sk, double(sensorInt.time),'pchip');
-%     sensorInt.T_S1_Sk = interp1(double(sensorData.time), sensorData.T_S1_Sk, double(sensorInt.time),'pchip');
+%         %get fractional transform
+%         if(idx < length(sensorData.time))
+%             %get closest relative tform
+%             if(tdiff < 0)
+%                 tformF = V2T(sensorData.T_Skm1_Sk(idx,:));
+%                 varF = sensorData.T_Var_Skm1_Sk(idx,:);
+%                 
+%                 %get time difference
+%                 tratio = tdiff/(double(sensorData.time(idx))-double(sensorData.time(idx-1)));
+%             
+%             else
+%                 tformF = V2T(sensorData.T_Skm1_Sk(idx+1,:));
+%                 varF = sensorData.T_Var_Skm1_Sk(idx+1,:);
+%                 
+%                 %get time difference
+%                 tratio = tdiff/(double(sensorData.time(idx+1))-double(sensorData.time(idx)));
+%             end
+% 
+%             %interpolate
+%             varF = tratio.*varF;
+%             tformF = TformInterp(tformF,tratio);
+% 
+%             %add fractional component back to tform
+%             tform = tform*tformF;
+%             sensorInt.T_Var_S1_Sk(i,:) = sensorInt.T_Var_S1_Sk(i,:) + varF;
+%         end
+% 
+%         sensorInt.T_S1_Sk(i,:) = T2V(tform);
+%     end
+
+    %for each time point
+    for i = 1:length(times)
+
+        %find closest matching time
+        [~,idx] = min(abs(double(times(i)) - double(sensorData.time)));
+        if(size(sensorData.files,1) > 1)
+            sensorInt.files(i) = sensorData.files(idx);
+        end
+    end
+
+    sensorInt.T_Var_S1_Sk = interp1(double(sensorData.time), sensorData.T_Var_S1_Sk, double(sensorInt.time),'pchip');
+    sensorInt.T_S1_Sk = interp1(double(sensorData.time), sensorData.T_S1_Sk, double(sensorInt.time),'pchip');
         
     %split into relative transforms
     for i = 2:size(sensorInt.T_S1_Sk,1)

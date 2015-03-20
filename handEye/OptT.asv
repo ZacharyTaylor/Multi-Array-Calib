@@ -42,8 +42,14 @@ rVar = rVec;
 for a = 1:size(rVec,1)
     for b = 1:size(rVec,1)
         if(a <= b)
-            output = @(r1,r2) R2V(V2R(r1)*V2R(r2))';
-            [rVec{a,b},rVar{a,b}] = IndVar(0.001, output, rotVec(a,:),rotVar(a,:),rotVec(b,:),rotVar(b,:));
+            temp = zeros(3,100);
+            for k = 1:100
+                temp(:,k) = R2V(V2R(rotVec(a,:) + randn(1,3).*sqrt(rotVar(a,:)))'*V2R(rotVec(b,:) + randn(1,3).*sqrt(rotVar(b,:))));
+            end
+            output = @(r1,r2) R2V(V2R(r)*V2R(t));
+            [ val, var ] = IndVar(0.001, output, r,rv,t,tv )
+            rVec{a,b} = mean(temp,2)';
+            rVar{a,b} = var(temp,[],2)';
         end
     end
 end

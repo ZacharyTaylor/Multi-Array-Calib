@@ -43,9 +43,12 @@ for i = 1:length(camData)
        
     for j = 1:size(camData{i}.T_Skm1_Sk,1)
         scaleA(j,:) = (V2R(R)'*((V2R(RA(j,:))-eye(3))*tranVec(2,:)' + tA(j,:)'))./tB(j,:)';
-        %scaleB(j,:) = V2R(R)*(eye(3)-V2R(RB(j,:)))\(V2R(R)'*tA(j,:)-tB(j,:));
+        scaleB(j,:) = (V2R(R)'*tA(j,:)' - (eye(3)-V2R(RB(j,:)))*V2R(R)'*tranVec(2,:)')./tB(j,:)';
          
     end
+    
+    sensorData{camIdx{i}}.T_Var_Skm1_Sk(:,4) = 0;
+    sensorData{camIdx{i}}.T_Skm1_Sk(:,4) = (scaleA(:,3) + scaleB(:,3))/2;
 
 end
 

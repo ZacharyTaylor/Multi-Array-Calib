@@ -47,13 +47,19 @@ void V2R(const double* const vect, double* const R){
 }
     
 void findError(double* err, double* tA, double* tB, double* RA, double* RB, double* R, double* t){
-    err[0] = (- t[0] - tB[0] + R[0]*tA[0] + R[3]*tA[1] + R[6]*tA[2] + RB[0]*t[0] + RB[3]*t[1] + RB[6]*t[2]);
-    err[1] = (- t[1] - tB[1] + R[1]*tA[0] + R[4]*tA[1] + R[7]*tA[2] + RB[1]*t[0] + RB[4]*t[1] + RB[7]*t[2]);
-    err[2] = (- t[2] - tB[2] + R[2]*tA[0] + R[5]*tA[1] + R[8]*tA[2] + RB[2]*t[0] + RB[5]*t[1] + RB[8]*t[2]);
     
-    err[3] = ((R[0]*t[0] + R[1]*t[1] + R[2]*t[2]) - tA[0] + (R[0]*tB[0] + R[3]*tB[1] + R[6]*tB[2]) - RA[0]*(R[0]*t[0] + R[1]*t[1] + R[2]*t[2]) - RA[3]*(R[3]*t[0] + R[4]*t[1] + R[5]*t[2]) - RA[6]*(R[6]*t[0] + R[7]*t[1] + R[8]*t[2]));
-    err[4] = ((R[3]*t[0] + R[4]*t[1] + R[5]*t[2]) - tA[1] + (R[1]*tB[0] + R[4]*tB[1] + R[7]*tB[2]) - RA[1]*(R[0]*t[0] + R[1]*t[1] + R[2]*t[2]) - RA[4]*(R[3]*t[0] + R[4]*t[1] + R[5]*t[2]) - RA[7]*(R[6]*t[0] + R[7]*t[1] + R[8]*t[2]));
-    err[5] = ((R[6]*t[0] + R[7]*t[1] + R[8]*t[2]) - tA[2] + (R[2]*tB[0] + R[5]*tB[1] + R[8]*tB[2]) - RA[2]*(R[0]*t[0] + R[1]*t[1] + R[2]*t[2]) - RA[5]*(R[3]*t[0] + R[4]*t[1] + R[5]*t[2]) - RA[8]*(R[6]*t[0] + R[7]*t[1] + R[8]*t[2]));
+    double x[3];
+    x[0] = -R[0]*t[0] - R[1]*t[1] - R[2]*t[2];
+    x[1] = -R[3]*t[0] - R[4]*t[1] - R[5]*t[2];
+    x[2] = -R[6]*t[0] - R[7]*t[1] - R[8]*t[2];
+    
+    err[0] = RA[0]*t[0] + RA[3]*t[1] + RA[6]*t[2] - t[0] - R[0]*tB[0] - R[3]*tB[1] - R[6]*tB[2] + tA[0];
+    err[1] = RA[1]*t[0] + RA[4]*t[1] + RA[7]*t[2] - t[1] - R[1]*tB[0] - R[4]*tB[1] - R[7]*tB[2] + tA[1];
+    err[2] = RA[2]*t[0] + RA[5]*t[1] + RA[8]*t[2] - t[2] - R[2]*tB[0] - R[5]*tB[1] - R[8]*tB[2] + tA[2];
+    
+    err[3] = RB[0]*x[0] + RB[3]*x[1] + RB[6]*x[2] - x[0] - R[0]*tA[0] - R[1]*tA[1] - R[2]*tA[2] + tB[0];
+    err[4] = RB[1]*x[0] + RB[4]*x[1] + RB[7]*x[2] - x[1] - R[3]*tA[0] - R[4]*tA[1] - R[5]*tA[2] + tB[1];
+    err[5] = RB[2]*x[0] + RB[5]*x[1] + RB[8]*x[2] - x[2] - R[6]*tA[0] - R[7]*tA[1] - R[8]*tA[2] + tB[2];
 }   
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {

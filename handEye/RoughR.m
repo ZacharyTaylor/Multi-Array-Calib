@@ -33,7 +33,7 @@ for i = 2:size(sensorData,1)
     weight = weight(:)';
     
     %use Kabsch to find rotation estimate
-    [temp,~] = Kabsch(sensorData{1}.T_Skm1_Sk(:,5:7)',sensorData{i}.T_Skm1_Sk(:,5:7)',weight);
+    [temp,~] = Kabsch(sensorData{i}.T_Skm1_Sk(:,5:7)',sensorData{1}.T_Skm1_Sk(:,5:7)',weight);
     estVec(i,:) = R2V(temp);
 end
 

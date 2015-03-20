@@ -48,6 +48,7 @@ for a = 1:length(sensorData)
             
             [tA,vtA] = ts2t(sensorData{a}.T_Skm1_Sk(:,1:4), sensorData{1}.T_Var_Skm1_Sk(:,1:4));
             [tB,vtB] = ts2t(sensorData{b}.T_Skm1_Sk(:,1:4), sensorData{b}.T_Var_Skm1_Sk(:,1:4));
+            
             tA = tA'; vtA = vtA';
             tB = tB'; vtB = vtB';
             

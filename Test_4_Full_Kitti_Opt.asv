@@ -6,7 +6,7 @@
 %% user set variables
 
 %number of scans to use
-scansTimeRange = 100;
+scansTimeRange = 50;
 %scansTimeRange = 5:5:100;
 
 %number of times to perform test
@@ -14,7 +14,7 @@ reps = 10;
 
 %samples
 timeSamples = 100000;
-samples = 1000;
+samples = 10000;
 
 
 %% load sensor data
@@ -55,8 +55,8 @@ for w = 1:reps
     %rotVar2 = ErrorEstR(sData, rotVec,100);
     
     %find camera transformation scale
- %   fprintf('Finding Camera Scale\n');
-   sData = EasyScale(sData, rotVec, rotVar,[0,0,0;0,0,0]);
+    fprintf('Finding Camera Scale\n');
+    sData = EasyScale(sData, rotVec, rotVar,[0,0,0;0,0,0]);
     
 %    sData = RejectPoints(sData, 10, 0.0001);
     

@@ -47,7 +47,7 @@ for a = 1:length(sensorData)
         %ensure no repeats
         if(a < b)
             %get rotation and variance
-            Rab = estMat{a}'*estMat{b};
+            Rab = (estMat{a}'*estMat{b})';
             VA = sensorData{a}.T_Var_Skm1_Sk(:,5:7)';
             VB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
             
