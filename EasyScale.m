@@ -1,4 +1,4 @@
-function [ sensorData ] = EasyScale( sensorData, rotVec, rotVar, tranVec )
+function [ sensorData ] = EasyScale( sensorData, rotVec, rotVar, tranVec, tranVar )
 
 %divide into camera and non-camera sensors
 nonCamData = {};
@@ -23,15 +23,12 @@ for i = 1:length(camData)
     
     %get joint rotation
     samples = 100;
-    R = zeros(3,length(nonCamData),samples);
+    R = zeros(length(nonCamData),3);
+    vR = zeros(length(nonCamData),3);
     for k = 1:length(nonCamData)
-        for j = 1:100
-            R(:,k,j) = R2V(V2R(rotVec(camIdx{i},:)+randn(1,3).*rotVar(camIdx{i},:))/V2R(rotVec(nonCamIdx{k},:)+randn(1,3).*rotVar(nonCamIdx{k},:)));
-        end
+        output = @(r1,r2) R2V(V2R(r1)*V2R(r2))';
+        [R(k,:),vR(k,:)] = IndVar(0.001, output, rotVec(camIdx{i},:),rotVar(camIdx{i},:),rotVec(nonCamIdx{k},:),rotVar(nonCamIdx{k},:));
     end
-    
-    VR = var(R,[],3)';
-    R = mean(R,3)';
     
     [tA,vtA] = ts2t(nonCamData{1}.T_Skm1_Sk(:,1:4), nonCamData{1}.T_Var_Skm1_Sk(:,1:4));
     [tB,vtB] = ts2t([camData{i}.T_Skm1_Sk(:,1:3),ones(size(camData{i}.T_Skm1_Sk,1),1)], [camData{i}.T_Var_Skm1_Sk(:,1:3),zeros(size(camData{i}.T_Skm1_Sk,1),1)]);
@@ -42,16 +39,27 @@ for i = 1:length(camData)
     vRB = camData{i}.T_Var_Skm1_Sk(:,5:7);
        
     for j = 1:size(camData{i}.T_Skm1_Sk,1)
-        scaleA(j,:) = (V2R(R)'*((V2R(RA(j,:))-eye(3))*tranVec(2,:)' + tA(j,:)'))./tB(j,:)';
-        scaleB(j,:) = (V2R(R)'*tA(j,:)' - (eye(3)-V2R(RB(j,:)))*V2R(R)'*tranVec(2,:)')./tB(j,:)';
-         
+        %estimate scale
+        [s,sV] = IndVar(0.001,@findScale,R(1,:),vR(1,:),tranVec(2,:),tranVar(2,:),RA(j,:),vRA(j,:),tA(j,:),vtA(j,:),RB(j,:),vRB(j,:),tB(j,:),vtB(j,:));
+        
+        %form single estimate
+        sV = 1./sV;
+        s = sum(s.*sV);
+        sV = 1./sum(sV);
+        s = s.*sV;
+        
+        sensorData{camIdx{i}}.T_Var_Skm1_Sk(j,4) = sV;
+        sensorData{camIdx{i}}.T_Skm1_Sk(j,4) = s;
     end
-    
-    sensorData{camIdx{i}}.T_Var_Skm1_Sk(:,4) = 0;
-    sensorData{camIdx{i}}.T_Skm1_Sk(:,4) = (scaleA(:,3) + scaleB(:,3))/2;
-
 end
 
 warning('on','MATLAB:nearlySingularMatrix');
 
+end
+
+function [scale] = findScale(R,t,RA,tA,RB,tB)
+
+    scale = zeros(6,1);
+    scale(1:3) = (V2R(R)'*((V2R(RA)-eye(3))*t' + tA'))./tB';
+    scale(4:6) = (V2R(R)'*tA' - (eye(3)-V2R(RB))*V2R(R)'*t')./tB';
 end

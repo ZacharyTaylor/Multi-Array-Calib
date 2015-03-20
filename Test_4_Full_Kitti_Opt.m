@@ -14,12 +14,12 @@ reps = 10;
 
 %samples
 timeSamples = 100000;
-samples = 1000;
+samples = 5000;
 
 
 %% load sensor data
 CalibPath(true);
-sensorData = LoadSensorData('Kitti', 'Vel', 'Cam1');
+sensorData = LoadSensorData('Shrimp','Vel', 'Cam1');
 
 sensorData = InvertSensorData(sensorData);
 
@@ -56,12 +56,10 @@ for w = 1:reps
     
     %find camera transformation scale
  %   fprintf('Finding Camera Scale\n');
-   sData = EasyScale(sData, rotVec, rotVar,[0,0,0;0,0,0]);
-    
-%    sData = RejectPoints(sData, 10, 0.0001);
+    sData = EasyScale(sData, rotVec, rotVar,zeros(2,3),ones(2,3));
     
     %clean up large variance
-%    sData = ThresholdVar(sData,10);
+    sData = ThresholdVar(sData,10);
     
     %show what we are dealing with
     PlotData(sData,rotVec);
