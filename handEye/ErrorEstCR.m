@@ -41,7 +41,7 @@ varVec = zeros(length(sensorData),3);
 
 p = zeros(3,3);
 for b = 2:length(sensorData)
-    Rab = estMat{b}*estMat{1}';
+    Rab = estMat{1}'*estMat{b};
     Rab = R2V(Rab);
 
     estA = sensorData{1}.T_Skm1_Sk(:,5:7)';

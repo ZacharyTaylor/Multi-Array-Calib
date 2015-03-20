@@ -205,6 +205,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         double bExp2 = -log(sqrt(8*M_PI*M_PI*M_PI*errOff[3]*errOff[4]*errOff[5]));
         
         //finding log likelihood
-        logl[0] += bExp1 + eExp1;// + bExp2 + eExp2;
+        logl[0] += bExp1 + eExp1 + bExp2 + eExp2;
     }
 }
