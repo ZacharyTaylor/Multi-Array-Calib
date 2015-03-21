@@ -14,12 +14,10 @@ reps = 10;
 
 %samples
 timeSamples = 100000;
-samples = 5000;
-
 
 %% load sensor data
 CalibPath(true);
-sensorData = LoadSensorData('Shrimp','Vel', 'Cam1');
+sensorData = LoadSensorData('Kitti','Vel', 'Cam1');
 
 sensorData = InvertSensorData(sensorData);
 
@@ -41,7 +39,7 @@ for w = 1:reps
     sDataBase = RandTformTimes(sensorData, scansTimeRange);
     
     %evenly sample data
-    sData = SampleData(sDataBase, samples);
+    sData = SampleData2(sDataBase);
     
     %remove uninformative data
     sData = RejectPoints(sData, 10, 0.0001);
@@ -70,7 +68,8 @@ for w = 1:reps
     fprintf('Finding Translation\n');
     tranVec = RoughT(sData, rotVec);
     tranVec = OptT(sData, tranVec, rotVec, rotVar);
-    tranVar = ErrorEstCT(sData, tranVec, rotVec, rotVar, 0.01);
+    tranVar = ErrorEstT3( sData, tranVec, rotVec, rotVar );
+    %tranVar = ErrorEstCT(sData, tranVec, rotVec, rotVar, 0.01);
     %tranVar2 = ErrorEstT(sData, tranVec, rotVec, rotVar2, 100);
 
     %get grid of transforms

@@ -47,7 +47,7 @@ for a = 1:length(sensorData)
             t = V2R(rotVec{1,a})'*(estVec(b,:) - estVec(a,:))';
             
             [tA,vtA] = ts2t(sensorData{a}.T_Skm1_Sk(:,1:4), sensorData{1}.T_Var_Skm1_Sk(:,1:4));
-            [tB,vtB] = ts2t(sensorData{b}.T_Skm1_Sk(:,1:4), sensorData{b}.T_Var_Skm1_Sk(:,1:4));
+            [tB,vtB] = ts2t([sensorData{b}.T_Skm1_Sk(:,1:3),ones(size(sensorData{b}.T_Skm1_Sk,1),1)], [sensorData{b}.T_Var_Skm1_Sk(:,1:3),zeros(size(sensorData{b}.T_Skm1_Sk,1),1)]);
             
             tA = tA'; vtA = vtA';
             tB = tB'; vtB = vtB';
@@ -57,7 +57,7 @@ for a = 1:length(sensorData)
             RB = sensorData{b}.T_Skm1_Sk(:,5:7)';
             vRB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
             
-            temp = -logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t);
+            temp = -logpdfTS(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t);
             
             prob = prob + temp;
         end
