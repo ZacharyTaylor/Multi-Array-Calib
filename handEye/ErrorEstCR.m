@@ -1,4 +1,4 @@
-function [ varVec ] = ErrorEstCR( sensorData, estVec, step )
+function [ varVec ] = ErrorEstCR( sensorData, rotVec, step )
 %ERRORESTR estimate cramer rao lower bound for error variance
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -27,41 +27,32 @@ validateattributes(sensorData,{'cell'},{'vector'});
 for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
-validateattributes(estVec,{'numeric'},{'size',[length(sensorData),3]});
+validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 validateattributes(step,{'numeric'},{'scalar','positive','nonzero'});
 
-%convert vectors to rotation matricies
-estMat = cell(length(sensorData),1);
-estMat{1} = eye(3);
-for i = 2:length(sensorData)
-    estMat{i} = V2R(estVec(i,:));
+%pull usful info out of sensorData
+RData = zeros(size(sensorData{1}.T_Skm1_Sk,1),3,length(sensorData));
+vRData = RData;
+
+for i = 1:length(sensorData)
+    RData(:,:,i) = sensorData{i}.T_Skm1_Sk(:,4:6);
+    vRData(:,:,i) = sensorData{i}.T_Var_Skm1_Sk(:,4:6);
 end
 
-varVec = zeros(length(sensorData),3);
+rotVec = rotVec(2:end,:);
+varVec = zeros(size(rotVec));
 
-p = zeros(3,3);
-for b = 2:length(sensorData)
-    Rab = (estMat{1}'*estMat{b})';
-    Rab = R2V(Rab);
-
-    estA = sensorData{1}.T_Skm1_Sk(:,4:6)';
-    estB = sensorData{b}.T_Skm1_Sk(:,4:6)';
-    
-    varA = sensorData{1}.T_Var_Skm1_Sk(:,4:6)';
-    varB = sensorData{b}.T_Var_Skm1_Sk(:,4:6)';
-
-    for c = 1:3
-        for d = 1:3
-            R = Rab;
-            R(c) = R(c) + step*(d-2);
-            R = V2R(R');
-            err = R*estA - estB;
-
-            p(d,c) = logpdf(err,varA,varB,R);
-        end
+for i = 1:length(rotVec)
+    out = zeros(3,1);
+    for j = 1:3
+        temp = rotVec;
+        temp(i) = temp(i) + step*(j-2);
+        out(j) = SystemProbR(RData, vRData, temp);
     end
-    varVec(b,:) = -(step^2)./diff(p,2);
+    varVec(i) = (step^2)./diff(out,2);
 end
+
+varVec = [0,0,0;varVec];
 
 end
 

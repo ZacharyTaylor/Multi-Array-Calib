@@ -52,51 +52,53 @@ for w = 1:reps
     rotVec = RoughR(sData);
     rotVec = OptR(sData, rotVec);
     rotVarL = ErrorEstCR(sData, rotVec,0.01);
-    rotVarU = ErrorEstR3(sData, rotVec);
-    %[ outVec ] = ErrorEstWR(sData,rotVec);
-    %rotVar2 = ErrorEstR(sData, rotVec,100);
+    %rotVarU = ErrorEstR3(sData, rotVec);
+    
+    fprintf('Rotation:\n');
+    disp(rotVec);
+    fprintf('Rotation sd:\n');
+    disp(sqrt(rotVarU));
     
     %find camera transformation scale (only used for RoughT, OptT does its
     %own smarter/better thing
     fprintf('Finding Camera Scale\n');
-    sDataS = EasyScale(sData, rotVec, rotVar,zeros(2,3),ones(2,3));
-    
-    %clean up large variance
-    %sData = ThresholdVar(sData,50);
+    sDataS = EasyScale(sData, rotVec, rotVarL,zeros(2,3),ones(2,3));
     
     %show what we are dealing with
     PlotData(sDataS,rotVec);
-
-    %find translation
-    %sData = TDiff(sData, rotVec, rotVar);
     
     fprintf('Finding Translation\n');
     tranVec = RoughT(sDataS, rotVec);
-    tranVec = OptT(sData, tranVec, rotVec, rotVarU);
-    tranVarL = ErrorEstCT(sData, tranVec, rotVec, rotVarU, 0.01);
-    tranVarU = ErrorEstT3(sData, tranVec, rotVec, rotVarU);
+    tranVec = OptT(sData, tranVec, rotVec, rotVarL);
+    tranVarL = ErrorEstCT(sData, tranVec, rotVec, rotVarL, 0.01);
+    %tranVarU = ErrorEstT3(sData, tranVec, rotVec, rotVarU);
     
-    %tranVar2 = ErrorEstT(sData, tranVec, rotVec, rotVar2, 100);
-
-    %get grid of transforms
-    fprintf('Generating transformation grid\n');
-    [tGrid, vGrid] = GenTformGrid(tranVec, rotVec, tranVar, rotVar);
+    fprintf('Translation:\n');
+    disp(tranVec);
+    fprintf('Translation sd:\n');
+    disp(sqrt(tranVarL));
     
-    %refine transforms using metrics
-    fprintf('Refining transformations\n');
-    [tGridR, vGridR] = metricRefine(tGrid, vGrid, sDataBase,0.1,10);
-    
-    %correct for differences in grid
-    fprintf('Combining results\n');
-    [tVals, vVals] = optGrid(tGridR, vGridR, sensorData);
-    
-    outT{w} = tVals;
-    outV{w} = vVals;
-    
-    outTB{w} = [tranVec, rotVec];
-    outVB{w} = [tranVar, rotVar];
-    
-    save('Test_45_Res.mat','outT','outV','outTB','outVB');
-    toc
-    w
+%     %tranVar2 = ErrorEstT(sData, tranVec, rotVec, rotVar2, 100);
+% 
+%     %get grid of transforms
+%     fprintf('Generating transformation grid\n');
+%     [tGrid, vGrid] = GenTformGrid(tranVec, rotVec, tranVar, rotVar);
+%     
+%     %refine transforms using metrics
+%     fprintf('Refining transformations\n');
+%     [tGridR, vGridR] = metricRefine(tGrid, vGrid, sDataBase,0.1,10);
+%     
+%     %correct for differences in grid
+%     fprintf('Combining results\n');
+%     [tVals, vVals] = optGrid(tGridR, vGridR, sensorData);
+%     
+%     outT{w} = tVals;
+%     outV{w} = vVals;
+%     
+%     outTB{w} = [tranVec, rotVec];
+%     outVB{w} = [tranVar, rotVar];
+%     
+%     save('Test_45_Res.mat','outT','outV','outTB','outVB');
+%     toc
+%     w
 end
