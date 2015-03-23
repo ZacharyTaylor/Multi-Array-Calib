@@ -3,13 +3,10 @@ function [ T ] = V2T( V )
 %--------------------------------------------------------------------------
 %   Required Inputs:
 %--------------------------------------------------------------------------
-%    V - 1x7 vector of form [nx,ny,nz,s,rx,ry,rz] where [nx,ny,nz,s] is the 
-%       translation. This is formed by converting the X,Y,Z position to
-%       a normalized vector + scale [nx,ny,nz,s].
-%
-%       [rx,ry,rz] is an angle-axis representation of the angle where the
-%       unit vector representing the axis has been multipled by the angle 
-%       of rotation about it
+%    V - 1x6 vector of form [x,y,z,rx,ry,rz] where [x,y,z] is the 
+%       translation. [rx,ry,rz] is an angle-axis representation of the 
+%       angle where the unit vector representing the axis has been
+%       multipled by the angle of rotation about it
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -32,13 +29,13 @@ function [ T ] = V2T( V )
 %   Estimation Problems". Though I belive apart from both representations
 %   using angle axis systems there is now little similarity
 
-validateattributes(V, {'numeric'},{'size',[1,7]});
+validateattributes(V, {'numeric'},{'size',[1,6]});
 
 V = double(V);
 
 T = eye(4);
-T(1:3,4) = V(4)*V(1:3)';
-T(1:3,1:3) = V2R(V(5:7));
+T(1:3,4) = V(1:3)';
+T(1:3,1:3) = V2R(V(4:6));
 
 
 end

@@ -58,15 +58,21 @@ for b = 2:length(sensorData)
     R = rVec{1,b};
     vR = rVar{1,b};
     
-    [tA,vtA] = ts2t(sensorData{1}.T_Skm1_Sk(:,1:4), sensorData{1}.T_Var_Skm1_Sk(:,1:4));
-    [tB,vtB] = ts2t(sensorData{b}.T_Skm1_Sk(:,1:4), sensorData{b}.T_Var_Skm1_Sk(:,1:4));
-    tA = tA'; vtA = vtA';
-    tB = tB'; vtB = vtB';
+    tA = sensorData{a}.T_Skm1_Sk(:,1:3)';
+    vtA = sensorData{a}.T_Var_Skm1_Sk(:,1:3)';
+    tB = sensorData{b}.T_Skm1_Sk(:,1:3)';
+    vtB = sensorData{b}.T_Var_Skm1_Sk(:,1:3)';
 
-    RA = sensorData{1}.T_Skm1_Sk(:,5:7)';
-    vRA = sensorData{1}.T_Var_Skm1_Sk(:,5:7)';
-    RB = sensorData{b}.T_Skm1_Sk(:,5:7)';
-    vRB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
+    RA = sensorData{a}.T_Skm1_Sk(:,4:6)';
+    vRA = sensorData{a}.T_Var_Skm1_Sk(:,4:6)';
+    RB = sensorData{b}.T_Skm1_Sk(:,4:6)';
+    vRB = sensorData{b}.T_Var_Skm1_Sk(:,4:6)';
+    
+    if(strcmpi(sensorData{b}.type,'camera'))
+        s = 1;
+    else
+        s = 0;
+    end
 
     for c = 1:3
         for d = 1:3
@@ -74,7 +80,7 @@ for b = 2:length(sensorData)
             t = (estVec(b,:) - estVec(1,:))';
             t(c) = t(c) + step*(d-2);
             
-            p(d,c) = logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t);
+            p(d,c) = logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s);
         end
     end
     

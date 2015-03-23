@@ -82,12 +82,12 @@ camData.files = camData.files(range);
 camData.time = camData.time(range);
 
 %preallocate memory
-camData.T_Skm1_Sk = zeros(size(camData.files(:),1),7);
-camData.T_S1_Sk = zeros(size(camData.files(:),1),7);
+camData.T_Skm1_Sk = zeros(size(camData.files(:),1),6);
+camData.T_S1_Sk = zeros(size(camData.files(:),1),6);
 
-camData.T_Var_Skm1_Sk = zeros(size(camData.files(:),1),7);
-camData.T_Var_S1_Sk = zeros(size(camData.files(:),1),7);
-camData.T_Var_Skm1_Sk(1:2,:) = 1000*ones(2,7);
+camData.T_Var_Skm1_Sk = zeros(size(camData.files(:),1),6);
+camData.T_Var_S1_Sk = zeros(size(camData.files(:),1),6);
+camData.T_Var_Skm1_Sk(1,:) = 1000*ones(1,6);
 
 %setup for plotting
 if(plotCam)
@@ -101,24 +101,13 @@ image = imread([camData.folder camData.files(1).name]);
 if(size(image,3) == 3)
     image = rgb2gray(image);
 end
-imageOld = Undistort(image, camData.D, camData.K);
-
-%load the second image
-image = imread([camData.folder camData.files(2).name]); 
-if(size(image,3) == 3)
-    image = rgb2gray(image);
-end
 image = Undistort(image, camData.D, camData.K);
 
-scale = 1;
-scaleVar = 0;
-
 %find the transforms for each image
-for frame = 3:size(camData.files,1)
+for frame = 2:size(camData.files,1)
 
     UpdateMessage('Finding Transform for image %i of %i for camera %i', frame,size(camData.files,1),idx);
 
-    imageOldest = imageOld;
     imageOld = image;
     
     %read new data
@@ -130,22 +119,15 @@ for frame = 3:size(camData.files,1)
 
     %find transformation
     try
-        [temp, tempVar] = GetCamTform3(imageOldest,imageOld,image, camData.mask, camData.K);
+        [temp, tempVar] = GetCamTform(imageOld,image, camData.mask, camData.K);
         temp(~isfinite(temp)) = 0;
-        temp(4) = temp(4)*scale;
-        if(temp(4) ~= 0)
-            scale = abs(temp(4));
-        end
-        
         tempVar(~isfinite(temp)) = 1000;
-        tempVar(4) = tempVar(4) * scale;
-        %scaleVar = tempVar(4);
         
         camData.T_Skm1_Sk(frame,:) = temp;
         camData.T_Var_Skm1_Sk(frame,:) = tempVar;
      catch
-         camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0,0];
-         camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,7);
+         camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
+         camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
      end
        
     %generate absolute transformations

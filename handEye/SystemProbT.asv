@@ -28,9 +28,11 @@ function [ prob ] = SystemProbT( TData, vTData, s, estVec, rotVec, rotVar )
 %check inputs
 validateattributes(TData,{'double'},{'3d','ncols',6});
 validateattributes(vTData,{'double'},{'size' size(TData)});
-validateattributes(s,{'double'},{'vector','numel',size(TData,3)});
+validateattributes(s,{'logical'},{'vector','numel',size(TData,3)});
 validateattributes(estVec,{'numeric'},{'size',[size(TData,3)-1,3]});
 %validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
+
+s = double(s);
 
 %set first element to zeros
 estVec = [0,0,0;estVec];
@@ -45,10 +47,10 @@ for a = 1:length(s)
                 continue;
             end
             
-            R = [rotVec(a,:); rotVec(b,:)];
-            vR = [rotVar(a,:); rotVar(b,:)];
+            R = rotVec{a,b};
+            vR = rotVar{a,b};
             
-            t = V2R(rotVec(a,:))'*(estVec(b,:) - estVec(a,:))';
+            t = V2R(rotVec{1,a})'*(estVec(b,:) - estVec(a,:))';
             
             tA = TData(:,1:3,a)';
             vtA = vTData(:,1:3,a)';
@@ -59,8 +61,12 @@ for a = 1:length(s)
             vRA = vTData(:,4:6,a)';
             RB = TData(:,4:6,b)';
             vRB = vTData(:,4:6,b)';
-                     
-            temp = -logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s(b));
+            
+            if(strcmpi(sensorData{b}.type,'camera'))            
+                temp = -logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,1);
+            else
+                temp = -logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,0);
+            end
             
             prob = prob + temp;
         end

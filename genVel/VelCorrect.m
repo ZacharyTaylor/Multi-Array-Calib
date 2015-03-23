@@ -31,7 +31,7 @@ if(size(points,2) < 3)
     error('points must have atleast 3 columns');
 end
 validateattributes(tFrac,{'numeric'},{'numel',size(points,1),'>=',-1,'<=',1});
-validateattributes(tform,{'numeric'},{'size',[1,7]});
+validateattributes(tform,{'numeric'},{'size',[1,6]});
 
 %ensure inputs are of type doubles
 points = double(points);

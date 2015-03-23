@@ -1,12 +1,10 @@
-function [T_Ckm1_Ck, T_Var_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
-%GENCAMTFORM3 Gets normalized camera transform scaled with respect to the
-%   previous transformation given three images and K
+function [T_Ckm1_Ck, T_Var_Ckm1_Ck] = GetCamTform(imOld, imNew, mask, K )
+%GENCAMTFORM3 Gets normalized camera transform
 %--------------------------------------------------------------------------
 %   Required Inputs:
 %--------------------------------------------------------------------------
-%   im1- n by m image, the first of three images
-%   im2- n by m image, the second of three images
-%   im3- n by m image, the last of three images
+%   imOld- n by m image, the previous image
+%   imNew- n by m image, the current image
 %   mask- n by m logical matrix. If zero points at this location will not
 %   be used( allows removal of parts of vechile in view)
 %   K- camera matrix
@@ -14,9 +12,7 @@ function [T_Ckm1_Ck, T_Var_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
 %--------------------------------------------------------------------------
 %   Outputs:
 %--------------------------------------------------------------------------
-%   T_Ckm1_Ck - camera transformation vector from im2 to im3. The scale is
-%       estimated assuming the transformation vector from im1 to im2 has a
-%       magnitude of 1.
+%   T_Ckm1_Ck - camera transformation vector from imOld to imNew.
 %   T_Var_Ckm1_Ck - a vector giving the estimated variance of each element
 %       of T_Ckm1_Ck
 %
@@ -30,14 +26,13 @@ function [T_Ckm1_Ck, T_Var_Ckm1_Ck] = GetCamTform3( im1, im2, im3, mask, K )
 %   zacharyjeremytaylor@gmail.com
 %   http://www.zjtaylor.com
 
-validateattributes(im1,{'numeric'},{'2d'});
-validateattributes(im2,{'numeric'},{'2d','size',size(im1)});
-validateattributes(im3,{'numeric'},{'2d','size',size(im1)});
-validateattributes(mask,{'logical'},{'2d','size',size(im1)});
+validateattributes(imOld,{'numeric'},{'2d'});
+validateattributes(imNew,{'numeric'},{'2d','size',size(imOld)});
+validateattributes(mask,{'logical'},{'2d','size',size(imOld)});
 validateattributes(K,{'numeric'},{'size',[3,4]});
 
 %detect features in first image
-points = detectMinEigenFeatures(im1);
+points = detectMinEigenFeatures(imOld);
 points = points.Location;
 
 %mask points
@@ -46,39 +41,16 @@ points = points(notMasked,:);
 
 %track points
 pointTracker = vision.PointTracker('MaxBidirectionalError', 1);
-initialize(pointTracker, points, im1);
-[points2, ~] = step(pointTracker, im2);
-[points3, ~] = step(pointTracker, im3);
-[points1, matches] = step(pointTracker, im1);
+initialize(pointTracker, points, imOld);
+[pointsNew, matches] = step(pointTracker, imNew);
 release(pointTracker);
 
 %get matching points
-matches = and(matches,sum((points1-points).^2,2)<1);
 points = points(matches,:);
-points2 = points2(matches,:);
-points3 = points3(matches,:);
+pointsNew = pointsNew(matches,:);
 
-%find transformation and 3d point positions
-[~,~, p12, inliers] = getTandPoints(points2,points,K);
-points2 = points2(inliers,:); points3 = points3(inliers,:);
-[T_Ckm1_Ck, T_Var_Ckm1_Ck, p23, inliers] = getTandPoints(points3,points2,K);
-p12 = p12(inliers,:);
-
-%estimate scale from 3d points
-scale = sqrt(sum(p12(:,4:6).^2,2))./sqrt(sum(p23(:,1:3).^2,2));
-
-%reject points assuming that speed will not more then double or halve in a frame
-scale = scale(and(scale > 0.5, scale < 2));
-
-%get mean and varinace of scale
-T_Var_Ckm1_Ck(4) = var(scale);
-T_Ckm1_Ck(4) = T_Ckm1_Ck(4)*mean(scale);
-
-%ensure sample is of decent size
-if(length(scale) < 20)
-    T_Var_Ckm1_Ck(4) = 1000;
-    T_Ckm1_Ck(4) = 1;
-end
+%find transformation
+[T_Ckm1_Ck, T_Var_Ckm1_Ck, ~, ~] = getTandPoints(pointsNew,points,K);
 
 end
 
@@ -129,7 +101,7 @@ function [T_Ckm1_Ck, T_Var_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
     T_Ckm1_Ck = T_Ckm1_Ck(:,:,idx);
     
     %sample data
-    T_Var_Ckm1_Ck = zeros(100,7);
+    T_Var_Ckm1_Ck = zeros(100,6);
     for i = 1:100
         %get sampled points
         [mOBS,idx] = datasample(mOld,size(mOld,1));

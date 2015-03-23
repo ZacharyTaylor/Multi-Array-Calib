@@ -18,11 +18,7 @@ end
 
 for i = 1:length(camData)
     
-    scaleA = ones(size(camData{i}.T_Skm1_Sk,1),3);
-    scaleB = ones(size(camData{i}.T_Skm1_Sk,1),3);
-    
     %get joint rotation
-    samples = 100;
     R = zeros(length(nonCamData),3);
     vR = zeros(length(nonCamData),3);
     for k = 1:length(nonCamData)
@@ -30,13 +26,15 @@ for i = 1:length(camData)
         [R(k,:),vR(k,:)] = IndVar(0.001, output, rotVec(camIdx{i},:),rotVar(camIdx{i},:),rotVec(nonCamIdx{k},:),rotVar(nonCamIdx{k},:));
     end
     
-    [tA,vtA] = ts2t(nonCamData{1}.T_Skm1_Sk(:,1:4), nonCamData{1}.T_Var_Skm1_Sk(:,1:4));
-    [tB,vtB] = ts2t([camData{i}.T_Skm1_Sk(:,1:3),ones(size(camData{i}.T_Skm1_Sk,1),1)], [camData{i}.T_Var_Skm1_Sk(:,1:3),zeros(size(camData{i}.T_Skm1_Sk,1),1)]);
+    tA = nonCamData{1}.T_Skm1_Sk(:,1:3);
+    vtA = nonCamData{1}.T_Var_Skm1_Sk(:,1:3);
+    tB = camData{i}.T_Skm1_Sk(:,1:3);
+    vtB = camData{i}.T_Var_Skm1_Sk(:,1:3);
 
-    RA = nonCamData{1}.T_Skm1_Sk(:,5:7);
-    vRA = nonCamData{1}.T_Var_Skm1_Sk(:,5:7);
-    RB = camData{i}.T_Skm1_Sk(:,5:7);
-    vRB = camData{i}.T_Var_Skm1_Sk(:,5:7);
+    RA = nonCamData{1}.T_Skm1_Sk(:,4:6);
+    vRA = nonCamData{1}.T_Var_Skm1_Sk(:,4:6);
+    RB = camData{i}.T_Skm1_Sk(:,4:6);
+    vRB = camData{i}.T_Var_Skm1_Sk(:,4:6);
        
     for j = 1:size(camData{i}.T_Skm1_Sk,1)
         %estimate scale
@@ -48,8 +46,8 @@ for i = 1:length(camData)
         sV = 1./sum(sV);
         s = s.*sV;
         
-        sensorData{camIdx{i}}.T_Var_Skm1_Sk(j,4) = sV;
-        sensorData{camIdx{i}}.T_Skm1_Sk(j,4) = s;
+        sensorData{camIdx{i}}.T_Var_Skm1_Sk(j,1:3) = sV.*(tB(j,:).^2) + (s.^2).*vtB(j,:);
+        sensorData{camIdx{i}}.T_Skm1_Sk(j,1:3) = s.*tB(j,:);
     end
 end
 

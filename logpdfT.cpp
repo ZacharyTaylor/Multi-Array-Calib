@@ -8,6 +8,7 @@
 #include <cmath>
 
 #define max(a,b) ((a) > (b) ? (a) : (b))
+#define OFFSET 0.001
 
 void V2R(const double* const vect, double* const R){
     
@@ -45,29 +46,228 @@ void V2R(const double* const vect, double* const R){
      R[7] = k*y*z - s*x;
      R[8] = k*z*z + c;
 }
+
+void findScaleB(double* sB, double* tA, double* tB, double* RA, double* RB, double* Rs, double* Re, double* t){
+
+    double RAM[9];
+    double RBM[9];
+    double RSM[9];
+    double REM[9];
+    double RM[9];
     
-void findError(double* err, double* tA, double* tB, double* RA, double* RB, double* R, double* t){
+    V2R(RA,RAM);
+    V2R(RB,RBM);
+    V2R(Rs,RSM);
+    V2R(Re,REM);
+    
+    RM[0] = RSM[0]*REM[0] + RSM[1]*REM[1] + RSM[2]*REM[2];
+    RM[1] = RSM[3]*REM[0] + RSM[4]*REM[1] + RSM[5]*REM[2];
+    RM[2] = RSM[6]*REM[0] + RSM[7]*REM[1] + RSM[8]*REM[2];
+    RM[3] = RSM[0]*REM[3] + RSM[1]*REM[4] + RSM[2]*REM[5];
+    RM[4] = RSM[3]*REM[3] + RSM[4]*REM[4] + RSM[5]*REM[5];
+    RM[5] = RSM[6]*REM[3] + RSM[7]*REM[4] + RSM[8]*REM[5];
+    RM[6] = RSM[0]*REM[6] + RSM[1]*REM[7] + RSM[2]*REM[8];
+    RM[7] = RSM[3]*REM[6] + RSM[4]*REM[7] + RSM[5]*REM[8];
+    RM[8] = RSM[6]*REM[6] + RSM[7]*REM[7] + RSM[8]*REM[8];
     
     double x[3];
-    x[0] = -R[0]*t[0] - R[1]*t[1] - R[2]*t[2];
-    x[1] = -R[3]*t[0] - R[4]*t[1] - R[5]*t[2];
-    x[2] = -R[6]*t[0] - R[7]*t[1] - R[8]*t[2];
+    x[0] = -RM[0]*t[0] - RM[1]*t[1] - RM[2]*t[2];
+    x[1] = -RM[3]*t[0] - RM[4]*t[1] - RM[5]*t[2];
+    x[2] = -RM[6]*t[0] - RM[7]*t[1] - RM[8]*t[2];
     
-    err[0] = RA[0]*t[0] + RA[3]*t[1] + RA[6]*t[2] - t[0] - R[0]*tB[0] - R[3]*tB[1] - R[6]*tB[2] + tA[0];
-    err[1] = RA[1]*t[0] + RA[4]*t[1] + RA[7]*t[2] - t[1] - R[1]*tB[0] - R[4]*tB[1] - R[7]*tB[2] + tA[1];
-    err[2] = RA[2]*t[0] + RA[5]*t[1] + RA[8]*t[2] - t[2] - R[2]*tB[0] - R[5]*tB[1] - R[8]*tB[2] + tA[2];
+    sB[0] = (RAM[0]*t[0] + RAM[3]*t[1] + RAM[6]*t[2] - t[0] + tA[0]) / (RM[0]*tB[0] + RM[3]*tB[1] + RM[6]*tB[2]);
+    sB[1] = (RAM[1]*t[0] + RAM[4]*t[1] + RAM[7]*t[2] - t[1] + tA[1]) / (RM[1]*tB[0] + RM[4]*tB[1] + RM[7]*tB[2]);
+    sB[2] = (RAM[2]*t[0] + RAM[5]*t[1] + RAM[8]*t[2] - t[2] + tA[2]) / (RM[2]*tB[0] + RM[5]*tB[1] + RM[8]*tB[2]);
     
-    err[3] = RB[0]*x[0] + RB[3]*x[1] + RB[6]*x[2] - x[0] - R[0]*tA[0] - R[1]*tA[1] - R[2]*tA[2] + tB[0];
-    err[4] = RB[1]*x[0] + RB[4]*x[1] + RB[7]*x[2] - x[1] - R[3]*tA[0] - R[4]*tA[1] - R[5]*tA[2] + tB[1];
-    err[5] = RB[2]*x[0] + RB[5]*x[1] + RB[8]*x[2] - x[2] - R[6]*tA[0] - R[7]*tA[1] - R[8]*tA[2] + tB[2];
-}   
+    sB[3] = -(RBM[0]*x[0] + RBM[3]*x[1] + RBM[6]*x[2] - x[0] - RM[0]*tA[0] - RM[1]*tA[1] - RM[2]*tA[2]) / tB[0];
+    sB[4] = -(RBM[1]*x[0] + RBM[4]*x[1] + RBM[7]*x[2] - x[1] - RM[3]*tA[0] - RM[4]*tA[1] - RM[5]*tA[2]) / tB[1];
+    sB[5] = -(RBM[2]*x[0] + RBM[5]*x[1] + RBM[8]*x[2] - x[2] - RM[6]*tA[0] - RM[7]*tA[1] - RM[8]*tA[2]) / tB[2];
+}
+
+void scaleElementVarB(double* err, double* base, double v, double* tA, double* tB, double* RA, double* RB, double* Rs, double* Re, double* t){
+    double temp[6];
+    
+    findScaleB(temp,tA,tB,RA,RB,Rs,Re,t);
+    for(size_t i = 0; i < 6; i++){
+        err[i] += v*(temp[i] - base[i])*(temp[i] - base[i]);
+    }
+}
+
+void combineScaleB(double* stB, double* svtB,
+        double* tA, double* vtA,
+        double* tB, double* vtB,
+        double* RA, double* vRA,
+        double* RB, double* vRB,
+        double* Rs, double* vRs,
+        double* Re, double* vRe,
+        double* t){
+    
+    double base[6];
+    
+    findScaleB(base, tA, tB, RA, RB, Rs, Re, t);
+    
+    //add OFFSET to estimate variance
+    double err[] = {0,0,0,0,0,0};
+
+    for(size_t j = 0; j < 3; j++){
+        tA[j] += OFFSET;
+        scaleElementVarB(err,base, vtA[j], tA, tB, RA, RB, Rs, Re, t);
+        tA[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        tB[j] += OFFSET;
+        scaleElementVarB(err,base, vtB[j], tA, tB, RA, RB, Rs, Re, t);
+        tB[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        RA[j] += OFFSET;
+        scaleElementVarB(err,base, vRA[j], tA, tB, RA, RB, Rs, Re, t);
+        RA[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        RB[j] += OFFSET;
+        scaleElementVarB(err,base, vRB[j], tA, tB, RA, RB, Rs, Re, t);
+        RB[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        Rs[j] += OFFSET;
+        scaleElementVarB(err,base, vRs[j], tA, tB, RA, RB, Rs, Re, t);
+        Rs[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        Re[j] += OFFSET;
+        scaleElementVarB(err,base, vRe[j], tA, tB, RA, RB, Rs, Re, t);
+        Re[j] -= OFFSET;
+    }
+    
+    //transform to variance
+    for(size_t j = 0; j < 6; j++){
+        err[j] = err[j]/(OFFSET*OFFSET);
+        err[j] = 2/err[j];//2 as equations depend on each other alot
+    }
+    
+    //combine estimates
+    double s = 0;
+    double sV = 0;
+    for(size_t j = 0; j < 6; j++){
+        s += base[j]*err[j];
+        sV += err[j];
+    }
+    sV = (1/sV); 
+    s = s*sV;
+        
+    //add to original
+    for(size_t j = 0; j< 3; j++){
+        stB[j] = s*tB[j];
+        svtB[j] = s*s*vtB[j] + sV*tB[j]*tB[j];
+    }
+}
+
+void findError(double* err, double* tA, double* tB, double* RA, double* RB, double* Rs, double* Re, double* t){
+    
+    double RAM[9];
+    double RBM[9];
+    double RSM[9];
+    double REM[9];
+    double RM[9];
+    
+    V2R(RA,RAM);
+    V2R(RB,RBM);
+    V2R(Rs,RSM);
+    V2R(Re,REM);
+    
+    RM[0] = RSM[0]*REM[0] + RSM[1]*REM[1] + RSM[2]*REM[2];
+    RM[1] = RSM[3]*REM[0] + RSM[4]*REM[1] + RSM[5]*REM[2];
+    RM[2] = RSM[6]*REM[0] + RSM[7]*REM[1] + RSM[8]*REM[2];
+    RM[3] = RSM[0]*REM[3] + RSM[1]*REM[4] + RSM[2]*REM[5];
+    RM[4] = RSM[3]*REM[3] + RSM[4]*REM[4] + RSM[5]*REM[5];
+    RM[5] = RSM[6]*REM[3] + RSM[7]*REM[4] + RSM[8]*REM[5];
+    RM[6] = RSM[0]*REM[6] + RSM[1]*REM[7] + RSM[2]*REM[8];
+    RM[7] = RSM[3]*REM[6] + RSM[4]*REM[7] + RSM[5]*REM[8];
+    RM[8] = RSM[6]*REM[6] + RSM[7]*REM[7] + RSM[8]*REM[8];
+        
+    double x[3];
+    x[0] = -RM[0]*t[0] - RM[1]*t[1] - RM[2]*t[2];
+    x[1] = -RM[3]*t[0] - RM[4]*t[1] - RM[5]*t[2];
+    x[2] = -RM[6]*t[0] - RM[7]*t[1] - RM[8]*t[2];
+    
+    err[0] = RAM[0]*t[0] + RAM[3]*t[1] + RAM[6]*t[2] - t[0] - RM[0]*tB[0] - RM[3]*tB[1] - RM[6]*tB[2] + tA[0];
+    err[1] = RAM[1]*t[0] + RAM[4]*t[1] + RAM[7]*t[2] - t[1] - RM[1]*tB[0] - RM[4]*tB[1] - RM[7]*tB[2] + tA[1];
+    err[2] = RAM[2]*t[0] + RAM[5]*t[1] + RAM[8]*t[2] - t[2] - RM[2]*tB[0] - RM[5]*tB[1] - RM[8]*tB[2] + tA[2];
+    
+    err[3] = RBM[0]*x[0] + RBM[3]*x[1] + RBM[6]*x[2] - x[0] - RM[0]*tA[0] - RM[1]*tA[1] - RM[2]*tA[2] + tB[0];
+    err[4] = RBM[1]*x[0] + RBM[4]*x[1] + RBM[7]*x[2] - x[1] - RM[3]*tA[0] - RM[4]*tA[1] - RM[5]*tA[2] + tB[1];
+    err[5] = RBM[2]*x[0] + RBM[5]*x[1] + RBM[8]*x[2] - x[2] - RM[6]*tA[0] - RM[7]*tA[1] - RM[8]*tA[2] + tB[2];
+} 
+
+void errorElementVar(double* err, double* base, double v, double* tA, double* tB, double* RA, double* RB, double* Rs, double* Re, double* t){
+    double temp[6];
+        
+    findError(temp,tA,tB,RA,RB,Rs,Re,t);
+    for(size_t i = 0; i < 6; i++){
+        err[i] += v*(temp[i] - base[i])*(temp[i] - base[i]);
+    }
+}
+
+void findErrVar(double* err, double* verr,
+        double* tA, double* vtA,
+        double* tB, double* vtB,
+        double* RA, double* vRA,
+        double* RB, double* vRB,
+        double* Rs, double* vRs,
+        double* Re, double* vRe,
+        double* t){
+            
+    findError(err, tA, tB, RA, RB, Rs, Re, t);
+    
+    //add OFFSET to estimate variance
+    for(size_t j = 0; j < 6; j++){
+        verr[j] = 0;
+    }
+    
+    for(size_t j = 0; j < 3; j++){
+        tA[j] += OFFSET;
+        errorElementVar(verr,err, vtA[j], tA, tB, RA, RB, Rs, Re, t);
+        tA[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        tB[j] += OFFSET;
+        errorElementVar(verr,err, vtB[j], tA, tB, RA, RB, Rs, Re, t);
+        tB[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        RA[j] += OFFSET;
+        errorElementVar(verr,err, vRA[j], tA, tB, RA, RB, Rs, Re, t);
+        RA[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        RB[j] += OFFSET;
+        errorElementVar(verr,err, vRB[j], tA, tB, RA, RB, Rs, Re, t);
+        RB[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        Rs[j] += OFFSET;
+        errorElementVar(verr,err, vRs[j], tA, tB, RA, RB, Rs, Re, t);
+        Rs[j] -= OFFSET;
+    }
+    for(size_t j = 0; j < 3; j++){
+        Re[j] += OFFSET;
+        errorElementVar(verr,err, vRe[j], tA, tB, RA, RB, Rs, Re, t);
+        Re[j] -= OFFSET;
+    }
+    
+    //transform to variance
+    for(size_t j = 0; j < 6; j++){
+        verr[j] = verr[j]/(OFFSET*OFFSET);
+    }
+}  
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     
     //check inputs
-    if (nrhs != 11 || (nlhs != 1 && nlhs != 0)) {
+    if (nrhs != 12 || (nlhs != 1 && nlhs != 0)) {
       mexErrMsgIdAndTxt("CPROB:BadNArgs", 
-                        "Need 11 inputs and 1 output.");
+                        "Need 12 inputs and 1 output.");
     }
         
     //gets size of variables
@@ -75,8 +275,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     const size_t n = length[1];
     
     //get value of input variables
-    double * R = mxGetPr(prhs[0]);
-    double * vR = mxGetPr(prhs[1]);
+    double * RIn = mxGetPr(prhs[0]);
+    double * vRIn = mxGetPr(prhs[1]);
     double * tAIn = mxGetPr(prhs[2]);
     double * vtAIn = mxGetPr(prhs[3]);
     double * RAIn = mxGetPr(prhs[4]);
@@ -86,6 +286,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     double * RBIn = mxGetPr(prhs[8]);
     double * vRBIn = mxGetPr(prhs[9]);
     double * t = mxGetPr(prhs[10]);
+    double * s = mxGetPr(prhs[11]);
     
     //setup outputs
     plhs[0] = mxCreateNumericMatrix(1, 1, mxDOUBLE_CLASS, mxREAL);
@@ -102,115 +303,36 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     	double* vtB = &vtBIn[3*i];
         double* vRA = &vRAIn[3*i];
         double* vRB = &vRBIn[3*i];
-    	       
-        //find error
+        
+        double* Rs = &RIn[0];
+        double* Re = &RIn[3];
+        double* vRs = &RIn[0];
+        double* vRe = &RIn[3];
+    	
+        double stB[3];
+        double svtB[3];
         double err[6];
-        double RAM[9];
-        double RBM[9];
-        double RM[9];
-		
-        V2R(RA,RAM);
-        V2R(RB,RBM);
-        V2R(R,RM);
-		
-        findError(err,tA,tB,RAM,RBM,RM,t);
-
-        //add offset to estimate variance
-        double offset = 0.0001;
-        double errOff[] = {0,0,0,0,0,0};
-
-        for(size_t j = 0; j < 3; j++){
-            tA[j] += offset;
-            double temp[6];
-            findError(temp,tA,tB,RAM,RBM,RM,t);
-            tA[j] -= offset;
-            
-            errOff[0] += vtA[j]*(temp[0] - err[0])*(temp[0] - err[0]);
-            errOff[1] += vtA[j]*(temp[1] - err[1])*(temp[1] - err[1]);
-            errOff[2] += vtA[j]*(temp[2] - err[2])*(temp[2] - err[2]);
-            errOff[3] += vtA[j]*(temp[3] - err[3])*(temp[3] - err[3]);
-            errOff[4] += vtA[j]*(temp[4] - err[4])*(temp[4] - err[4]);
-            errOff[5] += vtA[j]*(temp[5] - err[5])*(temp[5] - err[5]);
-        }
+        double verr[6];
         
-        for(size_t j = 0; j < 3; j++){
-            tB[j] += offset;
-            double temp[6];
-            findError(temp,tA,tB,RAM,RBM,RM,t);
-            tB[j] -= offset;
-            
-            errOff[0] += vtB[j]*(temp[0] - err[0])*(temp[0] - err[0]);
-            errOff[1] += vtB[j]*(temp[1] - err[1])*(temp[1] - err[1]);
-            errOff[2] += vtB[j]*(temp[2] - err[2])*(temp[2] - err[2]);
-            errOff[3] += vtB[j]*(temp[3] - err[3])*(temp[3] - err[3]);
-            errOff[4] += vtB[j]*(temp[4] - err[4])*(temp[4] - err[4]);
-            errOff[5] += vtB[j]*(temp[5] - err[5])*(temp[5] - err[5]);
+        if(s[0] != 0){
+            combineScaleB(stB,svtB,tA,vtA,tB,vtB,RA,vRA,RB,vRB,Rs,vRs,Re,vRe,t);
+            findErrVar(err,verr,tA,vtA,stB,svtB,RA,vRA,RB,vRB,Rs,vRs,Re,vRe,t);
         }
-        
-        for(size_t j = 0; j < 3; j++){
-            RA[j] += offset;
-            V2R(RA,RAM);
-            double temp[6];
-            findError(temp,tA,tB,RAM,RBM,RM,t);
-            RA[j] -= offset;
-            
-            errOff[0] += vRA[j]*(temp[0] - err[0])*(temp[0] - err[0]);
-            errOff[1] += vRA[j]*(temp[1] - err[1])*(temp[1] - err[1]);
-            errOff[2] += vRA[j]*(temp[2] - err[2])*(temp[2] - err[2]);
-            errOff[3] += vRA[j]*(temp[3] - err[3])*(temp[3] - err[3]);
-            errOff[4] += vRA[j]*(temp[4] - err[4])*(temp[4] - err[4]);
-            errOff[5] += vRA[j]*(temp[5] - err[5])*(temp[5] - err[5]);
+        else{
+            findErrVar(err,verr,tA,vtA,tB,vtB,RA,vRA,RB,vRB,Rs,vRs,Re,vRe,t);
         }
-        V2R(RA,RAM);
-        for(size_t j = 0; j < 3; j++){
-            RB[j] += offset;
-            V2R(RB,RBM);
-            double temp[6];
-            findError(temp,tA,tB,RAM,RBM,RM,t);
-            RB[j] -= offset;
-            
-            errOff[0] += vRB[j]*(temp[0] - err[0])*(temp[0] - err[0]);
-            errOff[1] += vRB[j]*(temp[1] - err[1])*(temp[1] - err[1]);
-            errOff[2] += vRB[j]*(temp[2] - err[2])*(temp[2] - err[2]);
-            errOff[3] += vRB[j]*(temp[3] - err[3])*(temp[3] - err[3]);
-            errOff[4] += vRB[j]*(temp[4] - err[4])*(temp[4] - err[4]);
-            errOff[5] += vRB[j]*(temp[5] - err[5])*(temp[5] - err[5]);
-        }
-        V2R(RB,RBM);
-        for(size_t j = 0; j < 3; j++){
-            R[j] += offset;
-            V2R(R,RM);
-            double temp[6];
-            findError(temp,tA,tB,RAM,RBM,RM,t);
-            R[j] -= offset;
-            
-            errOff[0] += vR[j]*(temp[0] - err[0])*(temp[0] - err[0]);
-            errOff[1] += vR[j]*(temp[1] - err[1])*(temp[1] - err[1]);
-            errOff[2] += vR[j]*(temp[2] - err[2])*(temp[2] - err[2]);
-            errOff[3] += vR[j]*(temp[3] - err[3])*(temp[3] - err[3]);
-            errOff[4] += vR[j]*(temp[4] - err[4])*(temp[4] - err[4]);
-            errOff[5] += vR[j]*(temp[5] - err[5])*(temp[5] - err[5]);
-        }
-        
-        //transform to variance
-        errOff[0] = errOff[0]/(offset*offset);
-		errOff[1] = errOff[1]/(offset*offset);
-		errOff[2] = errOff[2]/(offset*offset);
-        errOff[3] = errOff[3]/(offset*offset);
-		errOff[4] = errOff[4]/(offset*offset);
-		errOff[5] = errOff[5]/(offset*offset);
             
         //find exponential exponent
-        double eExp1 = -0.5*(err[0]*err[0]/errOff[0] + err[1]*err[1]/errOff[1] + err[2]*err[2]/errOff[2]);
+        double eExp1 = -0.5*(err[0]*err[0]/verr[0] + err[1]*err[1]/verr[1] + err[2]*err[2]/verr[2]);
         //find part before exponential
-        double bExp1 = -log(sqrt(8*M_PI*M_PI*M_PI*errOff[0]*errOff[1]*errOff[2]));
+        double bExp1 = -log(sqrt(8*M_PI*M_PI*M_PI*verr[0]*verr[1]*verr[2]));
         
         //find exponential exponent
-        double eExp2 = -0.5*(err[3]*err[3]/errOff[3] + err[4]*err[4]/errOff[4] + err[5]*err[5]/errOff[5]);
+        double eExp2 = -0.5*(err[3]*err[3]/verr[3] + err[4]*err[4]/verr[4] + err[5]*err[5]/verr[5]);
         //find part before exponential
-        double bExp2 = -log(sqrt(8*M_PI*M_PI*M_PI*errOff[3]*errOff[4]*errOff[5]));
+        double bExp2 = -log(sqrt(8*M_PI*M_PI*M_PI*verr[3]*verr[4]*verr[5]));
         
         //finding log likelihood
-        logl[0] += bExp1 + eExp1 + bExp2 + eExp2;
+        logl[0] += (bExp1 + eExp1 + bExp2 + eExp2)/2;
     }
 }

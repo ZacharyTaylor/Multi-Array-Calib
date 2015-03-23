@@ -74,9 +74,9 @@ navData.T_S1_Sk = navData.T_S1_Sk(range,:);
 navData.T_Var_Skm1_Sk = navData.T_Var_Skm1_Sk;
 
 %preallocate memory
-navData.T_Skm1_Sk = zeros(size(navData.files(:),1),7);
+navData.T_Skm1_Sk = zeros(size(navData.files(:),1),6);
 navData.T_Skm1_Sk(1,:) = T2V(eye(4));
-navData.T_Var_S1_Sk = zeros(size(navData.files(:),1),7);
+navData.T_Var_S1_Sk = zeros(size(navData.files(:),1),6);
 
 %setup for plotting    
 if(plotNav)

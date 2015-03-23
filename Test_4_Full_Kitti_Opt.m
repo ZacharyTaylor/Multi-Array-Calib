@@ -17,14 +17,17 @@ timeSamples = 100000;
 
 %% load sensor data
 CalibPath(true);
+%make sure to read in cameras last (due to issue with how I compensate for scale)
 sensorData = LoadSensorData('Kitti','Vel', 'Cam1');
 
+%gives results in terms of positions rather then coordinate frames
+%less usful more intuative
 sensorData = InvertSensorData(sensorData);
 
 %% fix timestamps
 [sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
 
-%% correct camera scale
+%% run calibration
     
 outT = cell(100,1);
 outV = cell(100,1);
@@ -52,24 +55,25 @@ for w = 1:reps
     %[ outVec ] = ErrorEstWR(sData,rotVec);
     %rotVar2 = ErrorEstR(sData, rotVec,100);
     
-    %find camera transformation scale
- %   fprintf('Finding Camera Scale\n');
-    sData = EasyScale(sData, rotVec, rotVar,zeros(2,3),ones(2,3));
+    %find camera transformation scale (only used for RoughT, OptT does its
+    %own smarter/better thing
+    fprintf('Finding Camera Scale\n');
+    sDataS = EasyScale(sData, rotVec, rotVar,zeros(2,3),ones(2,3));
     
     %clean up large variance
-    sData = ThresholdVar(sData,10);
+    %sData = ThresholdVar(sData,50);
     
     %show what we are dealing with
-    PlotData(sData,rotVec);
+    PlotData(sDataS,rotVec);
 
     %find translation
     %sData = TDiff(sData, rotVec, rotVar);
     
     fprintf('Finding Translation\n');
-    tranVec = RoughT(sData, rotVec);
+    tranVec = RoughT(sDataS, rotVec);
     tranVec = OptT(sData, tranVec, rotVec, rotVar);
     tranVar = ErrorEstT3( sData, tranVec, rotVec, rotVar );
-    %tranVar = ErrorEstCT(sData, tranVec, rotVec, rotVar, 0.01);
+    tranVar2 = ErrorEstCT(sData, tranVec, rotVec, rotVar, 0.01);
     %tranVar2 = ErrorEstT(sData, tranVec, rotVec, rotVar2, 100);
 
     %get grid of transforms

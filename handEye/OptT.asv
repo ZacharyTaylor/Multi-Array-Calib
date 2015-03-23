@@ -1,4 +1,4 @@
-function [ tranVar ] = ErrorEstT3( sensorData, tranVec, rotVec, rotVar )
+function [ tranVec ] = OptT( sensorData, estVec, rotVec, rotVar )
 %OPTR Optimize translation based on inital guess
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -27,7 +27,7 @@ validateattributes(sensorData,{'cell'},{'vector'});
 for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
-validateattributes(tranVec,{'numeric'},{'size',[length(sensorData),3]});
+validateattributes(estVec,{'numeric'},{'size',[length(sensorData),3]});
 validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 
 %convert rot vector to rotmats
@@ -37,13 +37,13 @@ for i = 1:size(rotMat,3)
 end
 
 %combine rotation estimations
-rVec = cell(size(rotVec,1));
+rVec = zeros(size(rotVec,1),size(rotVec,1),3);
 rVar = rVec;
 for a = 1:size(rVec,1)
     for b = 1:size(rVec,1)
         if(a <= b)
             output = @(r1,r2) R2V(V2R(r1)*V2R(r2))';
-            [rVec{a,b},rVar{a,b}] = IndVar(0.001, output, rotVec(a,:),rotVar(a,:),rotVec(b,:),rotVar(b,:));
+            [rVec(a,b,:),rVara,b}] = IndVar(0.001, output, rotVec(a,:),rotVar(a,:),rotVec(b,:),rotVar(b,:));
         end
     end
 end
@@ -59,15 +59,11 @@ for i = 1:length(sensorData)
     s(i) = strcmpi(sensorData{i}.type,'camera');
 end
 
-
-runFunc = @(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB) findTran(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s);
-
-[~,tranVar] = IndVarVec(0.01, runFunc,R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB);
-
-end
-
-function [t] = findTran(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s)
-
-t = fminsearch(@(t) -logpdfT(R',vR',tA',vtA',RA',vRA',tB',vtB',RB',vRB',t',s),t);
+%refine translation estimate and record result
+options = optimset('MaxFunEvals',100000,'MaxIter',5000);
+estVec = estVec(2:end,1:3);
+tranVec = fminsearch(@(estVec) SystemProbT(TData, vTData, s, estVec, rVec, rVar),estVec, options);
+tranVec = [0,0,0;tranVec];
 
 end
+

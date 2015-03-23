@@ -30,29 +30,21 @@ end
 validateattributes(estVec,{'numeric'},{'size',[length(sensorData),3]});
 validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 
-%convert rot vector to rotmats
-rotMat = zeros(3,3,size(sensorData,1));
-for i = 1:size(rotMat,3)
-    rotMat(:,:,i) = V2R(rotVec(i,:));
-end
+%pull usful info out of sensorData
+TData = zeros(size(sensorData{i}.T_Skm1_Sk,1),6,length(sensorData));
+vTData = TData;
+s = zeros(length(sensorData),1);
 
-%combine rotation estimations
-rVec = cell(size(rotVec,1));
-rVar = rVec;
-for a = 1:size(rVec,1)
-    for b = 1:size(rVec,1)
-        if(a <= b)
-            output = @(r1,r2) R2V(V2R(r1)*V2R(r2))';
-            [rVec{a,b},rVar{a,b}] = IndVar(0.001, output, rotVec(a,:),rotVar(a,:),rotVec(b,:),rotVar(b,:));
-        end
-    end
+for i = 1:length(sensorData)
+    TData(:,:,i) = sensorData{i}.T_Skm1_Sk;
+    vTData(:,:,i) = sensorData{i}.T_Var_Skm1_Sk;
+    s(i) = strcmpi(sensorData{i}.type,'camera');
 end
 
 %refine translation estimate and record result
 options = optimset('MaxFunEvals',100000,'MaxIter',5000);
 estVec = estVec(2:end,1:3);
-tranVec = fminsearch(@(estVec) SystemProbT( sensorData, estVec, rVec, rVar),estVec, options);
-SystemProbT( sensorData, tranVec, rVec, rVar)
+tranVec = fminsearch(@(estVec) SystemProbT(TData, vTData, s, estVec, rotVec, rotVar),estVec, options);
 tranVec = [0,0,0;tranVec];
 
 end

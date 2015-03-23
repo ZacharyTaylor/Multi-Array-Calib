@@ -41,14 +41,14 @@ varVec = zeros(length(sensorData),3);
 
 p = zeros(3,3);
 for b = 2:length(sensorData)
-    Rab = estMat{1}'*estMat{b};
+    Rab = (estMat{1}'*estMat{b})';
     Rab = R2V(Rab);
 
-    estA = sensorData{1}.T_Skm1_Sk(:,5:7)';
-    estB = sensorData{b}.T_Skm1_Sk(:,5:7)';
+    estA = sensorData{1}.T_Skm1_Sk(:,4:6)';
+    estB = sensorData{b}.T_Skm1_Sk(:,4:6)';
     
-    varA = sensorData{1}.T_Var_Skm1_Sk(:,5:7)';
-    varB = sensorData{b}.T_Var_Skm1_Sk(:,5:7)';
+    varA = sensorData{1}.T_Var_Skm1_Sk(:,4:6)';
+    varB = sensorData{b}.T_Var_Skm1_Sk(:,4:6)';
 
     for c = 1:3
         for d = 1:3
@@ -58,11 +58,6 @@ for b = 2:length(sensorData)
             err = R*estA - estB;
 
             p(d,c) = logpdf(err,varA,varB,R);
-%              for i = 1:size(err,2)
-%                  v = diag(varA(:,i));
-%                  v = R*v*R' + diag(varB(:,i));
-%                  p(d,c) = p(d,c)+log(mvnpdf(err(:,i),[0;0;0],v));
-%              end
         end
     end
     varVec(b,:) = -(step^2)./diff(p,2);
