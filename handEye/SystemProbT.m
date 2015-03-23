@@ -45,8 +45,8 @@ for a = 1:length(s)
                 continue;
             end
             
-            R = [rotVec(a,:); rotVec(b,:)];
-            vR = [rotVar(a,:); rotVar(b,:)];
+            R = [rotVec(a,:); rotVec(b,:)]';
+            vR = [rotVar(a,:); rotVar(b,:)]';
             
             t = V2R(rotVec(a,:))'*(estVec(b,:) - estVec(a,:))';
             

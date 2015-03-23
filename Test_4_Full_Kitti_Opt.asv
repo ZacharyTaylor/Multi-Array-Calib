@@ -51,8 +51,8 @@ for w = 1:reps
     fprintf('Finding Rotation\n');
     rotVec = RoughR(sData);
     rotVec = OptR(sData, rotVec);
-    rotVarL = ErrorEstCR(sData, rotVec,0.01);
-    rotVarU = ErrorEstR3(sData, rotVec);
+    rotVar = ErrorEstCR(sData, rotVec,0.01);
+    rotVar2 = ErrorEstR3(sData, rotVec )
     %[ outVec ] = ErrorEstWR(sData,rotVec);
     %rotVar2 = ErrorEstR(sData, rotVec,100);
     
@@ -72,10 +72,9 @@ for w = 1:reps
     
     fprintf('Finding Translation\n');
     tranVec = RoughT(sDataS, rotVec);
-    tranVec = OptT(sData, tranVec, rotVec, rotVarU);
-    tranVarL = ErrorEstCT(sData, tranVec, rotVec, rotVarU, 0.01);
-    tranVarU = ErrorEstT3(sData, tranVec, rotVec, rotVarU);
-    
+    tranVec = OptT(sData, tranVec, rotVec, rotVar);
+    tranVar = ErrorEstT3( sData, tranVec, rotVec, rotVar );
+    tranVar2 = ErrorEstCT(sData, tranVec, rotVec, rotVar, 0.01);
     %tranVar2 = ErrorEstT(sData, tranVec, rotVec, rotVar2, 100);
 
     %get grid of transforms

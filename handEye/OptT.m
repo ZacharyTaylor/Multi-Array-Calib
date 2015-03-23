@@ -31,7 +31,7 @@ validateattributes(estVec,{'numeric'},{'size',[length(sensorData),3]});
 validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 
 %pull usful info out of sensorData
-TData = zeros(size(sensorData{i}.T_Skm1_Sk,1),6,length(sensorData));
+TData = zeros(size(sensorData{1}.T_Skm1_Sk,1),6,length(sensorData));
 vTData = TData;
 s = zeros(length(sensorData),1);
 
@@ -45,6 +45,7 @@ end
 options = optimset('MaxFunEvals',100000,'MaxIter',5000);
 estVec = estVec(2:end,1:3);
 tranVec = fminsearch(@(estVec) SystemProbT(TData, vTData, s, estVec, rotVec, rotVar),estVec, options);
+
 tranVec = [0,0,0;tranVec];
 
 end

@@ -7,7 +7,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#define max(a,b) ((a) > (b) ? (a) : (b))
 #define OFFSET 0.001
 
 void V2R(const double* const vect, double* const R){
@@ -306,8 +305,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         
         double* Rs = &RIn[0];
         double* Re = &RIn[3];
-        double* vRs = &RIn[0];
-        double* vRe = &RIn[3];
+        double* vRs = &vRIn[0];
+        double* vRe = &vRIn[3];
     	
         double stB[3];
         double svtB[3];

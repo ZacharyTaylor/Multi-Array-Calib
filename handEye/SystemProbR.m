@@ -1,4 +1,4 @@
-function [ prob ] = SystemProbR( sensorData, estVec )
+function [ prob ] = SystemProbR( RData, vRData, estVec )
 %SYSTEMPROBR uses variance to find a measure of the systems probablity of
 %   being correct (lower score == better)
 %--------------------------------------------------------------------------
@@ -24,46 +24,28 @@ function [ prob ] = SystemProbR( sensorData, estVec )
 %   http://www.zjtaylor.com
 
 %check inputs
-validateattributes(sensorData,{'cell'},{'vector'});
-for i = 1:length(sensorData)
-    validateattributes(sensorData{i},{'struct'},{});
-end
-validateattributes(estVec,{'numeric'},{'size',[length(sensorData)-1,3]});
+validateattributes(RData,{'double'},{'3d','ncols',3});
+validateattributes(vRData,{'double'},{'size',size(RData)});
+validateattributes(estVec,{'numeric'},{'size',[size(RData,3)-1,3]});
 
 %set first element to zeros
 estVec = [0,0,0;estVec];
 
-%convert vectors to rotation matricies
-estMat = cell(length(sensorData),1);
-estMat{1} = eye(3);
-for i = 2:length(sensorData)
-    estMat{i} = V2R(estVec(i,:));
-end
-
 %find probablity of system
 prob = 0;
-for a = 1:length(sensorData)
-    for b = 1:length(sensorData)
+for a = 1:size(RData,3)
+    for b = 1:size(RData,3)
         %ensure no repeats
         if(a < b)
             %get rotation and variance
-            Rab = (estMat{a}'*estMat{b})';
-            VA = sensorData{a}.T_Var_Skm1_Sk(:,4:6)';
-            VB = sensorData{b}.T_Var_Skm1_Sk(:,4:6)';
+            VA = vRData(:,:,a)';
+            VB = vRData(:,:,b)';
             
-            estA = sensorData{a}.T_Skm1_Sk(:,4:6)';
-            estB = sensorData{b}.T_Skm1_Sk(:,4:6)';
+            RA = RData(:,:,a)';
+            RB = RData(:,:,b)';
             
             %find position error
-            err = Rab*estA - estB;
-            
-            %find weighted error
-            %temp = cprobR(err, VA, VB, Rab);
-            %temp = sum(temp);
-            %temp = sum(sqrt(temp));
-            %temp = sqrt(sum(temp(:)));
-            
-            temp = -logpdf(err,VA,VB,Rab);
+            temp = -logpdfR(RA,RB,VA,VB,estVec(a,:),estVec(b,:));
             
             %add error
             prob = prob + temp;

@@ -30,25 +30,7 @@ end
 validateattributes(tranVec,{'numeric'},{'size',[length(sensorData),3]});
 validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 
-%convert rot vector to rotmats
-rotMat = zeros(3,3,size(sensorData,1));
-for i = 1:size(rotMat,3)
-    rotMat(:,:,i) = V2R(rotVec(i,:));
-end
-
-%combine rotation estimations
-rVec = cell(size(rotVec,1));
-rVar = rVec;
-for a = 1:size(rVec,1)
-    for b = 1:size(rVec,1)
-        if(a <= b)
-            output = @(r1,r2) R2V(V2R(r1)*V2R(r2))';
-            [rVec{a,b},rVar{a,b}] = IndVar(0.001, output, rotVec(a,:),rotVar(a,:),rotVec(b,:),rotVar(b,:));
-        end
-    end
-end
-
-%pull usful info out of sensorData
+%pull useful info out of sensorData
 TData = zeros(size(sensorData{i}.T_Skm1_Sk,1),6,length(sensorData));
 vTData = TData;
 s = zeros(length(sensorData),1);
@@ -59,15 +41,15 @@ for i = 1:length(sensorData)
     s(i) = strcmpi(sensorData{i}.type,'camera');
 end
 
+runFunc = @(TData, vTData, rotVec, rotVar) findTran(TData, vTData, s, tranVec(2:end,:), rotVec, rotVar);
 
-runFunc = @(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB) findTran(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s);
+[~,tranVar] = IndVarVec(0.01, runFunc, TData, vTData, rotVec, rotVar);
 
-[~,tranVar] = IndVarVec(0.01, runFunc,R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB);
+tranVar = [0,0,0;tranVar];
 
 end
 
-function [t] = findTran(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s)
-
-t = fminsearch(@(t) -logpdfT(R',vR',tA',vtA',RA',vRA',tB',vtB',RB',vRB',t',s),t);
+function [t] = findTran(TData, vTData, s, t, rotVec, rotVar)
+t = fminsearch(@(t) SystemProbT(TData, vTData, s, t, rotVec, rotVar),t);
 
 end
