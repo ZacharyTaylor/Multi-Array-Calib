@@ -16,6 +16,11 @@ for i = 1:length(sensorData)
     end
 end
 
+%if all cameras ext
+if(isempty(nonCamIdx))
+    return;
+end
+
 for i = 1:length(camData)
     
     %get joint rotation

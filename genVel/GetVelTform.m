@@ -63,7 +63,7 @@ velPrev = VelCorrect(velPrev, tFracPrev, tformPrev);
 tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.1,'point_to_point');
 tform = T2V(inv(tform));
 
-if(norm(tform(1:3)) > 10)
+if(norm(tform(1:3)) > 3)
     tform(1:3) = 0;
 end
 

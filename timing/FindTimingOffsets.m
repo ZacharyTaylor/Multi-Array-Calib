@@ -72,7 +72,9 @@ x = zeros(size(P,1)+1,length(Mag));
 for i = 1:size(P,1)
     %find offset between sensors
     %temp = wncc(Mag{P(i,1)},Mag{P(i,2)},(Var{P(i,1)}+Var{P(i,2)}));
-    temp = wncc(Mag{P(i,1)},Mag{P(i,2)},ones(1,samples));
+    temp = wncc(Mag{P(i,1)},Mag{P(i,2)},Var{P(i,2)});
+    temp2 = wncc(Mag{P(i,2)},Mag{P(i,1)},Var{P(i,1)});
+    temp = temp.*(temp2(end:-1:1));
     [val,idx] = imax(temp);
     v(i) = val*(ceil(samples/2) - idx);
     x(i,P(i,1)) =val;

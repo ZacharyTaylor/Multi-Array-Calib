@@ -13,7 +13,12 @@ for i = 1:length(base)
         temp = func(base{:});
         base{i}(j) = base{i}(j) - offset;
         
-        temp = baseV{i}(j).*((temp-val)./offset).^2;
+        if(isfinite(baseV{i}(j)))
+            temp = baseV{i}(j).*((temp-val)./offset).^2;
+        else
+            temp = temp-val;
+            temp(temp~=0) = inf;
+        end
         var = var + temp;
     end
 end

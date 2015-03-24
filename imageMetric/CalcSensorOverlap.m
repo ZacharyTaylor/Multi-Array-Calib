@@ -1,4 +1,4 @@
-function [ overlap ] = CalcSensorOverlap( tform, sensorA, sensorB, velFlag )
+function [ overlap ] = CalcSensorOverlap( tform, sensorA, sensorB )
 %CALCSENSOROVERLAP calculates overlap in two sensors field of view assuming
 %   there is minimal translation between them
 %--------------------------------------------------------------------------
@@ -7,7 +7,6 @@ function [ overlap ] = CalcSensorOverlap( tform, sensorA, sensorB, velFlag )
 %   tform- 1x6 transformation vector between the two sensors
 %   sensorA- sensorData struct for sensor A
 %   sensorB- sensorData sturct for sensor B
-%   velFlag- true if a velodyne sensor
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -28,7 +27,6 @@ function [ overlap ] = CalcSensorOverlap( tform, sensorA, sensorB, velFlag )
 validateattributes(tform,{'numeric'},{'vector','numel',6});
 validateattributes(sensorA,{'struct'},{});
 validateattributes(sensorB,{'struct'},{});
-validateattributes(velFlag,{'logical'},{'scalar'});
 
 %get rotation
 rotMat = V2R(tform(4:6));
@@ -37,7 +35,7 @@ rotMat = V2R(tform(4:6));
 res = 0.01;
 
 %get first sensor FOV
-if(velFlag)
+if(strcmpi(sensorA.type,'Velodyne'))
     xa = [-pi; pi; pi; -pi];
     ya = [0.035; 0.035; -0.433; -0.433];
     ya = ya + pi/2;
@@ -66,7 +64,7 @@ yb = [yb+fovB(2)/2; yb+fovB(2)/2; yb-fovB(2)/2; yb-fovB(2)/2];
 
 %calculate overlap
 [x, y] = polybool('intersection', xa, ya, xb, yb);
-if(velFlag)
+if(strcmpi(sensorA.type,'Velodyne'))
 	overlap = polyarea(x,y)/(fovB(1)*fovB(2));
 else
     overlap = polyarea(x,y)/min(fovA(1)*fovA(2),fovB(1)*fovB(2));

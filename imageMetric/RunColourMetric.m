@@ -46,13 +46,17 @@ if((now - tnow) > updateRate/(3600*24))
     
     %display image
     disp = points2Image( gather([scans{i}(:,1:3),scans{i}(:,7:9)]), ims(1:2), gather(K), gather(T), 3, 0.3, true, repmat(double(gather(images{i,1}))/255,1,1,3) );
-    
+    disp = imresize(disp, 1000/max(size(disp)));
     imshow(disp);
-    drawnow;
     
     t = gather(T);
     [r1,r2,r3] = dcm2angle(t(1:3,1:3)); t = [180*[r1,r2,r3]/pi,t(1,4),t(2,4),t(3,4)];
-    fprintf('R: %f P: %f, Y: %f, X: %f, Y: %f, Z: %f, Err: %f, Run: %i\n',t(1),t(2),t(3),t(4),t(5),t(6),error,run);
+    text = sprintf('R: %2.2f P: %2.2f, Y: %2.2f, X: %1.2f, Y: %1.2f, Z: %1.2f, Err: %2.3f, Run: %i\n',t(1),t(2),t(3),t(4),t(5),t(6),error,run);
+    xlabel(text);
+    
+    %set(gcf,'units','normalized','outerposition',[0.25 0.25 0.5 0.5])
+
+    drawnow;
     tnow = now;
 end
 

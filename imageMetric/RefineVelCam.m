@@ -2,6 +2,10 @@ function [ TVecOut, vTVecOut ] = RefineVelCam( TVecIn,vTVecIn,lidarInfo,camInfo,
 %REFINEVELCAM Summary of this function goes here
 %   Detailed explanation goes here
 
+if(~strcmpi(metric,'Colour'))
+    error('Currently only the colour metric has been implemented');
+end
+
 %get scans to use
 dataIdx = datasample(2:length(camInfo.files),numScans,'Replace',false);
 
