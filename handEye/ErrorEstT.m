@@ -1,51 +1,55 @@
-function [ outVec ] = ErrorEstT( sensorData, estVec, rotVec, rotVar, samples )
+function [ tranVar ] = ErrorEstT3( sensorData, tranVec, rotVec, rotVar )
+%OPTR Optimize translation based on inital guess
+%--------------------------------------------------------------------------
+%   Required Inputs:
+%--------------------------------------------------------------------------
+%   sensorData- nx1 cell containing sensor data sturcts
+%   estVec- nx3 matrix of rotations for each sensor
+%   rotVec- nx3 matrix of rotations for each sensor
+%
+%--------------------------------------------------------------------------
+%   Outputs:
+%--------------------------------------------------------------------------
+%   outVec- nx3 matrix of the translation for each sensor
+%
+%--------------------------------------------------------------------------
+%   References:
+%--------------------------------------------------------------------------
+%   This function is part of the Multi-Array-Calib toolbox 
+%   https://github.com/ZacharyTaylor/Multi-Array-Calib
+%   
+%   This code was written by Zachary Taylor
+%   zacharyjeremytaylor@gmail.com
+%   http://www.zjtaylor.com
 
 %check inputs
 validateattributes(sensorData,{'cell'},{'vector'});
 for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
-validateattributes(estVec,{'numeric'},{'size',[length(sensorData),3]});
+validateattributes(tranVec,{'numeric'},{'size',[length(sensorData),3]});
 validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 
-%convert rot vector to rotmats
-rotMat = zeros(3,3,size(sensorData,1));
-for i = 1:size(rotMat,3)
-    rotMat(:,:,i) = V2R(rotVec(i,:));
+%pull useful info out of sensorData
+TData = zeros(size(sensorData{i}.T_Skm1_Sk,1),6,length(sensorData));
+vTData = TData;
+s = zeros(length(sensorData),1);
+
+for i = 1:length(sensorData)
+    TData(:,:,i) = sensorData{i}.T_Skm1_Sk;
+    vTData(:,:,i) = sensorData{i}.T_Var_Skm1_Sk;
+    s(i) = strcmpi(sensorData{i}.type,'camera');
 end
 
-%refine translation estimate and record result
-options = optimset('MaxFunEvals',100000,'MaxIter',5000);
+runFunc = @(TData, vTData, rotVec, rotVar) findTran(TData, vTData, s, tranVec(2:end,:), rotVec, rotVar);
 
-outVec = zeros([size(estVec),samples]);
-for i = 1:samples
-    %bootstrap data
-    idx = datasample(1:size(sensorData{1}.time,1),size(sensorData{1}.time,1));
-    sData = SensorDataSubset(sensorData, idx);
-    
-    r = rotVec;
-    r(2:end,:) = fminsearch(@(rotVec) SystemProbR(sensorData, rotVec),rotVec(2:end,:), options);
-    
-    %combine rotation estimations
-    rVec = cell(size(rotVec,1));
-    rVar = rVec;
-    for a = 1:size(rVec,1)
-        for b = 1:size(rVec,1)
-            if(a <= b)
-                temp = zeros(3,100);
-                for k = 1:100
-                    temp(:,k) = R2V(V2R(r(a,:) + randn(1,3).*sqrt(rotVar(a,:)))\V2R(r(b,:) + randn(1,3).*sqrt(rotVar(b,:))));
-                end
-                rVec{a,b} = mean(temp,2)';
-                rVar{a,b} = var(temp,[],2)';
-            end
-        end
-    end
-    
-    outVec(2:end,1:3,i) = fminsearch(@(estVec) SystemProbT( sData, estVec, rVec, rVar),estVec(2:end,1:3), options);
-end
+[~,tranVar] = IndVarVec(0.01, runFunc, TData, vTData, rotVec, rotVar);
 
-outVec = var(outVec,[],3);
+tranVar = [0,0,0;tranVar];
 
 end
 
+function [t] = findTran(TData, vTData, s, t, rotVec, rotVar)
+t = fminsearch(@(t) SystemProbT(TData, vTData, s, t, rotVec, rotVar),t);
+
+end

@@ -9,6 +9,9 @@
 scansTimeRange = 50;
 %scansTimeRange = 5:5:100;
 
+%number of scans to combine in metric refine step
+numScans = 10;
+
 %number of times to perform test
 reps = 10;
 
@@ -52,12 +55,12 @@ for w = 1:reps
     rotVec = RoughR(sData);
     rotVec = OptR(sData, rotVec);
     rotVarL = ErrorEstCR(sData, rotVec,0.01);
-    %rotVarU = ErrorEstR3(sData, rotVec);
+    rotVarU = ErrorEstR(sData, rotVec);
     
     fprintf('Rotation:\n');
     disp(rotVec);
     fprintf('Rotation sd:\n');
-    disp(sqrt(rotVarU));
+    disp(sqrt(rotVarL));
     
     %find camera transformation scale (only used for RoughT, OptT does its
     %own smarter/better thing
@@ -71,22 +74,21 @@ for w = 1:reps
     tranVec = RoughT(sDataS, rotVec);
     tranVec = OptT(sData, tranVec, rotVec, rotVarL);
     tranVarL = ErrorEstCT(sData, tranVec, rotVec, rotVarL, 0.01);
-    %tranVarU = ErrorEstT3(sData, tranVec, rotVec, rotVarU);
+    %tranVarU = ErrorEstT(sData, tranVec, rotVec, rotVarU);
     
     fprintf('Translation:\n');
     disp(tranVec);
     fprintf('Translation sd:\n');
     disp(sqrt(tranVarL));
-    
-%     %tranVar2 = ErrorEstT(sData, tranVec, rotVec, rotVar2, 100);
-% 
-%     %get grid of transforms
-%     fprintf('Generating transformation grid\n');
-%     [tGrid, vGrid] = GenTformGrid(tranVec, rotVec, tranVar, rotVar);
-%     
-%     %refine transforms using metrics
-%     fprintf('Refining transformations\n');
-%     [tGridR, vGridR] = metricRefine(tGrid, vGrid, sDataBase,0.1,10);
+
+    %get grid of transforms
+    fprintf('Generating transformation grid\n');
+    [TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarL, rotVarL);
+     
+    %refine transforms using metrics
+    fprintf('Refining transformations\n');
+
+    [TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
 %     
 %     %correct for differences in grid
 %     fprintf('Combining results\n');

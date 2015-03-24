@@ -44,7 +44,7 @@ end
 tranVec = tranVec(2:end,:);
 varVec = zeros(size(tranVec));
 
-for i = 1:length(tranVec)
+for i = 1:length(tranVec(:))
     out = zeros(3,1);
     for j = 1:3
         temp = tranVec;

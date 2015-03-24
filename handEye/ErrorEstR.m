@@ -1,15 +1,16 @@
-function [ outVec ] = ErrorEstR( sensorData, estVec, samples )
-%ERRORESTR estimate error from variance in rotation vectors after alignment
+function [ rotVar ] = ErrorEstR3( sensorData, rotVec )
+%OPTR Optimize translation based on inital guess
 %--------------------------------------------------------------------------
 %   Required Inputs:
 %--------------------------------------------------------------------------
 %   sensorData- nx1 cell containing sensor data sturcts
 %   estVec- nx3 matrix of rotations for each sensor
+%   rotVec- nx3 matrix of rotations for each sensor
 %
 %--------------------------------------------------------------------------
 %   Outputs:
 %--------------------------------------------------------------------------
-%   varVec- nx3 matrix containing rotational variance
+%   outVec- nx3 matrix of the translation for each sensor
 %
 %--------------------------------------------------------------------------
 %   References:
@@ -26,18 +27,27 @@ validateattributes(sensorData,{'cell'},{'vector'});
 for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
-validateattributes(estVec,{'numeric'},{'size',[length(sensorData),3]});
+validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
 
-%refine rotation estimate and record result
-options = optimset('MaxFunEvals',100000,'MaxIter',5000);
+%pull usful info out of sensorData
+RData = zeros(size(sensorData{1}.T_Skm1_Sk,1),3,length(sensorData));
+vRData = RData;
 
-outVec = zeros([size(estVec),samples]);
-for i = 1:samples
-    %bootstrap data
-    idx = datasample(1:size(sensorData{1}.time,1),size(sensorData{1}.time,1));
-    sData = SensorDataSubset(sensorData, idx);
-    outVec(2:end,:,i) = fminsearch(@(estVec) SystemProbR(sData, estVec),estVec(2:end,:), options);
+for i = 1:length(sensorData)
+    RData(:,:,i) = sensorData{i}.T_Skm1_Sk(:,4:6);
+    vRData(:,:,i) = sensorData{i}.T_Var_Skm1_Sk(:,4:6);
 end
 
-outVec = var(outVec,[],3);
+runFunc = @(RData, vRData) findRot(RData, vRData, rotVec(2:end,:));
 
+[~,rotVar] = IndVarVec(0.01, runFunc, RData, vRData);
+
+rotVar = [0,0,0;rotVar];
+
+end
+
+function [rotVec] = findRot(RData, vRData, rotVec)
+
+rotVec = fminsearch(@(rotVec) SystemProbR(RData, vRData, rotVec),rotVec);
+
+end

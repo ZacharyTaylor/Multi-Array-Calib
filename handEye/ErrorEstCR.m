@@ -42,7 +42,7 @@ end
 rotVec = rotVec(2:end,:);
 varVec = zeros(size(rotVec));
 
-for i = 1:length(rotVec)
+for i = 1:length(rotVec(:))
     out = zeros(3,1);
     for j = 1:3
         temp = rotVec;
