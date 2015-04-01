@@ -28,18 +28,23 @@ validateattributes(vel,{'numeric'},{'2d'});
 if(size(vel,2) < 3)
     error('vel must have atleast 3 columns');
 end
-if(size(vel,1) < sub)
-    subVel = vel;
-    idx = 1:size(vel,1);
-    return;
-end
+
+validateattributes(sub,{'numeric'},{'scalar','positive'});
+sub = ceil(size(vel,1)/sub);
 
 %get distance
 dist = sqrt(sum(vel(:,1:3).^2,2));
 
-%get difference in readings
-diff = max(abs(dist(2:end-1) - dist(3:end)),abs(dist(2:end-1) - dist(1:end-2)));
-diff = [diff(1);diff;diff(end)];
+%project onto sphere
+sphere = zeros(size(vel,1),2);
+sphere(:,1) = atan2(vel(:,2), vel(:,1));
+sphere(:,2) = atan(vel(:,3)./ sqrt(vel(:,2).^2 + vel(:,1).^2));
+
+%find closest points
+idx = knnsearch(sphere,sphere,'k',5);
+idx = idx(:,2:end);
+diff = abs(reshape(dist(idx),size(idx)) - repmat(dist,1,size(idx,2)));
+diff = max(diff,[],2);
 
 %sort by distance
 [~,diff] = sort(diff,'descend');
@@ -49,8 +54,12 @@ diff = [diff(1);diff;diff(end)];
 %subB = sub-subA;
 
 %get index of subsampled points
-%idx = [diff(1:subA); datasample(diff(subA+1:end),subB,1,'Replace',false)];
 idx = diff(1:sub);
+
+%remove close and far points
+dist = dist(idx);
+valid = and(dist < 100, dist > 3);
+idx = idx(valid);
 
 %subsample
 subVel = vel(idx,:);

@@ -47,6 +47,7 @@ end
 tI = tMin:(tMax-tMin)/(samples):tMax;
 
 for i = 1:length(Mag)
+    
     %interpolate points
     Mag{i} = interp1(t{i},Mag{i},tI,'pchip');
     %get difference
@@ -55,12 +56,25 @@ for i = 1:length(Mag)
     %get weighting from variance
     Var{i} = interp1(t{i},Var{i},tI,'pchip');
     Var{i} = 1./abs(diff(Var{i}));
+    
+%     %take largest 10% Weights to be outliers and ignore
+%     [~,idx] = sort(Var{i},'descend');
+%     idx = idx(1:ceil(length(idx)/5));
+%     Var{i}(idx) = 0;
+%     
+%     %take largest 10% to be outliers and ignore
+%     [~,idx] = sort(Mag{i},'descend');
+%     idx = idx(1:ceil(length(idx)/5));
+%     Var{i}(idx) = 0;
 
     %histogram equalize
-    Mag{i} = MyHistEq(Mag{i});
+    %Mag{i} = MyHistEq(Mag{i});
     
     %remove bias
     Mag{i} = (Mag{i} - mean(Mag{i})) / std(Mag{i});
+    
+    Mag{i} = medfilt1(Mag{i},100);
+    Var{i} = medfilt1(Var{i},100);
 end
 
 %get all possible comibnations of sensors
@@ -71,10 +85,7 @@ x = zeros(size(P,1)+1,length(Mag));
 %for every sensor pair
 for i = 1:size(P,1)
     %find offset between sensors
-    %temp = wncc(Mag{P(i,1)},Mag{P(i,2)},(Var{P(i,1)}+Var{P(i,2)}));
-    temp = wncc(Mag{P(i,1)},Mag{P(i,2)},Var{P(i,2)});
-    temp2 = wncc(Mag{P(i,2)},Mag{P(i,1)},Var{P(i,1)});
-    temp = temp.*(temp2(end:-1:1));
+    temp = wncc(Mag{P(i,1)},Mag{P(i,2)},min(Var{P(i,1)},Var{P(i,2)}));
     [val,idx] = imax(temp);
     v(i) = val*(ceil(samples/2) - idx);
     x(i,P(i,1)) =val;

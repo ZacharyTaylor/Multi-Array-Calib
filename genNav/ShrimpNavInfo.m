@@ -105,40 +105,13 @@ while run
     time = [time; t];
     l = min([length(x),length(y),length(z),length(rx),length(ry),length(rz), length(vx), length(vy), length(vz), length(wx), length(wy), length(wz), length(t)]);
     
-    tempPos = [x y z ones(size(x,1),1) rx ry rz];
-       
-    offset = inv(angle2dcm(tempPos(1,5),tempPos(1,6),tempPos(1,7),'XYZ'));
-    for j = 1:l
-        tempMat = eye(4); 
-        tempMat(1:3,1:3) = angle2dcm(tempPos(j,5),tempPos(j,6),tempPos(j,7),'XYZ');
-        tempMat(1:3,4) = offset*tempPos(j,1:3)';
-        tempPos(j,:) = T2V(tempMat)';
-    end
+    tempPos = [x y z rx ry rz];
 
-%     tempPos = [vx vy vz ones(size(x,1),1) wx wy wz];
-%     
-%     baseMat = eye(4);
-%     tempPos(1,:) = 0;
-%     
-%     for j = 2:l
-%         tdiff = (double(t(j))-double(t(j-1)))/1000000;
-%         tempPos(j,:) = tempPos(j,:)*tdiff;
-%         tempMat = eye(4); 
-%         tempMat(1:3,1:3) = angle2dcm(tempPos(j,5),tempPos(j,6),tempPos(j,7),'XYZ'); 
-%         tempMat(1:3,4) = tempMat(1:3,1:3)*tempPos(j,1:3)';
-% 
-%         baseMat = baseMat*tempMat;
-%         
-%         tempPos(j,:) = T2V(baseMat)';
-%             
-%     end
-
-    pos = [pos,tempPos];
+    pos = [pos;tempPos];
     
-    e = repmat(e,1,7);
-    e(:,1:4) = 0.01;
-    e(:,1:4) = e(:,1:4).^2;
-    e(:,5:7) = (0.01*(0.03*pi/180)).^2;
+    e = repmat(e,1,6);
+    e(:,1:3) = e(:,1:3).^2;
+    e(:,4:6) = (0.01*pi/180).^2;
     
     speed = [speed ;vx vy vz wx wy wz];
     err = [err; e];
@@ -146,9 +119,36 @@ end
 
 fclose(fid);
 
+%remove doubleups in position
+idx = all([diff(pos);[1,1,1,1,1,1]] ~= 0,2);
+time = time(idx,:);
+pos = pos(idx,:);
+speed = speed(idx,:);
+err = err(idx,:);
+
+%sort times into chronological order
+[~,idx] = sort(time,'ascend');
+%remove double ups
+idx = idx([diff(time(idx));1] > 0);
+
+%sort results
+time = time(idx,:);
+pos = pos(idx,:);
+speed = speed(idx,:);
+err = err(idx,:);
+
 navData.time = time;
-navData.T_S1_Sk = pos;
 navData.T_Var_Skm1_Sk = err;
+
+navData.T_S1_Sk = zeros(size(pos));
+
+%convert from shrimp coordinate system to matlabs
+for j = 1:size(time,1)
+    tempMat = eye(4); 
+    tempMat(1:3,1:3) = inv(angle2dcm(pos(j,6),pos(j,5),pos(j,4),'ZYX'));
+    tempMat(1:3,4) = pos(j,1:3)';
+    navData.T_S1_Sk(j,:) = T2V(tempMat)';
+end
 
 navData.files = repmat(navData.files,size(navData.T_S1_Sk,1),1);
 

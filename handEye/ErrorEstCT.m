@@ -42,6 +42,9 @@ for i = 1:length(sensorData)
 end
 
 tranVec = tranVec(2:end,:);
+
+SystemProbT(TData, vTData, s, tranVec, rotVec, rotVar)
+
 varVec = zeros(size(tranVec));
 
 for i = 1:length(tranVec(:))

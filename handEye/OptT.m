@@ -46,6 +46,8 @@ options = optimset('MaxFunEvals',100000,'MaxIter',5000);
 estVec = estVec(2:end,1:3);
 tranVec = fminsearch(@(estVec) SystemProbT(TData, vTData, s, estVec, rotVec, rotVar),estVec, options);
 
+%[ err, verr ] = SystemErrorT( TData, vTData, s, tranVec, rotVec, rotVar );
+
 tranVec = [0,0,0;tranVec];
 
 end

@@ -36,7 +36,7 @@ validateattributes(estVec,{'numeric'},{'size',[size(TData,3)-1,3]});
 estVec = [0,0,0;estVec];
 
 %find probablity of system
-prob = 0;
+prob = zeros(length(s));
 for a = 1:length(s)
     for b = 1:length(s)
         if(a < b)
@@ -60,12 +60,21 @@ for a = 1:length(s)
             RB = TData(:,4:6,b)';
             vRB = vTData(:,4:6,b)';
                      
-            temp = -logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s(b));
+            temp = logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s(b));
             
-            prob = prob + temp;
+            temp = sort(temp,'descend');
+            temp = temp(1:floor(size(temp,1)*0.75));
+            temp = -sum(temp);
+            
+            prob(a,b) = temp;
         end
     end
 end
+
+prob = mean(prob(:));
+
+%add zero bias
+%prob = prob + 1000*sum(estVec(:).^2);
 
 end
 

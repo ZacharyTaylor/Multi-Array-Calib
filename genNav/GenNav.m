@@ -98,8 +98,8 @@ for frame = 2:size(navData.files,1)
     end
     
     %find sensor transforms
-    %navData.T_Skm1_Sk(frame,:) = T2V(inv(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:))));
-    navData.T_Skm1_Sk(frame,:) = T2V(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:)));
+    navData.T_Skm1_Sk(frame,:) = T2V(inv(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:))));
+    %navData.T_Skm1_Sk(frame,:) = T2V(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:)));
     
     %generate absolute transformations
     navData.T_S1_Sk(frame,:) = T2V(V2T(navData.T_S1_Sk(frame-1,:))*V2T(navData.T_Skm1_Sk(frame,:)));

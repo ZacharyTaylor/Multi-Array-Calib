@@ -50,34 +50,39 @@ tFracCurr = double(tFracCurr(:));
 tFracPrev = double(tFracPrev(:));
 tformPrev = double(tformPrev);
 
+%correct previous scans motion error
+velPrev = VelCorrect(velPrev, tFracPrev, tformPrev);
+
+%correct current scans motion error (will have a bit of error)
+velCurr = VelCorrect(velCurr, tFracCurr, tformPrev);
+
+%find transformation
+%tform = icpMexTime(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.3,'point_to_point');
+tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),0.5,'point_to_plane');
+tform = T2V(inv(tform));
+
+if(norm(tform(1:3)) > 3)
+    tform(1:6) = 0;
+end
+
 %subsample velodyne lidar down to subsample most salient points
 [velCurr,idx] = SubVel(velCurr,subSample);
 tFracCurr = tFracCurr(idx);
 [velPrev,idx] = SubVel(velPrev,subSample);
 tFracPrev = tFracPrev(idx);
 
-%correct previous scans motion error
-velPrev = VelCorrect(velPrev, tFracPrev, tformPrev);
-
-%find transformation
-tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.1,'point_to_point');
-tform = T2V(inv(tform));
-
-if(norm(tform(1:3)) > 3)
-    tform(1:3) = 0;
-end
-
 %bootstrap scans
 bootnum = 100;
-numPoints = subSample/bootSample;
+numPoints = ceil(min(size(velCurr,1),size(velPrev,1))/bootSample);
 tformVar = zeros(bootnum,6);
 for i = 1:bootnum
     [subVelCurr,idx] = datasample(velCurr,numPoints);
-    subTFracCurr = tFracCurr(idx);
+    %subTFracCurr = tFracCurr(idx);
     subVelPrev = datasample(velPrev,numPoints);
 
     %find bootstrap tform
-    tformVar(i,:) = T2V(inv(icpMex(subVelPrev',subVelCurr',inv(V2T(tform)),subTFracCurr',0.1,'point_to_point')))';
+    %tformVar(i,:) = T2V(inv(icpMex(subVelPrev',subVelCurr',inv(V2T(tform)),subTFracCurr',0.3,'point_to_point')))';
+    tformVar(i,:) = T2V(inv(icpMex(subVelPrev',subVelCurr',inv(V2T(tform)),0.5,'point_to_point')))';
 end
 
 %find variance

@@ -23,12 +23,18 @@ for i = 1:size(scans,1)
     pro1c = pro1(valid,:);
     pro2c = pro2(valid,:);
 
+    %diff = max(images{i,1}-images{i,2},images{i,2}-images{i,1});
+    
     pro1 = interpolateImageUint8(images{i,1}, pro1c(:,1:2));
     pro2 = interpolateImageUint8(images{i,2}, pro2c(:,1:2));
+    
+    %diff = interpolateImageUint8(diff, pro1c(:,1:2));
     
     valid = and(pro1>0,pro2>0);
     
     err = (pro1(valid)-pro2(valid)).^2;
+    err = single(err);
+    %err = single(err).*single(diff(valid));
     
     err = mean(err(isfinite(err)));
     

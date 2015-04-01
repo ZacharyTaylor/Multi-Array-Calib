@@ -32,7 +32,7 @@ validateattributes(estVec,{'numeric'},{'size',[size(RData,3)-1,3]});
 estVec = [0,0,0;estVec];
 
 %find probablity of system
-prob = 0;
+prob = zeros(size(RData,3));
 for a = 1:size(RData,3)
     for b = 1:size(RData,3)
         %ensure no repeats
@@ -45,13 +45,19 @@ for a = 1:size(RData,3)
             RB = RData(:,:,b)';
             
             %find position error
-            temp = -logpdfR(RA,RB,VA,VB,estVec(a,:),estVec(b,:));
+            temp = logpdfR(RA,RB,VA,VB,estVec(a,:),estVec(b,:));
+            
+            temp = sort(temp,'descend');
+            temp = temp(1:floor(size(temp,1)*0.75));
+            temp = -sum(temp);
             
             %add error
-            prob = prob + temp;
+            prob(a,b)= temp;
         end
     end
 end
+
+prob = mean(prob(:));
 
 end
 

@@ -31,3 +31,9 @@
 *.deps
 *.exp
 *.tlog
+
+#cmaes data files
+*.dat
+
+#matlab autosaves
+*.asv

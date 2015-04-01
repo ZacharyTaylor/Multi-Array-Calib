@@ -22,10 +22,10 @@ for i = 1
     switch i
         case 1
             VelData = GenVel(dataPath, plotTforms, [], dataset);
-            ParSave(['./storedTforms/' dataset 'VelData.mat'], VelData, 'velData');
+            ParSave(['./storedTforms/' dataset 'VelData3.mat'], VelData, 'velData');
         case 2
-            %NavData = GenNav(dataPath, plotTforms, [], dataset);
-            %ParSave(['./storedTforms/'  dataset 'NavData.mat'], NavData, 'navData'); 
+            NavData = GenNav(dataPath, plotTforms, [], dataset);
+            ParSave(['./storedTforms/'  dataset 'NavData.mat'], NavData, 'navData'); 
         case 3
             CamData = GenCam(dataPath, plotTforms, [], dataset, 1);
             ParSave(['./storedTforms/' dataset 'Cam1Data.mat'], CamData, 'cam1Data');

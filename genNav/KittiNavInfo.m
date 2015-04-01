@@ -30,8 +30,18 @@ navData.folder = [path '/oxts/data/'];
 navData.files = dir([navData.folder,'*.txt']);
 navData.time = ReadKittiTimestamps([navData.folder '../']);
 
-navData.T_S1_Sk = zeros(length(navData.files),7);
-navData.T_Var_Skm1_Sk = zeros(length(navData.files),7);
+%sort times into chronological order
+[~,idx] = sort(navData.time,'ascend');
+%remove double ups
+idx = idx([diff(navData.time(idx));1] > 0);
+
+%sort results
+navData.files = navData.files(idx,:);
+navData.time = navData.time(idx,:);
+
+navData.T_S1_Sk = zeros(length(navData.files),6);
+navData.T_Var_Skm1_Sk = zeros(length(navData.files),6);
+navData.T_Var_Skm1_Sk(1,:) = 1000*ones(1,6);
 
 for i = 1:length(navData.files)
     if(mod(i,1000) == 0)
@@ -60,12 +70,32 @@ for i = 1:length(navData.files)
     tformMat(1:3,4) = t;
 
     %get variance
-    tformVar = [in(24),in(24),in(24),in(24),0.01*pi/180,0.01*pi/180,0.01*pi/180];
+    tformVar = [in(24),in(24),in(24),0.01*pi/180,0.01*pi/180,0.01*pi/180];
     tformVar = tformVar.^2;
+
+%     tdiff = double(navData.time(i)-navData.time(i-1))/1000000;
+%     vx = in(12)*tdiff;
+%     vy = in(13)*tdiff;
+%     vz = in(14)*tdiff;
+%     wx = in(18)*tdiff;
+%     wy = in(19)*tdiff;
+%     wz = in(20)*tdiff;
+%     
+%     tempMat = eye(4); 
+%     Rx = [1 0 0; 0 cos(wx) -sin(wx); 0 sin(wx) cos(wx)]; % base => nav  (level oxts => rotated oxts)
+%     Ry = [cos(wy) 0 sin(wy); 0 1 0; -sin(wy) 0 cos(wy)]; % base => nav  (level oxts => rotated oxts)
+%     Rz = [cos(wz) -sin(wz) 0; sin(wz) cos(wz) 0; 0 0 1]; % base => nav  (level oxts => rotated oxts)
+%     tempMat(1:3,1:3) = Rz*Ry*Rx;
+%     tempMat(1:3,4) = tempMat(1:3,1:3)*[vx,vy,vz]';
+% 
+%     tformMat = tformMat*tempMat;
+%     
+%     %get variance
+%     tformVar = [in(25),in(25),in(25),0.01*pi/180,0.01*pi/180,0.01*pi/180];
+%     tformVar = tformVar*tdiff;
+%     tformVar = tformVar.^2;
 
     %write to navData
     navData.T_S1_Sk(i,:) = T2V(tformMat);
     navData.T_Var_Skm1_Sk(i,:) = tformVar;
 end
-
-navData.T_Var_Skm1_Sk(2:end,4:6) = navData.T_Var_Skm1_Sk(2:end,4:6).*repmat(diff(double(navData.time)/1000000),1,3);
