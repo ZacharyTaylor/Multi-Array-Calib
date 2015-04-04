@@ -1,4 +1,4 @@
-function [ prob ] = SystemProbR( RData, vRData, estVec )
+function [ prob, valid ] = SystemProbR( RData, vRData, estVec, retVecFlag )
 %SYSTEMPROBR uses variance to find a measure of the systems probablity of
 %   being correct (lower score == better)
 %--------------------------------------------------------------------------
@@ -32,11 +32,13 @@ validateattributes(estVec,{'numeric'},{'size',[size(RData,3)-1,3]});
 estVec = [0,0,0;estVec];
 
 %find probablity of system
-prob = zeros(size(RData,3));
+i = 0;
+prob = 0;
 for a = 1:size(RData,3)
     for b = 1:size(RData,3)
         %ensure no repeats
         if(a < b)
+            i = i+1;
             %get rotation and variance
             VA = vRData(:,:,a)';
             VB = vRData(:,:,b)';
@@ -47,17 +49,19 @@ for a = 1:size(RData,3)
             %find position error
             temp = logpdfR(RA,RB,VA,VB,estVec(a,:),estVec(b,:));
             
-            temp = sort(temp,'descend');
-            temp = temp(1:floor(size(temp,1)*0.75));
-            temp = -sum(temp);
-            
             %add error
-            prob(a,b)= temp;
+            prob= prob + temp;
         end
     end
 end
 
-prob = mean(prob(:));
+[~,idx] = sort(prob,'descend');
+valid = true(size(prob));
+valid(idx(floor(size(prob,1)*0.75):end)) = false;
+
+if(~retVecFlag)
+    prob = -sum(prob(valid));
+end
 
 end
 

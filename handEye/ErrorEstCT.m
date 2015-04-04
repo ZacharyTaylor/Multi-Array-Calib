@@ -1,4 +1,4 @@
-function [ varVec ] = ErrorEstCT( sensorData, tranVec, rotVec, rotVar, step )
+function [ varVec ] = ErrorEstCT( sensorData, tranVec, rotVec, rotVar )
 %OPTR Optimize translation based on inital guess
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -42,19 +42,22 @@ for i = 1:length(sensorData)
 end
 
 tranVec = tranVec(2:end,:);
-
-SystemProbT(TData, vTData, s, tranVec, rotVec, rotVar)
-
 varVec = zeros(size(tranVec));
 
+steps = [1,0.1,0.01,0.001,0.0001,0.00001,0.000001,0.0000001];
 for i = 1:length(tranVec(:))
-    out = zeros(3,1);
+    out = zeros(length(steps),3);
     for j = 1:3
-        temp = tranVec;
-        temp(i) = temp(i) + step*(j-2);
-        out(j) = SystemProbT(TData, vTData, s, temp, rotVec, rotVar);
+        for k = 1:length(steps)
+            temp = tranVec;
+            temp(i) = temp(i) + steps(k)*(j-2);
+            out(k,j) = SystemProbT(TData, vTData, s, temp, rotVec, rotVar, false);
+        end
     end
-    varVec(i) = (step^2)./diff(out,2);
+    out(:,1) = min(out(:,1),out(:,3));
+    out(:,3) = out(:,1);
+    out = (steps.^2)'./diff(out,2,2);
+    varVec(i) = max(out);
 end
 
 varVec = [0,0,0;varVec];

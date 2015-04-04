@@ -48,6 +48,6 @@ end
 
 function [rotVec] = findRot(RData, vRData, rotVec)
 
-rotVec = fminsearch(@(rotVec) SystemProbR(RData, vRData, rotVec),rotVec);
+rotVec = fminsearch(@(rotVec) SystemProbR(RData, vRData, rotVec, false),rotVec);
 
 end

@@ -1,4 +1,4 @@
-function [ varVec ] = ErrorEstCR( sensorData, rotVec, step )
+function [ varVec ] = ErrorEstCR( sensorData, rotVec )
 %ERRORESTR estimate cramer rao lower bound for error variance
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -28,7 +28,6 @@ for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
 end
 validateattributes(rotVec,{'numeric'},{'size',[length(sensorData),3]});
-validateattributes(step,{'numeric'},{'scalar','positive','nonzero'});
 
 %pull usful info out of sensorData
 RData = zeros(size(sensorData{1}.T_Skm1_Sk,1),3,length(sensorData));
@@ -42,14 +41,20 @@ end
 rotVec = rotVec(2:end,:);
 varVec = zeros(size(rotVec));
 
+steps = [1,0.1,0.01,0.001,0.0001,0.00001,0.000001,0.0000001];
 for i = 1:length(rotVec(:))
-    out = zeros(3,1);
+    out = zeros(length(steps),3);
     for j = 1:3
-        temp = rotVec;
-        temp(i) = temp(i) + step*(j-2);
-        out(j) = SystemProbR(RData, vRData, temp);
+        for k = 1:length(steps)
+            temp = rotVec;
+            temp(i) = temp(i) + steps(k)*(j-2);
+            out(k,j) = SystemProbR(RData, vRData, temp, false);
+        end
     end
-    varVec(i) = (step^2)./diff(out,2);
+    out(:,1) = min(out(:,1),out(:,3));
+    out(:,3) = out(:,1);
+    out = (steps.^2)'./diff(out,2,2);
+    varVec(i) = max(out);
 end
 
 varVec = [0,0,0;varVec];

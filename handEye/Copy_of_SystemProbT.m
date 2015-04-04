@@ -1,4 +1,4 @@
-function [ prob, valid ] = SystemProbT( TData, vTData, s, estVec, rotVec, rotVar, retVecFlag )
+function [ prob ] = SystemProbT( TData, vTData, s, estVec, rotVec, rotVar, covFlag )
 %SYSTEMPROBT estimate error from variance in trans vectors after alignment
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -36,8 +36,7 @@ validateattributes(estVec,{'numeric'},{'size',[size(TData,3)-1,3]});
 estVec = [0,0,0;estVec];
 
 %find probablity of system
-i = 0;
-prob = 0;
+prob = zeros(length(s));
 for a = 1:length(s)
     for b = 1:length(s)
         if(a < b)
@@ -45,8 +44,6 @@ for a = 1:length(s)
             if(s(a))            
                 continue;
             end
-            
-            i = i+1;
             
             R = [rotVec(a,:); rotVec(b,:)]';
             vR = [rotVar(a,:); rotVar(b,:)]';
@@ -63,20 +60,41 @@ for a = 1:length(s)
             RB = TData(:,4:6,b)';
             vRB = vTData(:,4:6,b)';
                      
-            temp = logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s(b));
-                       
-            prob = prob + temp;
+            [e,v] = logpdfT2(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s(b));
+            e = e';
+            v = v';
+            
+            w = zeros(6,1);
+            for i = 1:6
+                temp = xcorr(e(:,i),1);
+                w(i) = 1 - abs(temp(1)/temp(2));
+            end
+            
+            w = sqrt(prod(w));
+            %prod(w)
+            
+                        
+            eExp1 = -0.5*(e(:,1).*e(:,1)./v(:,1) + e(:,2).*e(:,2)./v(:,2) + e(:,3).*e(:,3)./v(:,3));
+            bExp1 = -log(sqrt(8*pi*pi*pi.*v(:,1).*v(:,2).*v(:,3)));
+
+            eExp2 = -0.5*(e(:,4).*e(:,4)./v(:,4) + e(:,5).*e(:,5)./v(:,5) + e(:,6).*e(:,6)./v(:,6));
+            bExp2 = -log(sqrt(8*pi*pi*pi.*v(:,4).*v(:,5).*v(:,6)));
+
+            temp = (bExp1 + eExp1 + bExp2 + eExp2)/2;
+            
+            temp = sort(temp,'descend');
+            temp = temp(1:floor(size(temp,1)*0.5));
+            temp = -sum(temp);
+            
+            prob(a,b) = temp;
         end
     end
 end
 
-[~,idx] = sort(prob,'descend');
-valid = true(size(prob));
-valid(idx(floor(size(prob,1)*0.75):end)) = false;
+prob = mean(prob(:));
 
-if(~retVecFlag)
-    prob = -sum(prob(valid));
-end
+%add zero bias
+%prob = prob + 1000*sum(estVec(:).^2);
 
 end
 

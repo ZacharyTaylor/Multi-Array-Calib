@@ -50,6 +50,6 @@ tranVar = [0,0,0;tranVar];
 end
 
 function [t] = findTran(TData, vTData, s, t, rotVec, rotVar)
-t = fminsearch(@(t) SystemProbT(TData, vTData, s, t, rotVec, rotVar),t);
+t = fminsearch(@(t) SystemProbT(TData, vTData, s, t, rotVec, rotVar, false),t);
 
 end

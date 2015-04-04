@@ -76,24 +76,75 @@ if(TVecOut(1:3) > 3)
     return;
 end
 
-%find variance
-vTVecOut = zeros(6,6);
-diff = 0.1;
-for i = 1:6
-    scansO = cell(numScans,1);
-    offset = zeros(1,6);
-    offset(i) = diff;
-    for j = 1:numScans
-        %offset lidar scans
-        scansO{j} = OffsetScan(scans{j}, lidarInfo, camInfo, dataIdx(j),offset);
-    end
+f = RunColourMetric(TVecOut', K, scans, images,2);
 
-    vTVecOut(i,:) = fminsearch(@(tform) RunColourMetric(tform, K, scansO, images,2), TVecOut');
+step = 0.01;
+dx = zeros(6,1);
+for j = 1:6
+    temp = TVecOut'; temp(j) = temp(j) + step;
+    f1 = RunColourMetric(temp, K, scans, images,2);
+
+    dx(j) = (f1-f)/(step);
 end
 
-%convert scores to variance
-vTVecOut = vTVecOut-repmat(TVecOut,6,1);
-vTVecOut = (sum(vTVecOut.*vTVecOut/(diff*diff),1));
+dz = zeros(numScans,6);
+v = zeros(numScans,6);
+for j = 1:numScans
+    for k = 1:6
+        offset = zeros(6,1);
+        offset(k) = offset(k) + step;
+        temp = scans;
+        [temp{j},v(j,:)] = OffsetScan(temp{j}, lidarInfo, camInfo, dataIdx(j),offset');
+        f1 = RunColourMetric(TVecOut', K, temp, images,2);
+
+        dz(j,k) = (f1-f)/step;
+    end
+end
+dz = dz(:);
+v = v(:);
+
+dxx = zeros(6);
+for i = 1:6
+    for j = 1:6
+        dxx(i,j) = (dx(i) + dx(j))/step;
+    end
+end
+
+dxz = zeros(6,numScans*6);
+for i = 1:6
+    for j = 1:(numScans*6)
+        dxz(i,j) = (dx(i) + dz(j))/step;
+    end
+end
+
+%warning this line is an issue
+%dxx = (inv(dxx-0.001*eye(6)) + inv(dxx+0.001*eye(6)))/2;
+
+out = zeros(1000,6);
+for i = 1:1000
+
+    d = (dxx + 0.00001*randn(3))\dxz;
+    d = d*diag(v)*d';
+    vTVecOut = diag(d);
+
+%find variance
+% vTVecOut = zeros(6,6);
+% diff = 0.1;
+% for i = 1:6
+%     scansO = cell(numScans,1);
+%     offset = zeros(1,6);
+%     offset(i) = diff;
+%     for j = 1:numScans
+%         %offset lidar scans
+%         scansO{j} = OffsetScan(scans{j}, lidarInfo, camInfo, dataIdx(j),offset);
+%     end
+% 
+%     vTVecOut(i,:) = fminsearch(@(tform) RunColourMetric(tform, K, scansO, images,2), TVecOut');
+% end
+% 
+% %convert scores to variance
+% vTVecOut = vTVecOut-repmat(TVecOut,6,1);
+% vTVecOut = (sum(vTVecOut.*vTVecOut/(diff*diff),1));
 
 end
 
@@ -198,7 +249,7 @@ function [ scan ] = ProcessScan(lidarInfo, camInfo, idx, metric)
     end
 end
 
-function [ scanOut ] = OffsetScan(scanIn, lidarInfo, camInfo, idx,offset)
+function [ scanOut, tformV ] = OffsetScan(scanIn, lidarInfo, camInfo, idx,offset)
 
     %match lidar with previous camera frame
     time = double(lidarInfo.time) - double(camInfo.time(idx-1));
@@ -216,7 +267,7 @@ function [ scanOut ] = OffsetScan(scanIn, lidarInfo, camInfo, idx,offset)
     [tform, tformV] = IndVar(0.01,findT,lidarInfo.T_S1_Sk(idxPrev,:),zeros(1,6),lidarInfo.T_S1_Sk(idxCurr,:),(lidarInfo.T_Var_S1_Sk(idxCurr,:)-lidarInfo.T_Var_S1_Sk(idxPrev,:)));
     
     %get final tform with offset
-    tform = tform + offset.*sqrt(tformV);
+    tform = tform + offset;
     tform = V2T(tform);
     points = double(gather(scanIn(:,1:3)));
     
@@ -225,8 +276,8 @@ function [ scanOut ] = OffsetScan(scanIn, lidarInfo, camInfo, idx,offset)
     dPoints = dPoints(:,1:3) - points;
     
     %interpolate point positions
-    tStartFrac = (double(camInfo.time(idx-1)-TPrev))/(tCurr - TPrev);
-    tEndFrac = (double(camInfo.time(idx)-TPrev))/(tCurr - TPrev);
+    tStartFrac = (double(camInfo.time(idx-1))-TPrev)/(tCurr - TPrev);
+    tEndFrac = (double(camInfo.time(idx))-TPrev)/(tCurr - TPrev);
     %tStartFrac = 0;
     %tEndFrac = 1;
     
