@@ -18,7 +18,7 @@ timeSamples = 100000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Cam1');
+sensorData = LoadSensorData('Shrimp','Vel','Cam1');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
@@ -43,7 +43,7 @@ fprintf('Finding Rotation\n');
 rotVec = RoughR(sData);
 rotVec = OptR(sData, rotVec);
 rotVarL = ErrorEstCR(sData, rotVec);
-rotVarM = ErrorEstCR2(sData, rotVec);
+rotVarM = max(rotVarL,ErrorEstCR2(sData, rotVec));
 
 fprintf('Rotation:\n');
 disp(rotVec);
@@ -64,7 +64,7 @@ fprintf('Finding Translation\n');
 tranVec = RoughT(sDataS, rotVec);
 tranVec = OptT(sData, tranVec, rotVec, rotVarL);
 tranVarL = ErrorEstCT(sData, tranVec, rotVec, rotVarL);
-tranVarM = ErrorEstCT2(sData, tranVec, rotVec, rotVarM);
+tranVarM = max(tranVarL,ErrorEstCT2(sData, tranVec, rotVec, rotVarM));
 
 fprintf('Translation:\n');
 disp(tranVec);
@@ -72,15 +72,15 @@ fprintf('Translation lower sd:\n');
 disp(sqrt(tranVarL));
 fprintf('Translation mid sd:\n');
 disp(sqrt(tranVarM));
-% 
-% %get grid of transforms
-% fprintf('Generating transformation grid\n');
-% [TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarM, rotVarM);
-% 
-% %refine transforms using metrics
-% fprintf('Refining transformations\n');
-% [TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
-% 
-% %correct for differences in grid
-% fprintf('Combining results\n');
-% [finalVec, finalVar] = OptGrid(TGridR, vTGridR);
+
+%get grid of transforms
+fprintf('Generating transformation grid\n');
+[TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarM, rotVarM);
+
+%refine transforms using metrics
+fprintf('Refining transformations\n');
+[TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
+
+%correct for differences in grid
+fprintf('Combining results\n');
+[finalVec, finalVar] = OptGrid(TGridR, vTGridR);

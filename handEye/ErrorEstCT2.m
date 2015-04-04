@@ -41,7 +41,7 @@ for i = 1:length(sensorData)
     s(i) = strcmpi(sensorData{i}.type,'camera');
 end
 
-step = 0.00001;
+step = 0.000001;
 
 tranVecS = tranVec(2:end,:);
 rotVecS = rotVec;

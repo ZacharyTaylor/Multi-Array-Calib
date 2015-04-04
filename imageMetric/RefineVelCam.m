@@ -76,56 +76,82 @@ if(TVecOut(1:3) > 3)
     return;
 end
 
-f = RunColourMetric(TVecOut', K, scans, images,2);
-
-step = 0.01;
-dx = zeros(6,1);
-for j = 1:6
-    temp = TVecOut'; temp(j) = temp(j) + step;
-    f1 = RunColourMetric(temp, K, scans, images,2);
-
-    dx(j) = (f1-f)/(step);
-end
-
-dz = zeros(numScans,6);
 v = zeros(numScans,6);
-for j = 1:numScans
-    for k = 1:6
-        offset = zeros(6,1);
-        offset(k) = offset(k) + step;
-        temp = scans;
-        [temp{j},v(j,:)] = OffsetScan(temp{j}, lidarInfo, camInfo, dataIdx(j),offset');
-        f1 = RunColourMetric(TVecOut', K, temp, images,2);
+step = 0.01;
 
-        dz(j,k) = (f1-f)/step;
-    end
-end
-dz = dz(:);
-v = v(:);
-
-dxx = zeros(6);
+dxx = zeros(6,6);
 for i = 1:6
     for j = 1:6
-        dxx(i,j) = (dx(i) + dx(j))/step;
+        temp = TVecOut';
+        temp(i) = temp(i) + step;
+        temp(j) = temp(j) + step;
+        f1 = RunColourMetric(temp, K, scans, images,2);
+
+        temp = TVecOut';
+        temp(i) = temp(i) - step;
+        temp(j) = temp(j) + step;
+        f2 = RunColourMetric(temp, K, scans, images,2);
+        
+        temp = TVecOut';
+        temp(i) = temp(i) + step;
+        temp(j) = temp(j) - step;
+        f3 = RunColourMetric(temp, K, scans, images,2);
+        
+        temp = TVecOut';
+        temp(i) = temp(i) - step;
+        temp(j) = temp(j) - step;
+        f4 = RunColourMetric(temp, K, scans, images,2);
+
+        dxx(i,j) = (f1-f2-f3+f4)/(4*step*step);
     end
 end
 
-dxz = zeros(6,numScans*6);
+dxz = zeros(6,6*numScans);
 for i = 1:6
-    for j = 1:(numScans*6)
-        dxz(i,j) = (dx(i) + dz(j))/step;
+    temp = zeros(numScans,6);
+    for j = 1:numScans
+        for k = 1:6
+            tempA = TVecOut';
+            tempA(i) = tempA(i) + step;
+            offset = zeros(6,1);
+            offset(k) = offset(k) + step;
+            tempB = scans;
+            [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
+            f1 = RunColourMetric(tempA, K, tempB, images,2);
+        
+            tempA = TVecOut';
+            tempA(i) = tempA(i) - step;
+            offset = zeros(6,1);
+            offset(k) = offset(k) + step;
+            tempB = scans;
+            [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
+            f2 = RunColourMetric(tempA, K, tempB, images,2);
+            
+            tempA = TVecOut';
+            tempA(i) = tempA(i) + step;
+            offset = zeros(6,1);
+            offset(k) = offset(k) - step;
+            tempB = scans;
+            [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
+            f3 = RunColourMetric(tempA, K, tempB, images,2);
+            
+            tempA = TVecOut';
+            tempA(i) = tempA(i) - step;
+            offset = zeros(6,1);
+            offset(k) = offset(k) - step;
+            tempB = scans;
+            [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
+            f4 = RunColourMetric(tempA, K, tempB, images,2);
+            
+            temp(j,k) = (f1-f2-f3+f4)/(4*step*step);
+        end
     end
+    dxz(i,:) = temp(:);
 end
 
-%warning this line is an issue
-%dxx = (inv(dxx-0.001*eye(6)) + inv(dxx+0.001*eye(6)))/2;
-
-out = zeros(1000,6);
-for i = 1:1000
-
-    d = (dxx + 0.00001*randn(3))\dxz;
-    d = d*diag(v)*d';
-    vTVecOut = diag(d);
+d = dxx\dxz;
+d = (d.*repmat(v(:)',size(d,1),1))*d';
+vTVecOut = diag(d);
 
 %find variance
 % vTVecOut = zeros(6,6);
