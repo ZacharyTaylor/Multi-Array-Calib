@@ -7,12 +7,12 @@ function [ TVecOut, vTVecOut ] = RefineVelCam( TVecIn,vTVecIn,lidarInfo,camInfo,
 % end
 
 %get scans to use
-%dataIdx = datasample(2:length(camInfo.files),numScans,'Replace',false);
+dataIdx = datasample(2:length(camInfo.files),numScans,'Replace',false);
+
 %get angle magnitudes
-Mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
-%Var = sum(camInfo.T_Var_Skm1_Sk(:,4:6),2);
-[~,idx] = sort(Mag,'descend');
-dataIdx = idx(1:numScans);
+%Mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
+%[~,idx] = sort(Mag,'descend');
+%dataIdx = idx(1:numScans);
 
 %disable warning that gets spammed
 warning('off','images:initSize:adjustingMag');
@@ -117,7 +117,7 @@ for i = 1:6
             offset(k) = offset(k) + step;
             tempB = scans;
             [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
-            f1 = RunColourMetric(tempA, K, tempB, images,2);
+            f1 = RunColourMetric(tempA, K, tempB(j,:), images(j,:),2);
         
             tempA = TVecOut';
             tempA(i) = tempA(i) - step;
@@ -125,7 +125,7 @@ for i = 1:6
             offset(k) = offset(k) + step;
             tempB = scans;
             [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
-            f2 = RunColourMetric(tempA, K, tempB, images,2);
+            f2 = RunColourMetric(tempA, K, tempB(j), images(j,:),2);
             
             tempA = TVecOut';
             tempA(i) = tempA(i) + step;
@@ -133,7 +133,7 @@ for i = 1:6
             offset(k) = offset(k) - step;
             tempB = scans;
             [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
-            f3 = RunColourMetric(tempA, K, tempB, images,2);
+            f3 = RunColourMetric(tempA, K, tempB(j,:), images(j,:),2);
             
             tempA = TVecOut';
             tempA(i) = tempA(i) - step;
@@ -141,7 +141,7 @@ for i = 1:6
             offset(k) = offset(k) - step;
             tempB = scans;
             [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
-            f4 = RunColourMetric(tempA, K, tempB, images,2);
+            f4 = RunColourMetric(tempA, K, tempB(j,:), images(j,:),2);
             
             temp(j,k) = (f1-f2-f3+f4)/(4*step*step);
         end

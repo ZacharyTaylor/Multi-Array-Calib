@@ -18,7 +18,7 @@ timeSamples = 100000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Shrimp','Vel','Cam1');
+sensorData = LoadSensorData('Kitti','Vel','Cam1');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
