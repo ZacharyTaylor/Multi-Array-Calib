@@ -194,7 +194,6 @@ function [ image ] = ProcessImage(camInfo, idx, blur, metric)
     image = Undistort(double(image), camInfo.D, camInfo.K);
     
     %histogram equalize
-    %image = 255*MyHistEq(image);
     image = image - min(image(:));
     image = image ./ max(image(:));
     image = 255*MyHistEq(image);

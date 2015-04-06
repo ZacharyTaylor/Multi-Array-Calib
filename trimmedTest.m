@@ -4,7 +4,7 @@ function [] = trimmedTest()
 rng('default');
 rng(1);
 
-data = [randn(450,2);randn(50,2)+repmat([-5,5],50,1)];
+data = [randn(100,2);randn(10,2)+repmat([-5,5],10,1)];
 
 steps = 50;
 
@@ -12,6 +12,7 @@ m = zeros(steps);
 med = zeros(steps);
 trim = zeros(steps);
 thres = zeros(steps);
+stu = zeros(steps);
 
 for x = 1:steps
     x
@@ -21,6 +22,7 @@ for x = 1:steps
         med(x,y) = offset(p,data,'median');
         trim(x,y) = offset(p,data,'trim');
         thres(x,y) = offset(p,data,'thres');
+        stu(x,y) = offset(p,data,'studentt');
         
     end
 end
@@ -41,24 +43,28 @@ plot(pTrim(1),pTrim(2),'p','MarkerSize',8,'MarkerFaceColor','b','MarkerEdgeColor
 plot(pThes(1),pThes(2),'h','MarkerSize',8,'MarkerFaceColor','y','MarkerEdgeColor','k');
 plot(pStu(1),pStu(2),'o','MarkerSize',8,'MarkerFaceColor','m','MarkerEdgeColor','k');
 
-legend('Data','True Centre','Mean', 'Median', 'Trimmed Mean', 'Threshold', '0.1 Nrom');
+legend('Data','True Centre','Mean', 'Median', 'Trimmed Mean', 'Threshold', '0.5 Nrom');
 
 figure;
 [x,y] = meshgrid(2*((1:steps)/steps-0.5),2*((1:steps)/steps-0.5));
-subplot(1,4,1);
+subplot(1,5,1);
 surf(x,y,m);
 view(135.5,12);
 
-subplot(1,4,2);
+subplot(1,5,2);
 surf(x,y,med);
 view(135.5,12);
 
-subplot(1,4,3);
+subplot(1,5,3);
 surf(x,y,trim);
 view(135.5,12);
 
-subplot(1,4,4);
+subplot(1,5,4);
 surf(x,y,thres);
+view(135.5,12);
+
+subplot(1,5,5);
+surf(x,y,stu);
 view(135.5,12);
 
 end
@@ -76,7 +82,7 @@ function [err] = offset(p,data,metric)
         temp = temp(1:floor(size(temp,1)*0.5));
         err = sqrt(mean(temp));
     elseif(strcmpi(metric,'studentt'))
-        err = sqrt(mean(dist.^0.1));
+        err = sqrt(mean(dist.^0.5));
     else
         temp = dist(dist < 9);
         err = sqrt(mean(temp));
