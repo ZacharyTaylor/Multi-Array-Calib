@@ -40,86 +40,113 @@ end
 
 step = 0.00001;
 
-rotVecS = rotVec(2:end,:);
-RDataS = RData;
-vRDataS = vRData;
-varVec = zeros(size(rotVecS));
+rotVec = rotVec(2:end,:);
 
-for x = 1:size(rotVecS,1)
-    rotVec = rotVecS(x,:);
-    RData = RDataS(:,:,1:2);
-    RData(:,:,2) = RDataS(:,:,x+1);
-    vRData = vRDataS(:,:,1:2);
-    vRData(:,:,2) = vRDataS(:,:,x+1);
+dxx = zeros(length(rotVec(:)));
+for i = 1:length(rotVec(:))
+    for j = 1:length(rotVec(:))
+        temp = rotVec; 
+        temp(j) = temp(j) + step;
+        temp(i) = temp(i) + step;
+        f1 = SystemProbR(RData, vRData, temp, false);
 
-    dxx = zeros(length(rotVec(:)));
-    for i = 1:length(rotVec(:))
-        for j = 1:length(rotVec(:))
-            temp = rotVec; 
-            temp(j) = temp(j) + step;
-            temp(i) = temp(i) + step;
-            f1 = SystemProbR(RData, vRData, temp, false);
+        temp = rotVec; 
+        temp(j) = temp(j) + step;
+        temp(i) = temp(i) - step;
+        f2 = SystemProbR(RData, vRData, temp, false);
 
-            temp = rotVec; 
-            temp(j) = temp(j) + step;
-            temp(i) = temp(i) - step;
-            f2 = SystemProbR(RData, vRData, temp, false);
-            
-            temp = rotVec; 
-            temp(j) = temp(j) - step;
-            temp(i) = temp(i) + step;
-            f3 = SystemProbR(RData, vRData, temp, false);
-            
-            temp = rotVec; 
-            temp(j) = temp(j) - step;
-            temp(i) = temp(i) - step;
-            f4 = SystemProbR(RData, vRData, temp, false);
+        temp = rotVec; 
+        temp(j) = temp(j) - step;
+        temp(i) = temp(i) + step;
+        f3 = SystemProbR(RData, vRData, temp, false);
 
-            dxx(i,j) = (f1-f2-f3+f4)/(4*step*step);
-        end
+        temp = rotVec; 
+        temp(j) = temp(j) - step;
+        temp(i) = temp(i) - step;
+        f4 = SystemProbR(RData, vRData, temp, false);
+
+        dxx(i,j) = (f1-f2-f3+f4)/(4*step*step);
     end
-    
-    dxz = zeros(length(rotVec(:)),length(RData(:)));
-    for i = 1:length(rotVec(:))
-        temp = zeros(size(RData));
-        for j = 1:size(RData,2)
-            for k = 1:size(RData,3)
-                tempA = rotVec; 
-                tempA(i) = temp(i) + step;
-                tempB = RData;
-                tempB(:,j,k) = temp(:,j,k) + step;
-                [f1,v1] = SystemProbR(tempB, vRData, tempA, true);
-
-                tempA = rotVec; 
-                tempA(i) = temp(i) - step;
-                tempB = RData;
-                tempB(:,j,k) = temp(:,j,k) + step;
-                [f2,v2] = SystemProbR(tempB, vRData, tempA, true);
-                
-                tempA = rotVec; 
-                tempA(i) = temp(i) + step;
-                tempB = RData;
-                tempB(:,j,k) = temp(:,j,k) - step;
-                [f3,v3] = SystemProbR(tempB, vRData, tempA, true);
-                
-                tempA = rotVec; 
-                tempA(i) = temp(i) - step;
-                tempB = RData;
-                tempB(:,j,k) = temp(:,j,k) - step;
-                [f4,v4] = SystemProbR(tempB, vRData, tempA, true);
-
-                %valid = and(and(v1,v2),and(v3,v4));
-                temp(:,j,k) = (f1-f2-f3+f4)/(4*step*step);
-                %temp(~valid,j,k) = 0;
-            end
-        end
-        dxz(i,:) = temp(:);
-    end
-
-    d = dxx\dxz;
-    d = (d.*repmat(vRData(:)',size(d,1),1))*d';
-    varVec(x,:) = reshape(diag(d),3,[])';
 end
+
+dx = zeros(length(rotVec(:)),1);
+for i = 1:length(rotVec(:))
+    temp = rotVec; 
+    temp(i) = temp(i) + step;
+    f1 = SystemProbR(RData, vRData, temp, false);
+
+    temp = rotVec; 
+    temp(i) = temp(i) - step;
+    f2 = SystemProbR(RData, vRData, temp, false);
+
+    dx(i) = (f1-f2)/(2*step);
+end
+
+dz = zeros(size(RData));
+for j = 1:size(RData,2)
+    for k = 1:size(RData,3)
+        tempB = RData;
+        tempB(:,j,k) = tempB(:,j,k) + step;
+        [f1,v1] = SystemProbR(tempB, vRData, rotVec, true);
+        
+        tempB = RData;
+        tempB(:,j,k) = tempB(:,j,k) - step;
+        [f2,v2] = SystemProbR(tempB, vRData, rotVec, true);
+
+        %valid = and(v1,v2);
+        dz(:,j,k) = (f1-f2)/(2*step);
+        %dz(~valid,j,k) = 0;
+    end
+end
+dz = dz(:);
+
+dxz = zeros(length(rotVec(:)),length(RData(:)));
+for i = 1:size(dx(:),1)
+    for j = 1:size(dz(:),1)
+        dxz(i,j) = dx(i) + dz(j);
+    end
+end
+
+% dxz = zeros(length(rotVec(:)),length(RData(:)));
+% for i = 1:length(rotVec(:))
+%     temp = zeros(size(RData));
+%     for j = 1:size(RData,2)
+%         for k = 1:size(RData,3)
+%             tempA = rotVec; 
+%             tempA(i) = tempA(i) + step;
+%             tempB = RData;
+%             tempB(:,j,k) = tempB(:,j,k) + step;
+%             [f1,v1] = SystemProbR(tempB, vRData, tempA, true);
+% 
+%             tempA = rotVec; 
+%             tempA(i) = tempA(i) - step;
+%             tempB = RData;
+%             tempB(:,j,k) = tempB(:,j,k) + step;
+%             [f2,v2] = SystemProbR(tempB, vRData, tempA, true);
+% 
+%             tempA = rotVec; 
+%             tempA(i) = tempA(i) + step;
+%             tempB = RData;
+%             tempB(:,j,k) = tempB(:,j,k) - step;
+%             [f3,v3] = SystemProbR(tempB, vRData, tempA, true);
+% 
+%             tempA = rotVec; 
+%             tempA(i) = tempA(i) - step;
+%             tempB = RData;
+%             tempB(:,j,k) = tempB(:,j,k) - step;
+%             [f4,v4] = SystemProbR(tempB, vRData, tempA, true);
+% 
+%             %valid = and(and(v1,v2),and(v3,v4));
+%             temp(:,j,k) = (f1-f2-f3+f4)/(4*step*step);
+%             %temp(~valid,j,k) = 0;
+%         end
+%     end
+%     dxz(i,:) = temp(:);
+% end
+
+d = dxx\dxz;
+d = (d.*repmat(vRData(:)',size(d,1),1))*d';
+varVec = reshape(diag(d),3,[])';
 
 varVec = [0,0,0;varVec];
 

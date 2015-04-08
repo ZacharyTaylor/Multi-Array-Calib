@@ -28,13 +28,17 @@ for i = 1:size(scans,1)
     
     valid = and(pro1>0,pro2>0);
     
-    err = (pro1(valid)-pro2(valid)).^2;
+    pro1 = pro1(valid);
+    pro2 = pro2(valid);
+    
+    err = (pro1 - pro2).^2;
     err = single(err);
     
     err = err(isfinite(err));
     
-    err = sort(err,'ascend');
-    err = mean(err(1:floor(size(err,1)*0.75)));
+    [~,idx] = sort(err,'ascend');
+    idx = idx(1:floor(size(err,1)*0.75));
+    err = sum(err(idx))./sum(pro1(idx).*pro2(idx));
     
     error(i) = gather(err);
     if(isnan(error(i)))
@@ -42,7 +46,7 @@ for i = 1:size(scans,1)
     end
 end
 
-error = sqrt(mean(error(:),1));
+error = (mean(error(:),1));
 
 run = run+1;
 i = 1;

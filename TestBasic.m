@@ -7,7 +7,7 @@ scansTimeRange = 100;
 %scansTimeRange = 5:5:100;
 
 %number of scans to combine in metric refine step
-numScans = 20;
+numScans = 10;
 
 %number of times to perform test
 reps = 10;
@@ -18,14 +18,14 @@ timeSamples = 100000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Shrimp','Vel','Cam1');
+sensorData = LoadSensorData('Kitti','Vel','Cam2');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
 %sensorData = InvertSensorData(sensorData);
 
 %% fix timestamps
-%[sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
+[sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
 
 %% run calibration
     
@@ -62,7 +62,7 @@ sDataS = EasyScale(sData, rotVec, rotVarL,zeros(2,3),ones(2,3));
 
 fprintf('Finding Translation\n');
 tranVec = RoughT(sDataS, rotVec);
-tranVec = OptT(sData, tranVec, rotVec, rotVarL);
+tranVec = OptT(sData, tranVec, rotVec, rotVarM);
 tranVarL = ErrorEstCT(sData, tranVec, rotVec, rotVarL);
 tranVarM = max(tranVarL,ErrorEstCT2(sData, tranVec, rotVec, rotVarM));
 

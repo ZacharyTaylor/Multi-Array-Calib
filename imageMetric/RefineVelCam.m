@@ -7,12 +7,12 @@ function [ TVecOut, vTVecOut ] = RefineVelCam( TVecIn,vTVecIn,lidarInfo,camInfo,
 % end
 
 %get scans to use
-dataIdx = datasample(2:length(camInfo.files),numScans,'Replace',false);
+%dataIdx = datasample(2:length(camInfo.files),numScans,'Replace',false);
 
 %get angle magnitudes
-%Mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
-%[~,idx] = sort(Mag,'descend');
-%dataIdx = idx(1:numScans);
+Mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
+[~,idx] = sort(Mag,'descend');
+dataIdx = idx(1:numScans);
 
 %disable warning that gets spammed
 warning('off','images:initSize:adjustingMag');
