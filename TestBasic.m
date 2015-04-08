@@ -18,7 +18,7 @@ timeSamples = 100000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Cam2');
+sensorData = LoadSensorData('Kitti','Vel','Cam1');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
@@ -36,7 +36,7 @@ sDataBase = RandTformTimes(sensorData, scansTimeRange);
 sData = SampleData2(sDataBase);
 
 %remove uninformative data
-sData = RejectPoints(sData, 5, 0.001);
+sData = RejectPoints(sData, 10, 0.00001);
 
 %find rotation
 fprintf('Finding Rotation\n');

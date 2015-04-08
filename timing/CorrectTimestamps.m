@@ -1,4 +1,4 @@
-function [ sensorData, offsets ] = CorrectTimestamps( sensorData, samples )
+function [ sensorData, offsets, varOff ] = CorrectTimestamps( sensorData, samples )
 %CORRECTTIMESTAMPS correct for any offset in intersensor timesteps
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -62,12 +62,24 @@ for i = 1:length(sensorData)
 end
 
 %find the timing offsets
-offsets = FindTimingOffsets(Mag,Var,t,samples);
+[offsets, varOff] = FindTimingOffsets(Mag,Var,t,samples);
 
 %apply offsets
 for i = 1:length(sensorData)
-    sensorData{i}.time = sensorData{i}.time - offsets(i);
+    sensorData{i}.time = double(sensorData{i}.time);
+    sensorData{i}.time = sensorData{i}.time - offsets(i,1);
+    tMin = min(sensorData{i}.time);
+    sensorData{i}.time = sensorData{i}.time - tMin;
+    sensorData{i}.time = sensorData{i}.time.*offsets(i,2);
+    sensorData{i}.time = sensorData{i}.time + tMin;
 end
+
+% %apply offset variance
+% for i = 1:length(sensorData)
+%     err = (varOff(i,1)./median(diff(double(sensorData{i}.time)))).*((sensorData{i}.T_Skm1_Sk).^2);
+%     sensorData{i}.T_Var_Skm1_Sk = sensorData{i}.T_Var_Skm1_Sk + err;
+%     sensorData{i}.T_Var_S1_Sk = cumsum(sensorData{i}.T_Var_Skm1_Sk);
+% end
 
 end
 

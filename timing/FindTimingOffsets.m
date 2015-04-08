@@ -1,4 +1,4 @@
-function [ offsets ] = FindTimingOffsets(Mag,Var,t,samples)
+function [ offsets, varOff ] = FindTimingOffsets(Mag,Var,t,samples)
 %FINDTIMINGOFFSETS Finds the timing offsets between a set of sensors
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -35,88 +35,141 @@ for i = 1:length(Mag)
     validateattributes(t{i},{'numeric'},{'vector','numel',length(Mag{i})});
 end
 
-%get overlap the other way
-offsets = fminsearch(@(offset) getError(t,Mag,Var,1000,offset),1000*ones(length(t)-1,1));
-offsets = [0;offsets(:)];
-% %find overlapping regions
-% tMin = 0;
-% tMax = inf;
-% for i = 1:length(t)
-%     tMin = max(tMin,t{i}(1));
-%     tMax = min(tMax,t{i}(end));
-% end
-% 
-% %sample overlapping area
-% tI = tMin:(tMax-tMin)/(samples):tMax;
-% 
-% for i = 1:length(Mag)
-%     
-%     %interpolate points
-%     Mag{i} = interp1(t{i},Mag{i},tI,'pchip');
-%     %get difference
-%     Mag{i} = abs(diff(Mag{i}));
-%     
-%     %get weighting from variance
-%     Var{i} = interp1(t{i},Var{i},tI,'pchip');
-%     Var{i} = 1./abs(diff(Var{i}));
-%     
-%     %take largest 10% Weights to be outliers and ignore
-%     [~,idx] = sort(Var{i},'descend');
-%     idx = idx(1:ceil(length(idx)/5));
-%     Var{i}(idx) = 0;
-%     
-%     %take largest 10% to be outliers and ignore
-%     [~,idx] = sort(Mag{i},'descend');
-%     idx = idx(1:ceil(length(idx)/5));
-%     Var{i}(idx) = 0;
-% 
-%     %histogram equalize
-%     %Mag{i} = MyHistEq(Mag{i});
-%     
-%     %remove bias
-%     Mag{i} = (Mag{i} - mean(Mag{i})) / std(Mag{i});
-%     
-%     %Mag{i} = medfilt1(Mag{i},100);
-%     %Var{i} = medfilt1(Var{i},100);
-% end
-% 
-% %get all possible comibnations of sensors
-% P = nchoosek(1:length(Mag),2);
-% v = zeros(size(P,1)+1,1);
-% x = zeros(size(P,1)+1,length(Mag));
-% 
-% %for every sensor pair
-% for i = 1:size(P,1)
-%     %find offset between sensors
-%     temp = wncc(Mag{P(i,1)},Mag{P(i,2)},min(Var{P(i,1)},Var{P(i,2)}));
-%     [val,idx] = imax(temp);
-%     v(i) = val*(ceil(samples/2) - idx);
-%     x(i,P(i,1)) =val;
-%     x(i,P(i,2)) = -val;
-% end
-% 
-% x(end,1) = 1;
-% 
-% %solve matrix for offsets
-% offsets = ((tMax-tMin)/samples)*(x\v);
-% 
-% %set first sensor to zero offset
-% offsets = offsets - offsets(1);
+%get overlap
+offsets = fminsearch(@(offset) getError(t,Mag,Var,10000,offset,false),[1000*ones(length(t)-1,1),ones(length(t)-1,1)]);
+
+stepA = 1000;
+stepB = 0.00001;
+stepC = 0.001;
+step = 0;
+
+%get variance
+dxx = zeros(length(offsets(:)));
+for i = 1:length(offsets(:))
+    for j = 1:length(offsets(:))
+        if(~mod(i,2))
+            stepi = stepB;
+        else
+            stepi = stepA;
+        end
+        if(~mod(j,2))
+            stepj = stepB;
+        else
+            stepj = stepA;
+        end
+        
+        temp = offsets; 
+        temp(j) = temp(j) + stepj;
+        temp(i) = temp(i) + stepi;
+        f1 = getError(t,Mag,Var,10000,temp,false);
+
+        temp = offsets; 
+        temp(j) = temp(j) + stepj;
+        temp(i) = temp(i) - stepi;
+        f2 = getError(t,Mag,Var,10000,temp,false);
+
+        temp = offsets; 
+        temp(j) = temp(j) - stepj;
+        temp(i) = temp(i) + stepi;
+        f3 = getError(t,Mag,Var,10000,temp,false);
+
+        temp = offsets; 
+        temp(j) = temp(j) - stepj;
+        temp(i) = temp(i) - stepi;
+        f4 = getError(t,Mag,Var,10000,temp,false);
+
+        dxx(i,j) = (f1-f2-f3+f4)/(4*stepi*stepj);
+    end
+end
+
+dx = zeros(length(offsets(:)),1);
+for i = 1:length(offsets(:))
+    if(~mod(i,2))
+        step = stepB;
+    else
+        step = stepA;
+    end
+        
+    temp = offsets; 
+    temp(i) = temp(i) + step;
+    f1 = getError(t,Mag,Var,10000,temp,false);
+
+    temp = offsets; 
+    temp(i) = temp(i) - step;
+    f2 = getError(t,Mag,Var,10000,temp,false);
+
+    dx(i) = (f1-f2)/(2*step);
+end
+
+dz = cell(length(Mag),1);
+for i = 1:length(Mag)
+    step = stepC;
+    temp = Mag;
+    temp{i} = temp{i} + step;
+    [f1,v1] = getError(t,temp,Var,10000,offsets,true);
+
+    temp = Mag;
+    temp{i} = temp{i} - step;
+    [f2,v2] = getError(t,temp,Var,10000,offsets,true);
+
+    %find overlapping regions
+    tMin = 0;
+    tMax = inf;
+    for j = 1:length(t)
+        tMin = max(tMin,t{j}(1));
+        tMax = min(tMax,t{j}(end));
+    end
+
+    %sample overlapping area
+    tI = tMin:(tMax-tMin)/10000:tMax; tI = tI(2:end);
+    
+    f1 = interp1(tI',f1',t{i},'pchip');
+    f2 = interp1(tI',f2',t{i},'pchip');
+     
+    %valid = and(v1,v2);
+    dz{i} = (f1'-f2')/(2*step);
+    %dz(~valid,j,k) = 0;
+end
+dz = cell2mat(dz')';
+
+dxz = zeros(length(dx(:)),length(dz(:)));
+for i = 1:size(dx(:),1)
+    for j = 1:size(dz(:),1)
+        dxz(i,j) = dx(i) + dz(j);
+    end
+end
+
+v = cell2mat(Var);
+
+d = dxx\dxz;
+d = (d.*repmat(v(:)',size(d,1),1))*d';
+varOff = reshape(diag(d),2,[])';
+
+offsets = [0,1;offsets];
+varOff = [0,0;varOff];
 
 end
 
-function [err] = getError(t,Mag,Var,samples,offset)
+function [err, valid] = getError(t,Mag,Var,samples,offset, vect)
 
-    offset = [0;offset(:)];
+    offset = [0,1;offset];
     
     %find overlapping regions
     tMin = 0;
     tMax = inf;
     for i = 1:length(t)
-        t{i} = t{i} - offset(i);
+        t{i} = t{i} - offset(i,1);
         tMin = max(tMin,t{i}(1));
         tMax = min(tMax,t{i}(end));
     end
+    
+    for i = 1:length(t)
+        t{i} = t{i} - tMin;
+        t{i} = t{i}*offset(i,2);
+    end
+    
+    tMax = tMax - tMin;
+    tMin = 0;
 
     %sample overlapping area
     tI = tMin:(tMax-tMin)/(samples):tMax;
@@ -149,6 +202,11 @@ function [err] = getError(t,Mag,Var,samples,offset)
     
     err = err(isfinite(err));
     
-    err = sort(err,'ascend');
-    err = mean(err(floor(size(err(:),1)*0.25):floor(size(err(:),1)*0.75)));
+    valid = false(size(err));
+    [~,idx] = sort(err,'ascend');
+    idx = idx(floor(size(idx(:),1)*0.25):floor(size(idx(:),1)*0.75));
+    valid(idx) = true;
+    if(~vect)
+        err = sum(err(valid));
+    end
 end
