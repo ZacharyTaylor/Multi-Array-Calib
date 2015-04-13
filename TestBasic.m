@@ -7,7 +7,7 @@ scansTimeRange = 100;
 %scansTimeRange = 5:5:100;
 
 %number of scans to combine in metric refine step
-numScans = 10;
+numScans = 20;
 
 %number of times to perform test
 reps = 10;
@@ -18,7 +18,7 @@ timeSamples = 100000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Cam1');
+sensorData = LoadSensorData('Kitti','Vel','Nav');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative

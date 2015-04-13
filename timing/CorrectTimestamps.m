@@ -74,12 +74,12 @@ for i = 1:length(sensorData)
     sensorData{i}.time = sensorData{i}.time + tMin;
 end
 
-% %apply offset variance
-% for i = 1:length(sensorData)
-%     err = (varOff(i,1)./median(diff(double(sensorData{i}.time)))).*((sensorData{i}.T_Skm1_Sk).^2);
-%     sensorData{i}.T_Var_Skm1_Sk = sensorData{i}.T_Var_Skm1_Sk + err;
-%     sensorData{i}.T_Var_S1_Sk = cumsum(sensorData{i}.T_Var_Skm1_Sk);
-% end
+%apply offset variance
+for i = 1:length(sensorData)
+    err = (sqrt(varOff(i,1))./median(diff(double(sensorData{i}.time)))).*((sensorData{i}.T_Skm1_Sk));
+    sensorData{i}.T_Var_Skm1_Sk = sensorData{i}.T_Var_Skm1_Sk + err.^2;
+    sensorData{i}.T_Var_S1_Sk = cumsum(sensorData{i}.T_Var_Skm1_Sk);
+end
 
 end
 

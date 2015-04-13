@@ -99,55 +99,57 @@ function [T_Ckm1_Ck, T_Var_Ckm1_Ck, points, inliers] = getTandPoints(mNew,mOld,K
     [~,idx] = max(best);
     points = points(:,:,idx);
     T_Ckm1_Ck = T_Ckm1_Ck(:,:,idx);
+    T_Ckm1_Ck = T2V(T_Ckm1_Ck);
     
-    %sample data
-    T_Var_Ckm1_Ck = zeros(100,6);
-    for i = 1:100
-        %get sampled points
-        [mOBS,idx] = datasample(mOld,size(mOld,1));
-        mNBS = mNew(idx,:);
-        
-        %find fundemental matrix (using fundmatrix for speed)
-        F = Fundmatrix([mOBS,ones(size(mOBS,1),1)]',[mNBS,ones(size(mOBS,1),1)]');
-        
-        %add random error to focal length and centre point
-        Kr = K + [randn(1),0,randn(1),0;0,randn(1),randn(1),0;0,0,0,0];
-        
-        %get essential matrix
-        E = Kr(1:3,1:3)'*F*Kr(1:3,1:3);
-       
-        %get P
-        [U,~,V] = svd(E);
-        RA = U*W*V';
-        RB = U*W'*V';
-
-        if (sum(U(:,3)) > 0)
-            T = U(:,3);
-        else
-           T = -U(:,3);
-        end
-        
-        RA = repmat(sign(diag(RA)),1,3).*RA;
-        RB = repmat(sign(diag(RB)),1,3).*RB;
-        
-        eA = RA - T_Ckm1_Ck(1:3,1:3); eA = sum(eA(:).^2);
-        eB = RB - T_Ckm1_Ck(1:3,1:3); eB = sum(eB(:).^2);
-        
-        if (eB > eA)
-            T_Var_Ckm1_Ck(i,:) = T2V([RA,T;[0,0,0,1]]);
-        else
-            T_Var_Ckm1_Ck(i,:) = T2V([RB,T;[0,0,0,1]]);
-        end
-    end
-    T_Var_Ckm1_Ck = var(T_Var_Ckm1_Ck);
+    %estimate variance
+    T_Var_Ckm1_Ck = FindCamVar(T_Ckm1_Ck, mNew, mOld, K);
+    
+%     %sample data
+%     T_Var_Ckm1_Ck = zeros(100,6);
+%     for i = 1:100
+%         %get sampled points
+%         [mOBS,idx] = datasample(mOld,size(mOld,1));
+%         mNBS = mNew(idx,:);
+%         
+%         %find fundemental matrix (using fundmatrix for speed)
+%         F = Fundmatrix([mOBS,ones(size(mOBS,1),1)]',[mNBS,ones(size(mOBS,1),1)]');
+%         
+%         %add random error to focal length and centre point
+%         Kr = K + [randn(1),0,randn(1),0;0,randn(1),randn(1),0;0,0,0,0];
+%         
+%         %get essential matrix
+%         E = Kr(1:3,1:3)'*F*Kr(1:3,1:3);
+%        
+%         %get P
+%         [U,~,V] = svd(E);
+%         RA = U*W*V';
+%         RB = U*W'*V';
+% 
+%         if (sum(U(:,3)) > 0)
+%             T = U(:,3);
+%         else
+%            T = -U(:,3);
+%         end
+%         
+%         RA = repmat(sign(diag(RA)),1,3).*RA;
+%         RB = repmat(sign(diag(RB)),1,3).*RB;
+%         
+%         eA = RA - T_Ckm1_Ck(1:3,1:3); eA = sum(eA(:).^2);
+%         eB = RB - T_Ckm1_Ck(1:3,1:3); eB = sum(eB(:).^2);
+%         
+%         if (eB > eA)
+%             T_Var_Ckm1_Ck(i,:) = T2V([RA,T;[0,0,0,1]]);
+%         else
+%             T_Var_Ckm1_Ck(i,:) = T2V([RB,T;[0,0,0,1]]);
+%         end
+%     end
+%     T_Var_Ckm1_Ck = var(T_Var_Ckm1_Ck);
     
     %filter out negitive and distant point matches
     badPoints = or(sqrt(sum(points.^2,2)) > 1000, points(:,3) < 0);
     in = find(inliers);
     inliers(in(badPoints)) = 0;
     points = points(~badPoints,:);
-    
-    T_Ckm1_Ck = T2V(T_Ckm1_Ck);
 end
 
 function [points] = getPoints(mNew,mOld,T,K)

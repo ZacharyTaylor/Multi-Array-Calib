@@ -11,7 +11,8 @@ for i = 1:size(TGrid,1);
             %check that sensors overlap
             overlap = CalcSensorOverlap(TGrid{i,j}, sensorData{i}, sensorData{j});
             if(overlap < 0.1)
-                return;
+                [TGridR{i,j},vTGridR{i,j}] = IndVar(0.01,@V2S,TGrid{i,j},vTGrid{i,j});
+                continue;
             end
             
             %perform velodyne-camera matching
@@ -31,10 +32,12 @@ for i = 1:size(TGrid,1);
 
                 %cameras don't have scale
                 if(and(strcmpi(sensorData{i}.type,'camera'),strcmpi(sensorData{j}.type,'camera')))
-                    VA(4) = inf;
+                    A(4) = B(4);
+                    VA(4) = VB(4);
                 end
 
-                [TGridR{i,j}, vTGridR{i,j}] = CombEst(A,VA,B,VB);
+                TGridR{i,j} = A;
+                vTGridR{i,j} = VA;
             end
         end
     end

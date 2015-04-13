@@ -38,8 +38,8 @@ end
 %get overlap
 offsets = fminsearch(@(offset) getError(t,Mag,Var,10000,offset,false),[1000*ones(length(t)-1,1),ones(length(t)-1,1)]);
 
-stepA = 1000;
-stepB = 0.00001;
+stepA = 100;
+stepB = 0.001;
 stepC = 0.001;
 step = 0;
 
@@ -47,12 +47,12 @@ step = 0;
 dxx = zeros(length(offsets(:)));
 for i = 1:length(offsets(:))
     for j = 1:length(offsets(:))
-        if(~mod(i,2))
+        if(i > size(offsets,1))
             stepi = stepB;
         else
             stepi = stepA;
         end
-        if(~mod(j,2))
+        if(j > size(offsets,1))
             stepj = stepB;
         else
             stepj = stepA;
@@ -84,7 +84,7 @@ end
 
 dx = zeros(length(offsets(:)),1);
 for i = 1:length(offsets(:))
-    if(~mod(i,2))
+    if(i > size(offsets,1))
         step = stepB;
     else
         step = stepA;
@@ -143,7 +143,7 @@ v = cell2mat(Var);
 
 d = dxx\dxz;
 d = (d.*repmat(v(:)',size(d,1),1))*d';
-varOff = reshape(diag(d),2,[])';
+varOff = reshape(diag(d),[],2);
 
 offsets = [0,1;offsets];
 varOff = [0,0;varOff];

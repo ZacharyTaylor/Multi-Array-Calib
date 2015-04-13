@@ -38,7 +38,7 @@ for i = 1:size(scans,1)
     
     [~,idx] = sort(err,'ascend');
     idx = idx(1:floor(size(err,1)*0.75));
-    err = sum(err(idx))./sum(pro1(idx).*pro2(idx));
+    err = mean(err(idx))./mean(pro1(idx).*pro2(idx));
     
     error(i) = gather(err);
     if(isnan(error(i)))

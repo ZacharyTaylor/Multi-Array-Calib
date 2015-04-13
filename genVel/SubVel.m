@@ -44,14 +44,10 @@ sphere(:,2) = atan(vel(:,3)./ sqrt(vel(:,2).^2 + vel(:,1).^2));
 idx = knnsearch(sphere,sphere,'k',5);
 idx = idx(:,2:end);
 diff = abs(reshape(dist(idx),size(idx)) - repmat(dist,1,size(idx,2)));
-diff = max(diff,[],2);
+diff = min(diff,[],2)./dist;
 
 %sort by distance
 [~,diff] = sort(diff,'descend');
-
-%get subsampled points
-%subA = floor(sub/2);
-%subB = sub-subA;
 
 %get index of subsampled points
 idx = diff(1:sub);

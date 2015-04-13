@@ -24,9 +24,9 @@ for j = 1:numScans
     
     if(strcmpi(metric,'Colour'))
         %previous image
-        images{j,1} = ProcessImage(camInfo, dataIdx(j)-1, 2, metric);
+        images{j,1} = ProcessImage(camInfo, dataIdx(j)-1, 3, metric);
         %current image
-        images{j,2} = ProcessImage(camInfo, dataIdx(j), 2, metric);
+        images{j,2} = ProcessImage(camInfo, dataIdx(j), 3, metric);
     elseif(strcmpi(metric,'Lev'))
         images{j,1} = ProcessImage(camInfo, dataIdx(j), 5, metric);
     end
@@ -62,10 +62,10 @@ sd(sd > 0.7*opts.UBounds) = 0.7*opts.UBounds(sd > 0.7*opts.UBounds);
 %run metric
 if(strcmpi(metric,'Colour'))
     TVecOut = cmaes(@(tform) RunColourMetric(tform, K, scans, images, 2), m,sd, opts);
-    TVecOut = fminsearch(@(tform) RunColourMetric(tform, K, scans, images,2), TVecOut);
+    %TVecOut = fminsearch(@(tform) RunColourMetric(tform, K, scans, images,2), TVecOut);
 elseif(strcmpi(metric,'Lev'))
     TVecOut = cmaes(@(tform) RunLevMetric(tform, K, scans, images, 2), m,sd, opts);
-    TVecOut = fminsearch(@(tform) RunLevMetric(tform, K, scans, images,2), TVecOut);
+    %TVecOut = fminsearch(@(tform) RunLevMetric(tform, K, scans, images,2), TVecOut);
 end
 TVecOut = TVecOut';
 
@@ -153,25 +153,6 @@ d = dxx\dxz;
 d = (d.*repmat(v(:)',size(d,1),1))*d';
 vTVecOut = diag(d);
 
-%find variance
-% vTVecOut = zeros(6,6);
-% diff = 0.1;
-% for i = 1:6
-%     scansO = cell(numScans,1);
-%     offset = zeros(1,6);
-%     offset(i) = diff;
-%     for j = 1:numScans
-%         %offset lidar scans
-%         scansO{j} = OffsetScan(scans{j}, lidarInfo, camInfo, dataIdx(j),offset);
-%     end
-% 
-%     vTVecOut(i,:) = fminsearch(@(tform) RunColourMetric(tform, K, scansO, images,2), TVecOut');
-% end
-% 
-% %convert scores to variance
-% vTVecOut = vTVecOut-repmat(TVecOut,6,1);
-% vTVecOut = (sum(vTVecOut.*vTVecOut/(diff*diff),1));
-
 end
 
 function [ image ] = ProcessImage(camInfo, idx, blur, metric)
@@ -183,20 +164,21 @@ function [ image ] = ProcessImage(camInfo, idx, blur, metric)
     end
 
     image = double(image);
-    
+
     %blur image
     G = fspecial('gaussian',[50 50],blur);
     image = imfilter(image,G,'same');
     
     image = imgradient(image);
-    
+   
     %undistort image
     image = Undistort(double(image), camInfo.D, camInfo.K);
     
     %histogram equalize
     image = image - min(image(:));
     image = image ./ max(image(:));
-    image = 255*MyHistEq(image);
+    image = 255*image;
+    %image = 255*MyHistEq(image);
     
     %mask image
     if(isfield(camInfo,'mask'))

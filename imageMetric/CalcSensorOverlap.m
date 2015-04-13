@@ -39,6 +39,9 @@ if(strcmpi(sensorA.type,'Velodyne'))
     xa = [-pi; pi; pi; -pi];
     ya = [0.035; 0.035; -0.433; -0.433];
     ya = ya + pi/2;
+elseif(strcmpi(sensorA.type,'Nav'))
+    overlap = 0;
+    return;
 else
     image = imread([sensorA.folder sensorA.files(1).name]);
     imsize = size(image(:,:,1));
@@ -51,15 +54,22 @@ end
 [xa,ya] = interpm(xa,ya,res);
 
 %get FOV of 2nd sensor
-image = imread([sensorB.folder sensorB.files(1).name]);
-imsize = size(image(:,:,1));
-fovB = atan(imsize(:)./[sensorB.K(1,1); sensorB.K(2,2)]); 
+if(strcmpi(sensorB.type,'Velodyne'))
+    xb = [-pi; pi; pi; -pi];
+    yb = [0.035; 0.035; -0.433; -0.433];
+    yb = yb + pi/2;
+elseif(strcmpi(sensorB.type,'Nav'))
+    overlap = 0;
+    return;
+else
+    image = imread([sensorB.folder sensorB.files(1).name]);
+    imsize = size(image(:,:,1));
+    fovB = atan(imsize(:)./[sensorB.K(1,1); sensorB.K(2,2)]); 
 
-xb = rotMat*[1;0;0]; xb = acos(xb(1));
-yb = rotMat*[0;1;0]; yb = acos(yb(2));
-        
-xb = [xb-fovB(1)/2; xb+fovB(1)/2; xb+fovB(1)/2; xb-fovB(1)/2];
-yb = [yb+fovB(2)/2; yb+fovB(2)/2; yb-fovB(2)/2; yb-fovB(2)/2];
+    xb = [-fovB(1)/2; fovB(1)/2; fovB(1)/2; -fovB(1)/2];
+    yb = [fovB(2)/2; fovB(2)/2; -fovB(2)/2; -fovB(2)/2];
+    
+end
 [xb,yb] = interpm(xb,yb,res);
 
 %calculate overlap

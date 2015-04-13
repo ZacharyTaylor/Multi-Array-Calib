@@ -103,7 +103,7 @@ for frame = 2:size(velData.files,1)
 
     %find transformation
     try
-        [velData.T_Skm1_Sk(frame,:), velData.T_Var_Skm1_Sk(frame,:)] = GetVelTform(velCurr, velPrev, tCurr, tPrev, velData.T_Skm1_Sk(frame-1,:),10,1);
+        [velData.T_Skm1_Sk(frame,:), velData.T_Var_Skm1_Sk(frame,:)] = GetVelTform(velCurr, velPrev, tCurr, tPrev, velData.T_Skm1_Sk(frame-1,:),5,5);
     catch
       velData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
       velData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
