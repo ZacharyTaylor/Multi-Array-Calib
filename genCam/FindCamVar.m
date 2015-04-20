@@ -3,72 +3,73 @@ function [ tformVar ] = FindCamVar( tform, pNew, pOld, K )
 %   Detailed explanation goes here
 
 %find variance
-step = 0.001;
+stepX = 0.001;
+stepZ = 1;
 
 dxx = zeros(length(tform));
 for i = 1:length(tform)
     for j = 1:length(tform)
-        temp = tform; 
-        temp(j) = temp(j) + step;
-        temp(i) = temp(i) + step;
-        f1 = sum(findErr(temp, pNew, pOld, K));
+        X = tform; 
+        X(j) = X(j) + stepX;
+        X(i) = X(i) + stepX;
+        f1 = sum(findErr(X, pNew, pOld, K));
 
-        temp = tform; 
-        temp(j) = temp(j) + step;
-        temp(i) = temp(i) - step;
-        f2 = sum(findErr(temp, pNew, pOld, K));
+        X = tform; 
+        X(j) = X(j) + stepX;
+        X(i) = X(i) - stepX;
+        f2 = sum(findErr(X, pNew, pOld, K));
 
-        temp = tform; 
-        temp(j) = temp(j) - step;
-        temp(i) = temp(i) + step;
-        f3 = sum(findErr(temp, pNew, pOld, K));
+        X = tform; 
+        X(j) = X(j) - stepX;
+        X(i) = X(i) + stepX;
+        f3 = sum(findErr(X, pNew, pOld, K));
 
-        temp = tform; 
-        temp(j) = temp(j) - step;
-        temp(i) = temp(i) - step;
-        f4 = sum(findErr(temp, pNew, pOld, K));
+        X = tform; 
+        X(j) = X(j) - stepX;
+        X(i) = X(i) - stepX;
+        f4 = sum(findErr(X, pNew, pOld, K));
 
-        dxx(i,j) = (f1-f2-f3+f4)/(4*step*step);
+        dxx(i,j) = (f1-f2-f3+f4)/(4*stepX*stepX);
     end
-end
-
-dx = zeros(length(tform),1);
-for i = 1:length(tform)
-    temp = tform; 
-    temp(i) = temp(i) + step;
-    f1 = sum(findErr(temp, pNew, pOld, K));
-        
-    temp = tform; 
-    temp(i) = temp(i) - step;
-    f2 = sum(findErr(temp, pNew, pOld, K));
-
-    dx(i) = (f1-f2)/(2*step);
 end
 
 p = pNew;
 p(:,:,2) = pOld;
 
-dz = zeros(size(p));
-for i = 1:size(p,2)
-    for j = 1:size(p,3)
-        temp = p; 
-        temp(:,i,j) = temp(:,i,j) + step;
-        f1 = findErr(tform, temp(:,:,1), temp(:,:,2), K);
+dxz = zeros([length(tform),length(p(:))]);
+for i = 1:length(tform)
+    dS = zeros(size(p));
+    for j = 1:size(p,2)
+        for k = 1:size(p,3)
 
-        temp = p; 
-        temp(:,i,j) = temp(:,i,j) - step;
-        f2 = findErr(tform, temp(:,:,1),temp(:,:,2), K);
-
-        dz(:,i) = (f1-f2)/(2*step);
+            X = tform; 
+            X(i) = X(i) + stepX;
+            Z = p; 
+            Z(:,j,k) = Z(:,j,k) + stepZ;
+            f1 = findErr(X, Z(:,:,1),Z(:,:,2), K);
+            
+            X = tform; 
+            X(i) = X(i) - stepX;
+            Z = p; 
+            Z(:,j,k) = Z(:,j,k) + stepZ;
+            f2 = findErr(X, Z(:,:,1),Z(:,:,2), K);
+            
+            X = tform; 
+            X(i) = X(i) + stepX;
+            Z = p; 
+            Z(:,j,k) = Z(:,j,k) - stepZ;
+            f3 = findErr(X, Z(:,:,1),Z(:,:,2), K);
+            
+            X = tform; 
+            X(i) = X(i) - stepX;
+            Z = p; 
+            Z(:,j,k) = Z(:,j,k) - stepZ;
+            f4 = findErr(X, Z(:,:,1),Z(:,:,2), K);
+            
+            dS(:,j,k) = (f1-f2-f3+f4)/(4*stepX*stepZ);
+        end
     end
-end
-dz = dz(:);
-
-dxz = zeros(size(dx(:),1),size(dz(:),1));
-for i = 1:size(dx(:),1)
-    for j = 1:size(dz(:),1)
-        dxz(i,j) = dx(i) + dz(j);
-    end
+    dxz(i,:) = dS(:);
 end
 
 d = dxx\dxz;
@@ -94,11 +95,8 @@ F = K'\(E/K);
 F = F/norm(F);
 
 %find error
-err = zeros(size(pNew,1),1);
-for i = 1:size(err,1)
-    err(i) = [pNew(i,:),1]*F*[pOld(i,:),1]';
-end
-
+err = F*[pOld,ones(size(pOld,1),1)]';
+err = sum([pNew,ones(size(pOld,1),1)].*err',2);
 err = err.^2;
 
 end

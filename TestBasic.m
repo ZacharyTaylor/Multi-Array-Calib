@@ -3,29 +3,34 @@
 %% user set variables
 
 %number of scans to use
-scansTimeRange = 100;
+scansTimeRange = 120;
 %scansTimeRange = 5:5:100;
 
 %number of scans to combine in metric refine step
-numScans = 20;
+numScans = 25;
 
 %number of times to perform test
 reps = 10;
 
 %samples
-timeSamples = 100000;
+timeSamples = 10000;
 
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Nav');
+sensorData = LoadSensorData('Kitti','Vel','Cam1');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
 %sensorData = InvertSensorData(sensorData);
 
 %% fix timestamps
-[sensorData, offsets] = CorrectTimestamps(sensorData, timeSamples);
+fprintf('Finding Timing Offsets\n');
+[sensorData, offsets, varOffsets] = CorrectTimestamps(sensorData, timeSamples);
+fprintf('Offsets:\n');
+disp(offsets);
+fprintf('Offset sd:\n');
+disp(sqrt(varOffsets));
 
 %% run calibration
     
@@ -36,7 +41,7 @@ sDataBase = RandTformTimes(sensorData, scansTimeRange);
 sData = SampleData2(sDataBase);
 
 %remove uninformative data
-sData = RejectPoints(sData, 10, 0.00001);
+sData = RejectPoints(sData, 100, 0.00001);
 
 %find rotation
 fprintf('Finding Rotation\n');
@@ -58,7 +63,7 @@ fprintf('Finding Camera Scale\n');
 sDataS = EasyScale(sData, rotVec, rotVarL,zeros(2,3),ones(2,3));
 
 %show what we are dealing with
-%PlotData(sDataS,rotVec);
+PlotData(sDataS,rotVec);
 
 fprintf('Finding Translation\n');
 tranVec = RoughT(sDataS, rotVec);

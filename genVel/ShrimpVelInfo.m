@@ -38,9 +38,9 @@ velData.files = dir([velData.folder,'*.ply']);
 %timestamps
 velData.time = ReadTimeData([shrimpPath '/Processed/velodyne/timestamps.bin']);
 
-%get every second scan (20 Hz is too much info)
-%velData.files = velData.files(1:2:end);
-%velData.time = velData.time(1:2:end);
+%get every third scan (20 Hz is too much info)
+velData.files = velData.files(1:3:end);
+velData.time = velData.time(1:3:end);
 
 end
         

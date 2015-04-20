@@ -1,4 +1,4 @@
-function [ err ] = Test1CamTiming( sensorData, offsetMag, timeSamples )
+function [ err, var ] = Test1CamTiming( sensorData, offsetMag, timeSamples )
 %TEST1CAMTIMING Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -11,10 +11,11 @@ for i = 1:length(sensorData)
 end
 
 % fix timestamps
-[~, offsets] = CorrectTimestamps(sensorData, timeSamples);
+[~, offsets, var] = CorrectTimestamps(sensorData, timeSamples);
 
 %find error
-err = (offsets - baseOffset)/1000000;
+var = var(:,1)/(1000000*1000000);
+err = (offsets(:,1) - baseOffset)/1000000;
 
 end
 

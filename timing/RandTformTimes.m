@@ -47,9 +47,6 @@ endT = startT + timeLength;
 for i = 1:length(sensorData)
     valid = and(sensorData{i}.time > startT, sensorData{i}.time < endT);
     valid = find(valid);
-    if(isempty(valid))
-        a = 1;
-    end
     sensorData{i} = SensorDataSubset(sensorData{i}, valid);
 end
     

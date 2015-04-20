@@ -64,7 +64,7 @@ velCurr = VelCorrect(velCurr, tFracCurr, tformPrev);
 
 %find transformation
 %tform = icpMexTime(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.3,'point_to_plane');
-tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),0.5,'point_to_plane');
+tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),0.2,'point_to_plane');
 tform = T2V(inv(tform));
 
 if(norm(tform(1:3)) > 3)
@@ -72,109 +72,7 @@ if(norm(tform(1:3)) > 3)
 end
 
 %find variance
-step = 0.001;
-velPT = (V2T(tform)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-idx = knnsearch(velPT,velCurr);
-
-dxx = zeros(length(tform));
-for i = 1:length(tform)
-    for j = 1:length(tform)
-        temp = tform; 
-        temp(j) = temp(j) + step;
-        temp(i) = temp(i) + step;
-        velPT = (V2T(temp)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-        err = sum((velPT(idx,:) - velCurr).^2,2);
-        f1 = sum(err);
-
-        temp = tform; 
-        temp(j) = temp(j) + step;
-        temp(i) = temp(i) - step;
-        velPT = (V2T(temp)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-        err = sum((velPT(idx,:) - velCurr).^2,2);
-        f2 = sum(err);
-
-        temp = tform; 
-        temp(j) = temp(j) - step;
-        temp(i) = temp(i) + step;
-        velPT = (V2T(temp)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-        err = sum((velPT(idx,:) - velCurr).^2,2);
-        f3 = sum(err);
-
-        temp = tform; 
-        temp(j) = temp(j) - step;
-        temp(i) = temp(i) - step;
-        velPT = (V2T(temp)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-        err = sum((velPT(idx,:) - velCurr).^2,2);
-        f4 = sum(err);
-
-        dxx(i,j) = (f1-f2-f3+f4)/(4*step*step);
-    end
-end
-
-dx = zeros(length(tform),1);
-for i = 1:length(tform)
-    temp = tform; 
-    temp(i) = temp(i) + step;
-    velPT = (V2T(temp)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-    err = sum((velPT(idx,:) - velCurr).^2,2);
-    f1 = sum(err);
-        
-    temp = tform; 
-    temp(i) = temp(i) - step;
-    velPT = (V2T(temp)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-    err = sum((velPT(idx,:) - velCurr).^2,2);
-    f2 = sum(err);
-
-    dx(i) = (f1-f2)/(2*step);
-end
-
-dz = zeros(size(velCurr));
-for i = 1:size(velCurr,2)
-    temp = velCurr; 
-    temp(:,i) = temp(:,i) + step;
-    velPT = (V2T(tform)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-    err = sum((velPT(idx,:) - temp).^2,2);
-    f1 = sum(err);
-    
-    temp = velCurr; 
-    temp(:,i) = temp(:,i) - step;
-    velPT = (V2T(tform)*[velPrev, ones(size(velPrev,1),1)]')'; velPT = velPT(:,1:3);
-    err = sum((velPT(idx,:) - temp).^2,2);
-    f2 = sum(err);
-    
-    dz(:,i) = (f1-f2)/(2*step);
-end
-dz = dz(:);
-
-dxz = zeros(size(dx(:),1),size(dz(:),1));
-for i = 1:size(dx(:),1)
-    for j = 1:size(dz(:),1)
-        dxz(i,j) = dx(i) + dz(j);
-    end
-end
-
-d = dxx\dxz;
-d = 0.05*0.05*(d*d');
-
-tformVar = diag(d)';
-
-
-% %bootstrap scans
-% bootnum = 100;
-% numPoints = ceil(min(size(velCurr,1),size(velPrev,1))/bootSample);
-% tformVar = zeros(bootnum,6);
-% for i = 1:bootnum
-%     [subVelCurr,idx] = datasample(velCurr,numPoints);
-%     subTFracCurr = tFracCurr(idx);
-%     subVelPrev = datasample(velPrev,numPoints);
-% 
-%     %find bootstrap tform
-%     %tformVar(i,:) = T2V(inv(icpMexTime(subVelPrev',subVelCurr',inv(V2T(tform)),subTFracCurr',0.3,'point_to_point')))';
-%     tformVar(i,:) = T2V(inv(icpMex(subVelPrev',subVelCurr',inv(V2T(tform)),0.5,'point_to_point')))';
-% end
-% 
-% %find variance
-% tformVar = var(tformVar);
+tformVar = FindValVar( tform, velCurr, velPrev );
 
 end
 

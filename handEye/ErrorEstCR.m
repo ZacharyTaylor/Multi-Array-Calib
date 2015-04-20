@@ -58,6 +58,7 @@ for i = 1:length(rotVec(:))
 end
 
 varVec = [0,0,0;varVec];
+varVec = sqrt(varVec.^2);
 
 end
 

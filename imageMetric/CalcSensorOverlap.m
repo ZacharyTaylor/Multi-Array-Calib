@@ -66,8 +66,11 @@ else
     imsize = size(image(:,:,1));
     fovB = atan(imsize(:)./[sensorB.K(1,1); sensorB.K(2,2)]); 
 
-    xb = [-fovB(1)/2; fovB(1)/2; fovB(1)/2; -fovB(1)/2];
-    yb = [fovB(2)/2; fovB(2)/2; -fovB(2)/2; -fovB(2)/2];
+    xb = rotMat*[1;0;0]; xb = acos(xb(1));
+    yb = rotMat*[0;1;0]; yb = acos(yb(2));
+        
+    xb = [xb-fovB(1)/2; xb+fovB(1)/2; xb+fovB(1)/2; xb-fovB(1)/2];
+    yb = [yb+fovB(2)/2; yb+fovB(2)/2; yb-fovB(2)/2; yb-fovB(2)/2];
     
 end
 [xb,yb] = interpm(xb,yb,res);

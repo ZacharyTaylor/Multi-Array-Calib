@@ -99,7 +99,6 @@ for frame = 2:size(navData.files,1)
     
     %find sensor transforms
     navData.T_Skm1_Sk(frame,:) = T2V(inv(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:))));
-    %navData.T_Skm1_Sk(frame,:) = T2V(V2T(tempAbs(frame-1,:))\V2T(tempAbs(frame,:)));
     
     %generate absolute transformations
     navData.T_S1_Sk(frame,:) = T2V(V2T(navData.T_S1_Sk(frame-1,:))*V2T(navData.T_Skm1_Sk(frame,:)));
@@ -112,7 +111,7 @@ for frame = 2:size(navData.files,1)
     end
         
     %generate absolute variance
-    navData.T_Var_S1_Sk(frame,:) = navData.T_Var_S1_Sk(frame-1,:) + navData.T_Var_Skm1_Sk(frame,:);
+    navData.T_Var_S1_Sk(frame,:) = navData.T_Var_Skm1_Sk(frame,:);
 end 
 
 fprintf('\n');

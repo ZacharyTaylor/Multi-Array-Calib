@@ -111,7 +111,7 @@ while run
     
     e = repmat(e,1,6);
     e(:,1:3) = e(:,1:3).^2;
-    e(:,4:6) = (0.01*pi/180).^2;
+    e(:,4:6) = (0.03*pi/180).^2;
     
     speed = [speed ;vx vy vz wx wy wz];
     err = [err; e];

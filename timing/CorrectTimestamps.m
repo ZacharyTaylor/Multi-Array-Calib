@@ -49,6 +49,7 @@ end
 Mag = cell(length(sensorData),1);
 Var = cell(length(sensorData),1);
 t = cell(length(sensorData),1);
+navFlag = false(length(sensorData),1);
 
 %find absolute angle magintude and variance
 for i = 1:length(sensorData)
@@ -59,10 +60,11 @@ for i = 1:length(sensorData)
     %get absolute angle magnitude
     Mag{i} = sqrt(sum(sensorData{i}.T_S1_Sk(:,4:6).^2,2));
     Var{i} = sum(sensorData{i}.T_Var_S1_Sk(:,4:6),2);
+    navFlag(i) = strcmpi(sensorData{i}.type,'Nav');
 end
 
 %find the timing offsets
-[offsets, varOff] = FindTimingOffsets(Mag,Var,t,samples);
+[offsets, varOff] = FindTimingOffsets(Mag,Var,t,samples, navFlag);
 
 %apply offsets
 for i = 1:length(sensorData)
@@ -78,7 +80,11 @@ end
 for i = 1:length(sensorData)
     err = (sqrt(varOff(i,1))./median(diff(double(sensorData{i}.time)))).*((sensorData{i}.T_Skm1_Sk));
     sensorData{i}.T_Var_Skm1_Sk = sensorData{i}.T_Var_Skm1_Sk + err.^2;
-    sensorData{i}.T_Var_S1_Sk = cumsum(sensorData{i}.T_Var_Skm1_Sk);
+    if(navFlag(i))
+        sensorData{i}.T_Var_S1_Sk = sensorData{i}.T_Var_Skm1_Sk;
+    else
+        sensorData{i}.T_Var_S1_Sk = cumsum(sensorData{i}.T_Var_Skm1_Sk);
+    end
 end
 
 end
