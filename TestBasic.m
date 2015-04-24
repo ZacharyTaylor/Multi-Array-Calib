@@ -3,7 +3,7 @@
 %% user set variables
 
 %number of scans to use
-scansTimeRange = 120;
+scansTimeRange = 300;
 %scansTimeRange = 5:5:100;
 
 %number of scans to combine in metric refine step
@@ -18,7 +18,7 @@ timeSamples = 10000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Cam1');
+sensorData = LoadSensorData('Kitti','Vel','Nav');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
@@ -63,13 +63,13 @@ fprintf('Finding Camera Scale\n');
 sDataS = EasyScale(sData, rotVec, rotVarL,zeros(2,3),ones(2,3));
 
 %show what we are dealing with
-PlotData(sDataS,rotVec);
+%PlotData(sDataS,rotVec);
 
 fprintf('Finding Translation\n');
 tranVec = RoughT(sDataS, rotVec);
 tranVec = OptT(sData, tranVec, rotVec, rotVarM);
 tranVarL = ErrorEstCT(sData, tranVec, rotVec, rotVarL);
-tranVarM = max(tranVarL,ErrorEstCT2(sData, tranVec, rotVec, rotVarM));
+tranVarM = ErrorEstCT2(sData, tranVec, rotVec, rotVarM);
 
 fprintf('Translation:\n');
 disp(tranVec);
@@ -78,14 +78,14 @@ disp(sqrt(tranVarL));
 fprintf('Translation mid sd:\n');
 disp(sqrt(tranVarM));
 
-%get grid of transforms
-fprintf('Generating transformation grid\n');
-[TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarM, rotVarM);
-
-%refine transforms using metrics
-fprintf('Refining transformations\n');
-[TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
-
-%correct for differences in grid
-fprintf('Combining results\n');
-[finalVec, finalVar] = OptGrid(TGridR, vTGridR);
+% %get grid of transforms
+% fprintf('Generating transformation grid\n');
+% [TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarM, rotVarM);
+% 
+% %refine transforms using metrics
+% fprintf('Refining transformations\n');
+% [TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
+% 
+% %correct for differences in grid
+% fprintf('Combining results\n');
+% [finalVec, finalVar] = OptGrid(TGridR, vTGridR);

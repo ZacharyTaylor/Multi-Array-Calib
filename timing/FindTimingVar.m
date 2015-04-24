@@ -3,7 +3,7 @@ function [ varOff ] = FindTimingVar( offsets, t, Mag, Var, navFlag, dTest, sampl
 %   Detailed explanation goes here
 
 stepX = repmat([100, 0.00001],size(offsets,1));
-stepZ = 0.00001;
+stepZ = 0.000001;
 
 %get variance
 dxx = zeros(length(offsets(:)));

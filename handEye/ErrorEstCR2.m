@@ -38,8 +38,8 @@ for i = 1:length(sensorData)
     vRData(:,:,i) = sensorData{i}.T_Var_Skm1_Sk(:,4:6);
 end
 
-stepX = 0.0001;
-stepZ = 0.0001;
+stepX = 0.00001;
+stepZ = 0.00001;
 
 rotVec = rotVec(2:end,:);
 

@@ -58,19 +58,71 @@ switch testNum
         for i = 1:reps
             i
             calib{i} = Test2VelCam(scansTimeRange, numScans, dataset);
-            ParSave(['./results/' 'Test_2.1_Kitti' '.mat'], calib, 'results');
+            ParSave(['./results/' 'Test_20.1_Kitti' '.mat'], calib, 'results');
         end
+%         dataset = 'Shrimp';
+%         for i = 1:reps
+%             i
+%             calib{i} = Test2VelCam(scansTimeRange, numScans, dataset);
+%             ParSave(['./results/' 'Test_2.2_Shrimp' '.mat'], calib, 'results');
+%         end
+%         dataset = 'Ford';
+%         for i = 1:reps
+%             i
+%             calib{i} = Test2VelCam(scansTimeRange, numScans, dataset);
+%             ParSave(['./results/' 'Test_2.3_Ford' '.mat'], calib, 'results');
+%         end
+    case 3
+        reps = 500;
+        dataset = 'Kitti';
+        calib = cell(500,1);
+        for i = 1:reps
+            i
+            val = cell(30,1);
+            parfor j = 1:30
+                val{j} = Test3VelNav(10*j, dataset);
+            end
+            calib{i} = val;
+            ParSave(['./results/' 'Test_3.10_Kitti' '.mat'], calib, 'results');
+        end
+        
         dataset = 'Shrimp';
+        calib = cell(500,1);
         for i = 1:reps
             i
-            calib{i} = Test2VelCam(scansTimeRange, numScans, dataset);
-            ParSave(['./results/' 'Test_2.2_Shrimp' '.mat'], calib, 'results');
+            val = cell(30,1);
+            parfor j = 1:30
+                val{j} = Test3VelNav(10*j, dataset);
+            end
+            calib{i} = val;
+            ParSave(['./results/' 'Test_3.11_Shrimp' '.mat'], calib, 'results');
         end
-        dataset = 'Ford';
+        
+    case 4
+        reps = 500;
+        dataset = 'Kitti';
+        calib = cell(500,1);
         for i = 1:reps
             i
-            calib{i} = Test2VelCam(scansTimeRange, numScans, dataset);
-            ParSave(['./results/' 'Test_2.3_Ford' '.mat'], calib, 'results');
+            val = cell(30,1);
+            parfor j = 1:30
+                val{j} = Test4NavCam(10*j, dataset);
+            end
+            calib{i} = val;
+            ParSave(['./results/' 'Test_4.10_Kitti' '.mat'], calib, 'results');
+        end
+     case 5
+        reps = 100;
+        dataset = 'Kitti';
+        calib = cell(100,1);
+        for i = 1:reps
+            i
+            val = cell(30,1);
+            parfor j = 1:30
+                val{j} = Test5Multi(10*j, dataset);
+            end
+            calib{i} = val;
+            ParSave(['./results/' 'Test_5.1_Kitti' '.mat'], calib, 'results');
         end
     otherwise
         error('Invalid test')

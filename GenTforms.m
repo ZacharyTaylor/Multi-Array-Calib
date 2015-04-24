@@ -4,9 +4,9 @@
 %% user set variables
 
 %path to data
-dataPath = 'C:\Users\Zachary\Documents\Datasets\IJRR-Dataset-1\'; dataset = 'Ford';
+%dataPath = 'C:\Users\Zachary\Documents\Datasets\IJRR-Dataset-1\'; dataset = 'Ford';
 %dataPath = 'C:\Users\Zachary\Documents\Datasets\Shrimp\high-clutter-2\'; dataset = 'Shrimp';
-%dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_10_03_drive_0027_extract\'; dataset = 'Kitti';
+dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_10_03_drive_0027_extract\'; dataset = 'Kitti';
 %dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_09_26_drive_0035_extract\'; dataset = 'Kitti';
 
 %Sets if the sensor transforms will be plotted
@@ -18,7 +18,7 @@ CalibPath(true);
 %% process sensors
 
 %do things in parrallel to save time
-parfor i = 1:8
+for i = 2
     switch i
         case 1
             VelData = GenVel(dataPath, plotTforms, [], dataset);

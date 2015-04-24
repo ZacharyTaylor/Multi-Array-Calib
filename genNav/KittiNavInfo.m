@@ -70,7 +70,7 @@ for i = 1:length(navData.files)
     tformMat(1:3,4) = t;
 
     %get variance
-    tformVar = [in(24),in(24),in(24),0.03*pi/180,0.03*pi/180,0.03*pi/180];
+    tformVar = [in(24),in(24),in(24),0.01*pi/180,0.01*pi/180,0.01*pi/180];
     tformVar = tformVar.^2;
 
 %     tdiff = double(navData.time(i)-navData.time(i-1))/1000000;

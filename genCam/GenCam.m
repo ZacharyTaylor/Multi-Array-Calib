@@ -125,10 +125,10 @@ for frame = 2:size(camData.files,1)
         
         camData.T_Skm1_Sk(frame,:) = temp;
         camData.T_Var_Skm1_Sk(frame,:) = tempVar;
-     catch
-         camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
-         camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
-     end
+    catch
+        camData.T_Skm1_Sk(frame,:) = [0,0,0,0,0,0];
+        camData.T_Var_Skm1_Sk(frame,:) = 1000*ones(1,6);
+    end
        
     %generate absolute transformations
     camData.T_S1_Sk(frame,:) = T2V(V2T(camData.T_S1_Sk(frame-1,:))*V2T(camData.T_Skm1_Sk(frame,:)));
