@@ -1,4 +1,4 @@
-function [ calib ] = Test2VelCam( scansTimeRange, numScans, dataset )
+function [ calib ] = Test2NavCam( scansTimeRange, numScans, dataset )
 
 %% user set variables
 

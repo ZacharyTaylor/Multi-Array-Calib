@@ -32,12 +32,10 @@ for i = 1:size(TGrid,1);
 
                 %cameras don't have scale
                 if(and(strcmpi(sensorData{i}.type,'camera'),strcmpi(sensorData{j}.type,'camera')))
-                    A(4) = B(4);
-                    VA(4) = VB(4);
+                    VA(4) = inf;
                 end
 
-                TGridR{i,j} = A;
-                vTGridR{i,j} = VA;
+                [TGridR{i,j}, vTGridR{i,j}] = CombEst(A,VA,B,VB);
             end
         end
     end

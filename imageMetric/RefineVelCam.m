@@ -68,7 +68,7 @@ elseif(strcmpi(metric,'Lev'))
 end
 TVecOut = TVecOut';
 
-if(TVecOut(1:3) > 3)
+if(any(abs(TVecOut(1:3)) > 3))
     warning('Alignment failed');
     TVecOut = zeros(1,6);
     vTVecOut = inf*ones(1,6);

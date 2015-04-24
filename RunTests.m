@@ -49,7 +49,7 @@ switch testNum
             end
         end
     case 2
-        scansTimeRange = 120;
+        scansTimeRange = 200;
         numScans = 25;
         reps = 100;
         
@@ -57,7 +57,7 @@ switch testNum
         dataset = 'Kitti';
         for i = 1:reps
             i
-            calib{i} = Test2VelCam(scansTimeRange, numScans, dataset);
+            calib{i} = Test2NavCam(scansTimeRange, numScans, dataset);
             ParSave(['./results/' 'Test_20.1_Kitti' '.mat'], calib, 'results');
         end
 %         dataset = 'Shrimp';
@@ -115,15 +115,12 @@ switch testNum
         reps = 100;
         dataset = 'Kitti';
         calib = cell(100,1);
-        for i = 1:reps
+        parfor i = 1:reps
             i
-            val = cell(30,1);
-            parfor j = 1:30
-                val{j} = Test5Multi(10*j, dataset);
-            end
-            calib{i} = val;
-            ParSave(['./results/' 'Test_5.1_Kitti' '.mat'], calib, 'results');
+            calib{i} = Test5Multi(100, dataset);
         end
+        ParSave(['./results/' 'Test_5.1_Kitti' '.mat'], calib, 'results');
+        
     otherwise
         error('Invalid test')
 end

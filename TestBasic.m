@@ -84,7 +84,7 @@ disp(sqrt(tranVarM));
 % 
 % %refine transforms using metrics
 % fprintf('Refining transformations\n');
-% [TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
+[TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
 % 
 % %correct for differences in grid
 % fprintf('Combining results\n');

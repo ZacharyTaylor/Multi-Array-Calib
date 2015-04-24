@@ -1,107 +1,88 @@
 addpath('../tforms');
 
+clear all
 %data = {};
 
 %load the data
-data = load('../results/Test_4.1_Kitti.mat');
+data = load('../results/Test_5.1_Kitti.mat');
 
 %ground truths
-%Kitti = [0.272366992403569,0.000401046031637955,-0.0743065916413621,-1.21456402386260,1.18928496715603,-1.20243957469666];
-Kitti = [1.08275954635987,-0.307549204234380,0.727865316091136,-1.22740819019080,1.18319377481942,-1.21165360963875];
-gt = Kitti;
+velNav = [-0.808675900000000,0.319555900000000,-0.799723100000000,0.0148243146805919,-0.00203019196358444,-0.000770383725406773];
+velCam1 = [0.272366992403569,0.000401046031637955,-0.0743065916413621,-1.21456402386260,1.18928496715603,-1.20243957469666];
+velCam2 = [0.277752531522258,-0.536729003952002,-0.0776835216236700,-1.19271705822817,1.22722093116592,-1.20702757977384];
+%cam1Cam2  =[-0.537000000000000,0.00482206100000000,-0.0125248800000000,0.00871216430571965,-0.0307602563450681,-0.0187469313690724];
 
-for j = 1:80
-    for k = 1:length(data.results{j})
+gt = [[0,0,0,0,0,0];velNav;velCam1;velCam2];
 
-        rotSD(j,1:3,k) = sqrt(data.results{j}{k}.rotVar(2,1:3));
-        rotErr(j,1:3,k) = abs(R2V(V2R(data.results{j}{k}.rot(2,1:3))/V2R(gt(4:6))));
-        %rotErr(j,1:3,k) = abs(data.results{j}{k}.rot(2,1:3) - gt(4:6));
-        tranSD(j,1:3,k) = sqrt(data.results{j}{k}.tranVar(2,1:3));
-        tranErr(j,1:3,k) = abs(data.results{j}{k}.tran(2,1:3) - gt(1:3));
-        
-        %get simple offset error
-        rotRErr(j,1:3,k) = abs(data.results{j}{k}.rotR(2,1:3) - gt(4:6));
-        tranRErr(j,1:3,k) = abs(data.results{j}{k}.tranR(2,1:3) - gt(1:3));
+for i = [1,2,4]
+    for j = 1:length(data.results)
+        Tc1 = V2T([data.results{j}.tran(3,1:3),data.results{j}.rot(3,1:3)]);
+        Tc2 = V2T([data.results{j}.tran(i,1:3),data.results{j}.rot(i,1:3)]);
+        T = Tc2\Tc1;
+        T = T / (V2T(gt(i,:))\V2T(gt(3,:)));
+        err(j,1:6,i) = abs(T2V(T));
+
+        Tc1 = V2T([data.results{j}.tranI(3,1:3),data.results{j}.rotI(3,1:3)]);
+        Tc2 = V2T([data.results{j}.tranI(i,1:3),data.results{j}.rotI(i,1:3)]);
+        T = Tc2\Tc1;
+        T = T / (V2T(gt(i,:))\V2T(gt(3,:)));
+        errI(j,1:6,i) = abs(T2V(T));
     end
 end
 
-temp = rotSD;
-rotSD = mean(rotSD);
-for i = 1:size(temp,2)
-    for j = 1:size(temp,3)
-        rotSD(1,i,j) = mean(temp(isfinite(temp(:,i,j)),i,j));
+for i = [2,3,4]
+    for j = 1:length(data.results)
+        Tc1 = V2T([data.results{j}.tran(1,1:3),data.results{j}.rot(1,1:3)]);
+        Tc2 = V2T([data.results{j}.tran(i,1:3),data.results{j}.rot(i,1:3)]);
+        T = Tc2\Tc1;
+        T = T / (V2T(gt(i,:))\V2T(gt(1,:)));
+        err2(j,1:6,i) = abs(T2V(T));
+
+        Tc1 = V2T([data.results{j}.tranI(1,1:3),data.results{j}.rotI(1,1:3)]);
+        Tc2 = V2T([data.results{j}.tranI(i,1:3),data.results{j}.rotI(i,1:3)]);
+        T = Tc2\Tc1;
+        T = T / (V2T(gt(i,:))\V2T(gt(1,:)));
+        errI2(j,1:6,i) = abs(T2V(T));
     end
 end
-rotSD = reshape(rotSD,3,[])';
-rotErr = mean(rotErr,1);
-rotErr = reshape(rotErr,3,[])';
-rotRErr = mean(rotRErr,1);
-rotRErr = reshape(rotRErr,3,[])';
 
-temp = tranSD;
-tranSD = mean(tranSD);
-for i = 1:size(temp,2)
-    for j = 1:size(temp,3)
-        tranSD(1,i,j) = mean(temp(isfinite(temp(:,i,j)),i,j));
-    end
-end
-tranSD = reshape(tranSD,3,[])';
-tranErr = mean(tranErr,1);
-tranErr = reshape(tranErr,3,[])';
-tranRErr = mean(tranRErr,1);
-tranRErr = reshape(tranRErr,3,[])';
+%% plot data
 
-for i = 1:size(rotErr,1)
-    [rotErr(i,:),rotSD(i,:)] = varChange(rotErr(i,:),rotSD(i,:));
-    [rotRErr(i,:),~] = varChange(rotRErr(i,:),[0,0,0]);
+err = mean(err,3);
+errI = mean(errI,3);
+
+err2 = mean(err2,3);
+errI2 = mean(errI2,3);
+
+% rotErr = mean(rotErr,3);
+% rotIErr = mean(rotIErr,3);
+% tranErr = mean(tranErr,3);
+% tranIErr = mean(tranIErr,3);
+
+for i = 1:size(err,1)
+    [errI(i,4:6),~] = varChange(errI(i,4:6),[0,0,0]);
+    [err(i,4:6),~] = varChange(err(i,4:6),[0,0,0]);
+    [errI2(i,4:6),~] = varChange(errI2(i,4:6),[0,0,0]);
+    [err2(i,4:6),~] = varChange(err2(i,4:6),[0,0,0]);
 end
 
-%% plot results
+rot = ['Roll comb ';'Roll sep  ';'Pitch comb';'Pitch sep ';'Yaw comb  ';'Yaw sep   '];
+tran = ['X comb';'X sep ';'Y comb';'Y sep ';'Z comb';'Z sep '];
 
-figure
-subplot(3,2,1);
-hold on;
-boundedline((10:10:200),rotErr(:,1),rotSD(:,1),'ro-');
-plot((10:10:200),rotRErr(:,1),'kx-');
-axis([0,200,0,5])
-title('Roll Error');
+subplot(2,2,1)
+boxplot([err2(:,1),errI2(:,1),err2(:,2),errI2(:,2),err2(:,3),errI2(:,3)],tran);
+title('Translation error wrt Velodyne')
+ylabel('Error (m)');
+subplot(2,2,2)
+boxplot([err2(:,4),errI2(:,4),err2(:,5),errI2(:,5),err2(:,6),errI2(:,6)],rot);
+title('Rotation error wrt Velodyne')
+ylabel('Error (degrees)');
 
-subplot(3,2,3);
-hold on;
-boundedline((10:10:200),rotErr(:,2),rotSD(:,2),'go-');
-plot((10:10:200),rotRErr(:,2),'kx-');
-axis([0,200,0,2])
-title('Pitch Error');
-ylabel('Calibration Error (degrees)');
-
-subplot(3,2,5);
-hold on;
-boundedline((10:10:200),rotErr(:,3),rotSD(:,3),'bo-');
-plot((10:10:200),rotRErr(:,3),'kx-');
-axis([0,200,0,2])
-title('Yaw Error');
-xlabel('Run');
-
-subplot(3,2,2);
-hold on;
-boundedline((10:10:200),tranErr(:,1),tranSD(:,1),'ro-');
-plot((10:10:200),tranRErr(:,1),'kx-');
-axis([0,200,0,2])
-title('X Error');
-
-subplot(3,2,4);
-hold on;
-boundedline((10:10:200),tranErr(:,2),tranSD(:,2),'go-');
-plot((10:10:200),tranRErr(:,2),'kx-');
-axis([0,200,0,2])
-title('Y Error');
-ylabel('Calibration Error (m)');
-
-subplot(3,2,6);
-hold on;
-boundedline((10:10:200),tranErr(:,3),tranSD(:,3),'bo-');
-plot((10:10:200),tranRErr(:,3),'kx-');
-axis([0,200,0,2])
-title('Z Error');
-xlabel('Run');
-
+subplot(2,2,3)
+boxplot([err(:,1),errI(:,1),err(:,2),errI(:,2),err(:,3),errI(:,3)],tran);
+title('Translation error wrt Leftmost camera')
+ylabel('Error (m)');
+subplot(2,2,4)
+boxplot([err(:,4),errI(:,4),err(:,5),errI(:,5),err(:,6),errI(:,6)],rot);
+title('Rotation error wrt Leftmost camera')
+ylabel('Error (degrees)');
