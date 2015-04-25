@@ -10,7 +10,16 @@ function [ TVecOut, vTVecOut ] = RefineVelCam( TVecIn,vTVecIn,lidarInfo,camInfo,
 dataIdx = datasample(2:length(camInfo.files),numScans,'Replace',false);
 
 %get angle magnitudes
-%Mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
+%mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
+
+% %divide into sections
+% step = floor(length(mag)/numScans);
+% for i = 1:numScans
+%     val = mag;
+%     val(1:step*(i-1)) = 0;
+%     [~,idx] = max(val);
+%     dataIdx(i) = idx;
+% end
 %[~,idx] = sort(Mag,'descend');
 %dataIdx = idx(1:numScans);
 
@@ -168,9 +177,9 @@ function [ image ] = ProcessImage(camInfo, idx, blur, metric)
     image = double(image);
     
     %     %blur image
-    blur = max(size(image))/500;
-    G = fspecial('gaussian',[50 50],blur);
-    image = imfilter(image,G,'same');
+%     blur = max(size(image))/500;
+%     G = fspecial('gaussian',[50 50],blur);
+%     image = imfilter(image,G,'same');
     
     image = imgradient(image);
    

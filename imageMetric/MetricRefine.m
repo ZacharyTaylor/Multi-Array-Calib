@@ -27,15 +27,24 @@ for i = 1:size(TGrid,1);
 
             %combine inputs using scale representation to handle cameras
             if(~isempty(TGridR{i,j}))
-                [A,VA] = IndVar(0.01,@V2S,TGridR{i,j},vTGridR{i,j});
-                [B,VB] = IndVar(0.01,@V2S,TGrid{i,j},vTGrid{i,j});
 
                 %cameras don't have scale
                 if(and(strcmpi(sensorData{i}.type,'camera'),strcmpi(sensorData{j}.type,'camera')))
+                    [A,VA] = IndVar(0.01,@V2S,TGridR{i,j},vTGridR{i,j});
+                    [B,VB] = IndVar(0.01,@V2S,TGrid{i,j},vTGrid{i,j});
                     VA(4) = inf;
+                else
+                    A = TGridR{i,j};
+                    VA = vTGridR{i,j}';
+                    B = TGrid{i,j};
+                    VB = vTGrid{i,j};
                 end
 
                 [TGridR{i,j}, vTGridR{i,j}] = CombEst(A,VA,B,VB);
+                
+                if(and(strcmpi(sensorData{i}.type,'camera'),strcmpi(sensorData{j}.type,'camera')))
+                    [TGridR{i,j}, vTGridR{i,j}] = IndVar(0.01,@S2V,TGridR{i,j},vTGridR{i,j});
+                end
             end
         end
     end

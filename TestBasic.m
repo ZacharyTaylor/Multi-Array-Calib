@@ -7,7 +7,7 @@ scansTimeRange = 300;
 %scansTimeRange = 5:5:100;
 
 %number of scans to combine in metric refine step
-numScans = 25;
+numScans = 5;
 
 %number of times to perform test
 reps = 10;
@@ -18,7 +18,7 @@ timeSamples = 10000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Nav');
+sensorData = LoadSensorData('Kitti','Vel','Cam1','Cam2');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
@@ -78,14 +78,14 @@ disp(sqrt(tranVarL));
 fprintf('Translation mid sd:\n');
 disp(sqrt(tranVarM));
 
-% %get grid of transforms
-% fprintf('Generating transformation grid\n');
-% [TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarM, rotVarM);
-% 
-% %refine transforms using metrics
-% fprintf('Refining transformations\n');
+%get grid of transforms
+fprintf('Generating transformation grid\n');
+[TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarM, rotVarM);
+
+%refine transforms using metrics
+fprintf('Refining transformations\n');
 [TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
-% 
-% %correct for differences in grid
-% fprintf('Combining results\n');
-% [finalVec, finalVar] = OptGrid(TGridR, vTGridR);
+
+%correct for differences in grid
+fprintf('Combining results\n');
+[finalVec, finalVar] = OptGrid(TGridR, vTGridR);
