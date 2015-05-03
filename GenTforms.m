@@ -18,7 +18,7 @@ CalibPath(true);
 %% process sensors
 
 %do things in parrallel to save time
-for i = 2
+parfor i = 5:6
     switch i
         case 1
             VelData = GenVel(dataPath, plotTforms, [], dataset);

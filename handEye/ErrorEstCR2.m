@@ -38,76 +38,91 @@ for i = 1:length(sensorData)
     vRData(:,:,i) = sensorData{i}.T_Var_Skm1_Sk(:,4:6);
 end
 
-stepX = 0.00001;
-stepZ = 0.00001;
+stepX = 0.0000001;
+stepZ = 0.0000001;
 
 rotVec = rotVec(2:end,:);
+varVec = zeros(size(rotVec));
 
-dxx = zeros(length(rotVec(:)));
-for i = 1:length(rotVec(:))
-    for j = 1:length(rotVec(:))
-        X = rotVec; 
-        X(i) = X(i) + stepX;
-        X(j) = X(j) + stepX;
-        f1 = SystemProbR(RData, vRData, X, false);
+rotVecS = rotVec;
+RDataS = RData;
+vRDataS = vRData;
 
-        X = rotVec; 
-        X(i) = X(i) + stepX;
-        X(j) = X(j) - stepX;
-        f2 = SystemProbR(RData, vRData, X, false);
+for x = 2:size(RDataS,3)
+    
+    rotVec = rotVecS(x-1,:);
+    RData = RDataS(:,:,[1,x]);
+    vRData = vRDataS(:,:,[1,x]);
 
-        X = rotVec; 
-        X(i) = X(i) - stepX;
-        X(j) = X(j) + stepX;
-        f3 = SystemProbR(RData, vRData, X, false);
-
-        X = rotVec; 
-        X(i) = X(i) - stepX;
-        X(j) = X(j) - stepX;
-        f4 = SystemProbR(RData, vRData, X, false);
-
-        dxx(i,j) = (f1-f2-f3+f4)/(4*stepX*stepX);
-    end
-end
-
-dxz = zeros(length(rotVec(:)),length(RData(:)));
-for i = 1:length(rotVec(:))
-    dS = zeros(size(RData));
-    for j = 1:size(RData,2)
-        for k = 1:size(RData,3)
+    dxx = zeros(length(rotVec(:)));
+    for i = 1:length(rotVec(:))
+        for j = 1:length(rotVec(:))
             X = rotVec; 
             X(i) = X(i) + stepX;
-            Z = RData;
-            Z(:,j,k) = Z(:,j,k) + stepZ;
-            f1 = SystemProbR(Z, vRData, X, true);
+            X(j) = X(j) + stepX;
+            f1 = SystemProbR(RData, vRData, X, false);
 
             X = rotVec; 
             X(i) = X(i) + stepX;
-            Z = RData;
-            Z(:,j,k) = Z(:,j,k) - stepZ;
-            f2 = SystemProbR(Z, vRData, X, true);
-            
-            X = rotVec; 
-            X(i) = X(i) - stepX;
-            Z = RData;
-            Z(:,j,k) = Z(:,j,k) + stepZ;
-            f3 = SystemProbR(Z, vRData, X, true);
-            
-            X = rotVec; 
-            X(i) = X(i) - stepX;
-            Z = RData;
-            Z(:,j,k) = Z(:,j,k) - stepZ;
-            f4 = SystemProbR(Z, vRData, X, true);
+            X(j) = X(j) - stepX;
+            f2 = SystemProbR(RData, vRData, X, false);
 
-            dS(:,j,k) = (f1-f2-f3+f4)/(4*stepX*stepZ);
+            X = rotVec; 
+            X(i) = X(i) - stepX;
+            X(j) = X(j) + stepX;
+            f3 = SystemProbR(RData, vRData, X, false);
+
+            X = rotVec; 
+            X(i) = X(i) - stepX;
+            X(j) = X(j) - stepX;
+            f4 = SystemProbR(RData, vRData, X, false);
+
+            dxx(i,j) = (f1-f2-f3+f4)/(4*stepX*stepX);
         end
     end
-    dxz(i,:) = dS(:);
-end
 
-d = dxx\dxz;
-d = (d.*repmat(vRData(:)',size(d,1),1))*d';
-varVec = reshape(diag(d),3,[])';
+    dxz = zeros(length(rotVec(:)),length(RData(:)));
+    for i = 1:length(rotVec(:))
+        dS = zeros(size(RData));
+        for j = 1:size(RData,2)
+            for k = 1:size(RData,3)
+                X = rotVec; 
+                X(i) = X(i) + stepX;
+                Z = RData;
+                Z(:,j,k) = Z(:,j,k) + stepZ;
+                f1 = SystemProbR(Z, vRData, X, true);
+
+                X = rotVec; 
+                X(i) = X(i) + stepX;
+                Z = RData;
+                Z(:,j,k) = Z(:,j,k) - stepZ;
+                f2 = SystemProbR(Z, vRData, X, true);
+
+                X = rotVec; 
+                X(i) = X(i) - stepX;
+                Z = RData;
+                Z(:,j,k) = Z(:,j,k) + stepZ;
+                f3 = SystemProbR(Z, vRData, X, true);
+
+                X = rotVec; 
+                X(i) = X(i) - stepX;
+                Z = RData;
+                Z(:,j,k) = Z(:,j,k) - stepZ;
+                f4 = SystemProbR(Z, vRData, X, true);
+
+                v = and(and(f1,f2),and(f3,f4));
+                dS(v,j,k) = (f1(v)-f2(v)-f3(v)+f4(v))/(4*stepX*stepZ);
+            end
+        end
+        dxz(i,:) = dS(:);
+    end
+
+    d = dxx\dxz;
+    d = (d.*repmat(vRData(:)',size(d,1),1))*d';
+    d = reshape(diag(d),3,[])';
+
+    varVec(x-1,:) = d;
+end
 
 varVec = [0,0,0;varVec];
 

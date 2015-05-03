@@ -64,14 +64,34 @@ for i = 2:length(Mag)
 
     %interpolate points
     a = interp1(t{1},Mag{1},tI,'pchip');
+    wa = interp1(t{1},Var{1},tI,'pchip');
     b = interp1(t{i},Mag{i},tI,'pchip');
+    wb = interp1(t{i},Var{i},tI,'pchip');
+    
     %get difference
     a = diff(a) + dTest{1};
     b = diff(b) + dTest{i};
     
-    temp = normxcorr2(abs(a), abs(b));
+    if(navFlag(1))
+        wa = abs(wa(2:end));
+    else
+        wa = abs(diff(wa));
+    end
+    
+    if(navFlag(i))
+        wb = abs(wb(2:end));
+    else
+        wb = abs(diff(wb));
+    end
+    w = 1./(wa + wb); w(~isfinite(w)) = 0;
+    [~,idx] = sort(w);
+    w(idx(floor(0.75*length(w)):end)) = 0;
+
+   
+    temp = wncc(abs(a), abs(b),w);
+    temp = temp.*[1:floor(length(temp)/2),ceil(length(temp)/2):-1:1];
     [~,temp] = max(temp);
-    offsets(i-1,1) = (temp - length(a(:)))*median(diff(tI));
+    offsets(i-1,1) = (temp - ceil(length(a(:))/2))*median(diff(tI));
 end
 
 offsets = fminsearch(@(offset) sum(GetTimingError(t,Mag,Var,samples,offset, navFlag, dTest)),offsets);

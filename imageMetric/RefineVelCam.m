@@ -20,8 +20,9 @@ dataIdx = datasample(2:length(camInfo.files),numScans,'Replace',false);
 %     [~,idx] = max(val);
 %     dataIdx(i) = idx;
 % end
-%[~,idx] = sort(Mag,'descend');
-%dataIdx = idx(1:numScans);
+
+% [~,idx] = sort(mag,'descend');
+% dataIdx = idx(1:numScans);
 
 %disable warning that gets spammed
 warning('off','images:initSize:adjustingMag');
@@ -31,14 +32,11 @@ images = cell(numScans,2);
 scans = cell(numScans,1);
 
 for j = 1:numScans
-    
     if(strcmpi(metric,'Colour'))
         %previous image
-        images{j,1} = ProcessImage(camInfo, dataIdx(j)-1, 3, metric);
+        images{j,1} = ProcessImage(camInfo, dataIdx(j)-1, false, metric);
         %current image
-        images{j,2} = ProcessImage(camInfo, dataIdx(j), 3, metric);
-    elseif(strcmpi(metric,'Lev'))
-        images{j,1} = ProcessImage(camInfo, dataIdx(j), 5, metric);
+        images{j,2} = ProcessImage(camInfo, dataIdx(j), false, metric);
     end
     
     %matching lidar scan
@@ -71,20 +69,20 @@ sd(sd > 0.7*opts.UBounds) = 0.7*opts.UBounds(sd > 0.7*opts.UBounds);
 
 %run metric
 if(strcmpi(metric,'Colour'))
-    TVecOut = cmaes(@(tform) RunColourMetric(tform, K, scans, images, 2), m,sd, opts);
+   TVecOut = cmaes(@(tform) RunColourMetric(tform, K, scans, images, 10), m,sd, opts);
 elseif(strcmpi(metric,'Lev'))
-    TVecOut = cmaes(@(tform) RunLevMetric(tform, K, scans, images, 2), m,sd, opts);
+    TVecOut = cmaes(@(tform) RunLevMetric(tform, K, scans, images, 10), m,sd, opts);
 end
 TVecOut = TVecOut';
 
 if(any(abs(TVecOut(1:3)) > 3))
     warning('Alignment failed');
     TVecOut = zeros(1,6);
-    vTVecOut = inf*ones(1,6);
+    vTVecOut = inf*ones(6,1);
     return;
 end
 
-vTVecOut = FindVar(numScans,TVecOut,scans,images, lidarInfo, camInfo, K, dataIdx, 0.01);
+vTVecOut = FindVar(numScans,TVecOut,scans,images, lidarInfo, camInfo, K, dataIdx, [0.1,0.1,0.1,0.001,0.001,0.001]);
 
 end
 
@@ -95,26 +93,26 @@ function [vTVecOut] = FindVar(numScans,TVecOut,scans,images, lidarInfo, camInfo,
     for i = 1:6
         for j = 1:6
             temp = TVecOut';
-            temp(i) = temp(i) + step;
-            temp(j) = temp(j) + step;
+            temp(i) = temp(i) + step(i);
+            temp(j) = temp(j) + step(j);
             f1 = RunColourMetric(temp, K, scans, images,2);
 
             temp = TVecOut';
-            temp(i) = temp(i) - step;
-            temp(j) = temp(j) + step;
+            temp(i) = temp(i) - step(i);
+            temp(j) = temp(j) + step(j);
             f2 = RunColourMetric(temp, K, scans, images,2);
 
             temp = TVecOut';
-            temp(i) = temp(i) + step;
-            temp(j) = temp(j) - step;
+            temp(i) = temp(i) + step(i);
+            temp(j) = temp(j) - step(j);
             f3 = RunColourMetric(temp, K, scans, images,2);
 
             temp = TVecOut';
-            temp(i) = temp(i) - step;
-            temp(j) = temp(j) - step;
+            temp(i) = temp(i) - step(i);
+            temp(j) = temp(j) - step(j);
             f4 = RunColourMetric(temp, K, scans, images,2);
 
-            dxx(i,j) = (f1-f2-f3+f4)/(4*step*step);
+            dxx(i,j) = (f1-f2-f3+f4)/(4*step(i)*step(j));
         end
     end
 
@@ -124,38 +122,38 @@ function [vTVecOut] = FindVar(numScans,TVecOut,scans,images, lidarInfo, camInfo,
         for j = 1:numScans
             for k = 1:6
                 tempA = TVecOut';
-                tempA(i) = tempA(i) + step;
+                tempA(i) = tempA(i) + step(i);
                 offset = zeros(6,1);
-                offset(k) = offset(k) + step;
+                offset(k) = offset(k) + step(k);
                 tempB = scans;
                 [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
                 f1 = RunColourMetric(tempA, K, tempB(j,:), images(j,:),2);
 
                 tempA = TVecOut';
-                tempA(i) = tempA(i) - step;
+                tempA(i) = tempA(i) - step(i);
                 offset = zeros(6,1);
-                offset(k) = offset(k) + step;
+                offset(k) = offset(k) + step(k);
                 tempB = scans;
                 [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
-                f2 = RunColourMetric(tempA, K, tempB(j), images(j,:),2);
+                f2 = RunColourMetric(tempA, K, tempB(j,:), images(j,:),2);
 
                 tempA = TVecOut';
-                tempA(i) = tempA(i) + step;
+                tempA(i) = tempA(i) + step(i);
                 offset = zeros(6,1);
-                offset(k) = offset(k) - step;
+                offset(k) = offset(k) - step(k);
                 tempB = scans;
                 [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
                 f3 = RunColourMetric(tempA, K, tempB(j,:), images(j,:),2);
 
                 tempA = TVecOut';
-                tempA(i) = tempA(i) - step;
+                tempA(i) = tempA(i) - step(i);
                 offset = zeros(6,1);
-                offset(k) = offset(k) - step;
+                offset(k) = offset(k) - step(k);
                 tempB = scans;
                 [tempB{j},v(j,:)] = OffsetScan(tempB{j}, lidarInfo, camInfo, dataIdx(j),offset');
                 f4 = RunColourMetric(tempA, K, tempB(j,:), images(j,:),2);
 
-                temp(j,k) = (f1-f2-f3+f4)/(4*step*step);
+                temp(j,k) = (f1-f2-f3+f4)/(4*step(i)*step(k));
             end
         end
         dxz(i,:) = temp(:);
@@ -175,21 +173,22 @@ function [ image ] = ProcessImage(camInfo, idx, blur, metric)
     end
 
     image = double(image);
-    
-    %     %blur image
-%     blur = max(size(image))/500;
-%     G = fspecial('gaussian',[50 50],blur);
-%     image = imfilter(image,G,'same');
-    
-    image = imgradient(image);
    
     %undistort image
     image = Undistort(double(image), camInfo.D, camInfo.K);
     
+    image = imgradient(image);
+    
+        %if(blur)
+        blur = max(size(image))/400;
+        G = fspecial('gaussian',[50 50],blur);
+        image = imfilter(image,G,'same');
+    %end
+    
     %histogram equalize
-    image = image - min(image(:));
-    image = image ./ max(image(:));
-    image = 255*image;
+    %image = image - min(image(:));
+    %image = image ./ max(image(:));
+    %image = 255*image;
     %image = 255*MyHistEq(image);
     
     %mask image

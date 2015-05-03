@@ -352,6 +352,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         
         //finding log likelihood
         logl[i] = (bExp1 + eExp1 + bExp2 + eExp2)/2;
-        //logl[i] = (bExp2 + eExp2); 
+        //logl[i] = (bExp1 + eExp1); 
     }
 }

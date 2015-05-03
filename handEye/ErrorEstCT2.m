@@ -41,77 +41,98 @@ for i = 1:length(sensorData)
     s(i) = strcmpi(sensorData{i}.type,'camera');
 end
 
-stepX = 0.00001;
-stepZ = 0.00001;
+stepX = 0.000001;
+stepZ = 0.000001;
 
 tranVec = tranVec(2:end,:);
+varVec = zeros(size(tranVec));
 
-dxx = zeros(length(tranVec(:)));
-for i = 1:length(tranVec(:))
-    for j = 1:length(tranVec(:))
-        X = tranVec;
-        X(i) = X(i) + stepX;
-        X(j) = X(j) + stepX;
-        f1 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
+tranVecS = tranVec;
+TDataS = TData;
+vTDataS = vTData;
+sS = s;
+rotVecS = rotVec;
+rotVarS = rotVar;
 
-        X = tranVec;
-        X(i) = X(i) - stepX;
-        X(j) = X(j) + stepX;
-        f2 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
-        
-        X = tranVec;
-        X(i) = X(i) + stepX;
-        X(j) = X(j) - stepX;
-        f3 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
-        
-        X = tranVec;
-        X(i) = X(i) - stepX;
-        X(j) = X(j) - stepX;
-        f4 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
+for x = 2:size(TDataS,3)
+    
+    tranVec = tranVecS(x-1,:);
+    TData = TDataS(:,:,[1,x]);
+    vTData = vTDataS(:,:,[1,x]);
+    s = sS([1,x]);
+    rotVec = rotVecS([1,x],:,:);
+    rotVar = rotVarS([1,x],:,:);
 
-        dxx(i,j) = (f1-f2-f3+f4)/(4*stepX*stepX);
-    end
-end
-
-dxz = zeros(length(tranVec(:)),length(TData(:)));
-for i = 1:length(tranVec(:))
-    dS = zeros(size(TData));
-    for j = 1:size(TData,2)
-        for k = 1:size(TData,3)
-            X = tranVec; 
+    dxx = zeros(length(tranVec(:)));
+    for i = 1:length(tranVec(:))
+        for j = 1:length(tranVec(:))
+            X = tranVec;
             X(i) = X(i) + stepX;
-            Z = TData;
-            Z(:,j,k) = Z(:,j,k) + stepZ;
-            f1 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
+            X(j) = X(j) + stepX;
+            f1 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
 
-            X = tranVec; 
+            X = tranVec;
+            X(i) = X(i) - stepX;
+            X(j) = X(j) + stepX;
+            f2 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
+
+            X = tranVec;
             X(i) = X(i) + stepX;
-            Z = TData;
-            Z(:,j,k) = Z(:,j,k) - stepZ;
-            f2 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
-            
-            X = tranVec; 
-            X(i) = X(i) - stepX;
-            Z = TData;
-            Z(:,j,k) = Z(:,j,k) + stepZ;
-            f3 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
-            
-            X = tranVec; 
-            X(i) = X(i) - stepX;
-            Z = TData;
-            Z(:,j,k) = Z(:,j,k) - stepZ;
-            f4 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
+            X(j) = X(j) - stepX;
+            f3 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
 
-            dS(:,j,k) = (f1-f2-f3+f4)/(4*stepX*stepZ);
+            X = tranVec;
+            X(i) = X(i) - stepX;
+            X(j) = X(j) - stepX;
+            f4 = SystemProbT(TData, vTData, s, X, rotVec, rotVar, false);
+
+            dxx(i,j) = (f1-f2-f3+f4)/(4*stepX*stepX);
         end
     end
-    dxz(i,:) = dS(:);
+
+    dxz = zeros(length(tranVec(:)),length(TData(:)));
+    for i = 1:length(tranVec(:))
+        dS = zeros(size(TData));
+        for j = 1:size(TData,2)
+            for k = 1:size(TData,3)
+                X = tranVec; 
+                X(i) = X(i) + stepX;
+                Z = TData;
+                Z(:,j,k) = Z(:,j,k) + stepZ;
+                f1 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
+
+                X = tranVec; 
+                X(i) = X(i) + stepX;
+                Z = TData;
+                Z(:,j,k) = Z(:,j,k) - stepZ;
+                f2 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
+
+                X = tranVec; 
+                X(i) = X(i) - stepX;
+                Z = TData;
+                Z(:,j,k) = Z(:,j,k) + stepZ;
+                f3 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
+
+                X = tranVec; 
+                X(i) = X(i) - stepX;
+                Z = TData;
+                Z(:,j,k) = Z(:,j,k) - stepZ;
+                f4 = SystemProbT(Z, vTData, s, X, rotVec, rotVar, true);
+
+                v = and(and(f1,f2),and(f3,f4));
+                dS(v,j,k) = (f1(v)-f2(v)-f3(v)+f4(v))/(4*stepX*stepZ);
+            end
+        end
+        dxz(i,:) = dS(:);
+    end
+
+    d = dxx\dxz;
+    d = (d.*repmat(vTData(:)',size(d,1),1))*d';
+    d = reshape(diag(d),3,[])';
+
+    varVec(x-1,:) = d;
+
 end
-
-d = dxx\dxz;
-d = (d.*repmat(vTData(:)',size(d,1),1))*d';
-varVec = reshape(diag(d),3,[])';
-
 varVec = [0,0,0;varVec];
 
 end

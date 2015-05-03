@@ -26,33 +26,27 @@ for i = 1:size(scans,1)
     pro1 = interpolateImage(images{i,1}, pro1c(:,1:2));
     pro2 = interpolateImage(images{i,2}, pro2c(:,1:2));
     
-    %d = max(images{i,2}-images{i,1},images{i,1}-images{i,2});
-    %d = interpolateImageUint8(d, pro1c(:,1:2));
-    
     valid = and(pro1>0,pro2>0);
+    valid = all(valid,2);
     
-    pro1 = pro1(valid);
-    pro2 = pro2(valid);
+    pro1 = pro1(valid,:);
+    pro2 = pro2(valid,:);
     
-    %d(d == 0) = 100000;
-    
-    err = (pro1 - pro2).^2;
+    err = abs(pro1-pro2);
+    err2 = (pro1 + pro2);
     err = single(err);
-    %err = err./d;
+    err2 = single(err2);
     
-    [~,idx] = sort(err,'ascend');
-    
-    idx = idx(1:floor(size(err,1)*0.75));
-    err = mean(err(idx))./mean(pro1(idx).*pro2(idx));
-    %err = mean(err(idx));
-    
-    error(i) = gather(err);
-    if(isnan(error(i)))
-        error(i) = 255;
-    end
+    error(i) = gather(sum(err)./sum(err2));
 end
 
-error = (sum(error(:),1));
+%error = sort(error,'ascend');
+%error = error(1:ceil(size(error,1)*0.75));
+error = sum(error);
+
+if(isnan(error))
+    error = 100;
+end
 
 run = run+1;
 i = 1;

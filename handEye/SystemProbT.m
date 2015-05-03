@@ -1,4 +1,4 @@
-function [ prob, valid ] = SystemProbT( TData, vTData, s, estVec, rotVec, rotVar, retVecFlag )
+function [ prob ] = SystemProbT( TData, vTData, s, estVec, rotVec, rotVar, retVecFlag )
 %SYSTEMPROBT estimate error from variance in trans vectors after alignment
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -64,18 +64,20 @@ for a = 1:length(s)
             vRB = vTData(:,4:6,b)';
                      
             temp = logpdfT(R,vR,tA,vtA,RA,vRA,tB,vtB,RB,vRB,t,s(b));
-                       
+            
+            [~,idx] = sort(temp,'descend');
+            idx = idx([floor(size(temp,1)*0.75):size(temp,1)]);
+            temp(idx) = 0;
+            
             prob = prob + temp;
         end
     end
 end
 
-[~,idx] = sort(prob,'descend');
-valid = true(size(prob));
-valid(idx(floor(size(prob,1)*0.75):end)) = false;
+prob = prob / (sum(~s)*length(s));
 
 if(~retVecFlag)
-    prob = -sum(prob(valid));
+    prob = -sum(prob);
 end
 
 end

@@ -30,7 +30,7 @@ sDataBase = RandTformTimes(sensorData, scansTimeRange);
 sData = SampleData2(sDataBase);
 
 %remove uninformative data
-sData = RejectPoints(sData, 100, 0.00001);
+sData = RejectPoints(sData, 10, 0.00001);
 
 %find rotation
 fprintf('Finding Rotation\n');
