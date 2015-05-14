@@ -63,7 +63,7 @@ velPrev = VelCorrect(velPrev, tFracPrev, tformPrev);
 velCurr = VelCorrect(velCurr, tFracCurr, tformPrev);
 
 %find transformation
-%tform = icpMexTime(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.3,'point_to_plane');
+%tform = icpMexTime(velPrev',velCurr',inv(V2T(tformPrev)),tFracCurr',0.2,'point_to_plane');
 tform = icpMex(velPrev',velCurr',inv(V2T(tformPrev)),0.2,'point_to_plane');
 tform = T2V(inv(tform));
 

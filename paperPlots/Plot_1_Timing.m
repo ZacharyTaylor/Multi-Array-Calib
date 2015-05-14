@@ -26,14 +26,14 @@ x = data{1}.TimeLength(1:2:end);
 h = figure;
 
 subplot(3,1,1);
-boxplot(y{7},x,'datalim',[0.0001,inf])
+boxplot(y{1},x,'datalim',[0.0001,inf])
 set(gca,'YScale','log')
 title('0.1 Seconds Random Offset');
 ax = gca;
 ax.YTick = [0.0001,0.001,0.01,0.1,1,10];
 
 subplot(3,1,2);
-boxplot(y{8},x,'datalim',[0.0001,inf])
+boxplot(y{2},x,'datalim',[0.0001,inf])
 set(gca,'YScale','log')
 title('1 Second Random Offset');
 ylabel('Final Timing Offset (s)');
@@ -41,7 +41,7 @@ ax = gca;
 ax.YTick = [0.0001,0.001,0.01,0.1,1,10];
 
 subplot(3,1,3);
-boxplot(y{9},x,'datalim',[0.0001,inf])
+boxplot(y{3},x,'datalim',[0.0001,inf])
 set(gca,'YScale','log')
 title('5 Seconds Random Offset');
 xlabel('Length of Sensor Data used (s)');

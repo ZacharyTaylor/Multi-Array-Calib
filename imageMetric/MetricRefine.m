@@ -37,7 +37,7 @@ for i = 1:size(TGrid,1);
                 end
                 
                 A(~isfinite(VA)) = B(~isfinite(VA));
-                VA(~isfinite(VA)) = VB(~isfinite(VA));
+                %VA(~isfinite(VA)) = VB(~isfinite(VA));
 
                 TGridR{i,j} = A;
                 vTGridR{i,j} = VA;

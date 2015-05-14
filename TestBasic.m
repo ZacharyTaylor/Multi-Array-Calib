@@ -18,19 +18,19 @@ timeSamples = 10000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Cam1');
+sensorData = LoadSensorData('Shrimp','Vel','Cam1');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
 %sensorData = InvertSensorData(sensorData);
 
 % %% fix timestamps
-% fprintf('Finding Timing Offsets\n');
-% [sensorData, offsets, varOffsets] = CorrectTimestamps(sensorData, timeSamples);
-% fprintf('Offsets:\n');
-% disp(offsets);
-% fprintf('Offset sd:\n');
-% disp(sqrt(varOffsets));
+fprintf('Finding Timing Offsets\n');
+[sensorData, offsets, varOffsets] = CorrectTimestamps(sensorData, timeSamples);
+fprintf('Offsets:\n');
+disp(offsets);
+fprintf('Offset sd:\n');
+disp(sqrt(varOffsets));
 
 %% run calibration
     

@@ -54,11 +54,11 @@ switch testNum
         reps = 100;
         
         calib = cell(reps,1);
-        dataset = 'Kitti';
+        dataset = 'Shrimp';
         for i = 1:reps
             i
             calib{i} = Test2NavCam(scansTimeRange, numScans, dataset);
-            ParSave(['./results/' 'Test_21.1_Kitti' '.mat'], calib, 'results');
+            ParSave(['./results/' 'Test_24.2_Shrimp' '.mat'], calib, 'results');
         end
 %         dataset = 'Shrimp';
 %         for i = 1:reps
