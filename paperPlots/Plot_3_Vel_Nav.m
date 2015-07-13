@@ -2,7 +2,7 @@ addpath('../tforms');
 
 %load the data
 %data = load('../results/Test_3.10_Kitti.mat');
-data = load('../results/Test_3.11_Shrimp.mat');
+data = load('../results/Test_3.12_Shrimp.mat');
 
 %ground truths
 Kitti = [-0.808675900000000,0.319555900000000,-0.799723100000000,0.0148243146805919,-0.00203019196358444,-0.000770383725406773];
@@ -10,12 +10,20 @@ Shrimp = [-0.0319505121845316,-0.00484516177500113,0.882215281221151,0.013576936
 
 gt = Shrimp;
 
-for j = 1:500
+valsRange = 1:500;
+
+rotSD = zeros(length(valsRange),3,length(data.results{1}));
+rotErr = zeros(length(valsRange),3,length(data.results{1}));
+tranSD = zeros(length(valsRange),3,length(data.results{1}));
+tranErr = zeros(length(valsRange),3,length(data.results{1}));
+rotRErr = zeros(length(valsRange),3,length(data.results{1}));
+tranRErr = zeros(length(valsRange),3,length(data.results{1}));
+
+for j = valsRange
     for k = 1:length(data.results{j})
 
         rotSD(j,1:3,k) = sqrt(data.results{j}{k}.rotVar(2,1:3));
         rotErr(j,1:3,k) = abs(R2V(V2R(data.results{j}{k}.rot(2,1:3))/V2R(gt(4:6))));
-        %rotErr(j,1:3,k) = abs(data.results{j}{k}.rot(2,1:3) - gt(4:6));
         tranSD(j,1:3,k) = sqrt(data.results{j}{k}.tranVar(2,1:3));
         tranErr(j,1:3,k) = abs(data.results{j}{k}.tran(2,1:3) - gt(1:3));
         
@@ -33,8 +41,10 @@ for i = 1:size(temp,2)
     end
 end
 rotSD = reshape(rotSD,3,[])';
+%rotErr = abs(rotErr - repmat(mean(rotErr),size(rotErr,1),1));
 rotErr = mean(rotErr,1);
 rotErr = reshape(rotErr,3,[])';
+%rotRErr = abs(rotRErr - repmat(mean(rotRErr),size(rotRErr,1),1));
 rotRErr = mean(rotRErr,1);
 rotRErr = reshape(rotRErr,3,[])';
 
@@ -46,8 +56,10 @@ for i = 1:size(temp,2)
     end
 end
 tranSD = reshape(tranSD,3,[])';
+%tranErr = abs(tranErr - repmat(mean(tranErr),size(tranErr,1),1));
 tranErr = mean(tranErr,1);
 tranErr = reshape(tranErr,3,[])';
+%tranRErr = abs(tranRErr - repmat(mean(tranRErr),size(tranRErr,1),1));
 tranRErr = mean(tranRErr,1);
 tranRErr = reshape(tranRErr,3,[])';
 
@@ -63,7 +75,7 @@ subplot(3,2,1);
 hold on;
 boundedline((10:10:300),rotErr(:,1),rotSD(:,1),'ro-');
 plot((10:10:300),rotRErr(:,1),'kx-');
-axis([0,300,0,5])
+axis([0,300,0,2])
 title('Roll Error');
 
 subplot(3,2,3);
@@ -80,7 +92,7 @@ boundedline((10:10:300),rotErr(:,3),rotSD(:,3),'bo-');
 plot((10:10:300),rotRErr(:,3),'kx-');
 axis([0,300,0,2])
 title('Yaw Error');
-xlabel('Run');
+xlabel('Length of data used (seconds)');
 
 subplot(3,2,2);
 hold on;
@@ -101,6 +113,6 @@ subplot(3,2,6);
 hold on;
 boundedline((10:10:300),tranErr(:,3),tranSD(:,3),'bo-');
 plot((10:10:300),tranRErr(:,3),'kx-');
-axis([0,300,0,1])
+axis([0,300,0,0.5])
 title('Z Error');
-xlabel('Run');
+xlabel('Length of data used (seconds)');

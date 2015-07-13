@@ -1,4 +1,4 @@
-function [ TGridR, vTGridR ] = MetricRefine( TGrid, vTGrid, sensorData, numScans )
+function [ TGridR, vTGridR ] = MetricRefine( TGrid, vTGrid, sensorData, numScans, metric )
 %METRICREFINE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,7 +17,7 @@ for i = 1:size(TGrid,1);
             
             %perform velodyne-camera matching
             if(and(strcmpi(sensorData{i}.type,'velodyne'),strcmpi(sensorData{j}.type,'camera')))
-                [TGridR{i,j}, vTGridR{i,j}] = RefineVelCam(TGrid{i,j},vTGrid{i,j},sensorData{i},sensorData{j},'Colour',numScans);
+                [TGridR{i,j}, vTGridR{i,j}] = RefineVelCamMulti(TGrid{i,j},vTGrid{i,j},sensorData{i},sensorData{j},metric,numScans);
             end
             
             %perform camera-camera matching

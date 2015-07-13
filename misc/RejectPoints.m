@@ -62,6 +62,11 @@ for i = 1:size(sensorData,1)
     valid = and(valid,all(sensorData{i}.T_Var_Skm1_Sk > 0,2));
 end
 
+%get points with variance of 1000 or more
+for i = 1:size(sensorData,1)
+    valid = and(valid,all(sensorData{i}.T_Var_Skm1_Sk < 1000,2));
+end
+
 %get imagniary points
 for i = 1:size(sensorData,1)
     valid = and(valid,all(imag(sensorData{i}.T_Skm1_Sk) == 0,2));

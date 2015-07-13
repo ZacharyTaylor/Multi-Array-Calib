@@ -74,17 +74,17 @@ switch testNum
 %         end
     case 3
         reps = 500;
-        dataset = 'Kitti';
-        calib = cell(500,1);
-        for i = 1:reps
-            i
-            val = cell(30,1);
-            parfor j = 1:30
-                val{j} = Test3VelNav(10*j, dataset);
-            end
-            calib{i} = val;
-            ParSave(['./results/' 'Test_3.10_Kitti' '.mat'], calib, 'results');
-        end
+%         dataset = 'Kitti';
+%         calib = cell(500,1);
+%         for i = 1:reps
+%             i
+%             val = cell(30,1);
+%             parfor j = 1:30
+%                 val{j} = Test3VelNav(10*j, dataset);
+%             end
+%             calib{i} = val;
+%             ParSave(['./results/' 'Test_3.10_Kitti' '.mat'], calib, 'results');
+%         end
         
         dataset = 'Shrimp';
         calib = cell(500,1);
@@ -95,13 +95,13 @@ switch testNum
                 val{j} = Test3VelNav(10*j, dataset);
             end
             calib{i} = val;
-            ParSave(['./results/' 'Test_3.11_Shrimp' '.mat'], calib, 'results');
+            ParSave(['./results/' 'Test_3.12_Shrimp' '.mat'], calib, 'results');
         end
         
     case 4
-        reps = 500;
+        reps = 100;
         dataset = 'Kitti';
-        calib = cell(500,1);
+        calib = cell(100,1);
         for i = 1:reps
             i
             val = cell(30,1);
@@ -110,6 +110,18 @@ switch testNum
             end
             calib{i} = val;
             ParSave(['./results/' 'Test_4.10_Kitti' '.mat'], calib, 'results');
+        end
+        
+        dataset = 'Shrimp';
+        calib = cell(500,1);
+        for i = 1:reps
+            i
+            val = cell(30,1);
+            parfor j = 1:30
+                val{j} = Test4NavCam(10*j, dataset);
+            end
+            calib{i} = val;
+            ParSave(['./results/' 'Test_4.11_Shrimp' '.mat'], calib, 'results');
         end
      case 5
         reps = 100;
@@ -129,6 +141,32 @@ switch testNum
             calib{i} = Test6UpCam(100);
         end
         ParSave(['./results/' 'Test_6.5' '.mat'], calib, 'results');
+    case 7
+        reps = 100;
+        calib = cell(100,1);
+        for i = 1:reps
+            i
+            calib{i} = Test7Refine(100,'KITTI');
+            ParSave(['./results/' 'Test_7.3' '.mat'], calib, 'results');
+        end
+    case 8
+        reps = 500;
+        calib = cell(500,1);
+        parfor i = 1:reps
+            i
+            calib{i} = Test8ShrimpCam(30);
+        end
+        ParSave(['./results/' 'Test_8.2' '.mat'], calib, 'results');
+    
+    case 9
+        reps = 100;
+        calib = cell(100,1);
+        
+        for i = 1:reps
+            i
+            calib{i} = Test9Full(100,'KITTI');
+            ParSave(['./results/' 'Test_9.1' '.mat'], calib, 'results');
+        end
     otherwise
         error('Invalid test')
 end

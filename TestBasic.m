@@ -7,7 +7,7 @@ scansTimeRange = 100;
 %scansTimeRange = 5:5:100;
 
 %number of scans to combine in metric refine step
-numScans = 5;
+numScans = 1;
 
 %number of times to perform test
 reps = 10;
@@ -15,10 +15,12 @@ reps = 10;
 %samples
 timeSamples = 10000;
 
+metric = 'nmi';
+
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Shrimp','Vel','Cam1');
+sensorData = LoadSensorData('Shrimp','Cam1','Cam2');
 
 %gives results in terms of positions rather then coordinate frames
 %less usful more intuative
@@ -84,7 +86,7 @@ fprintf('Generating transformation grid\n');
 
 %refine transforms using metrics
 fprintf('Refining transformations\n');
-[TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans);
+[TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans, metric);
 
 %correct for differences in grid
 fprintf('Combining results\n');

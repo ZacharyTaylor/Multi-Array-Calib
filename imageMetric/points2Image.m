@@ -135,7 +135,7 @@ if(useMex)
     if(exist('colourImage') ~= 3)
         mex colourImage.cpp;
     end
-    image = colourImage(locs, colours, disk, uint32(imageSize), baseImage);
+    image = colourImage(locs, colours, disk, uint32(imageSize), double(baseImage));
 else
     %run slow non-mex version of code
     image = zeros([imageSize,size(colours,2)]);

@@ -68,6 +68,12 @@ for a = 1:length(s)
             [~,idx] = sort(temp,'descend');
             idx = idx([floor(size(temp,1)*0.75):size(temp,1)]);
             temp(idx) = 0;
+
+%             v = 4.65;
+%             idx = temp < v;
+%             idx2 = temp < -v;
+%             temp(idx) = temp(idx).*(1-(temp(idx)/v).^2).^2;
+%             temp(idx2) = 0;
             
             prob = prob + temp;
         end

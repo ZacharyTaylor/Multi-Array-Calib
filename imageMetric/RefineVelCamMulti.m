@@ -1,4 +1,4 @@
-function [ TVecOut, vTVecOut ] = RefineVelCam( TVecIn,vTVecIn,lidarInfo,camInfo,metric,numScans )
+function [ TVecOut, vTVecOut ] = RefineVelCamMulti( TVecIn,vTVecIn,lidarInfo,camInfo,metric,numScans )
 %REFINEVELCAM Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -11,22 +11,22 @@ sep = 1;
 %get scans to use
 dataIdx = datasample(3:length(camInfo.files),numScans,'Replace',false);
 
-%get angle magnitudes
-mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
-
-[~,idx] = sort(mag,'descend');
-mag(idx(ceil(0.75*length(mag)):end)) = 0;
-
-%divide into sections
-step = floor(length(mag)/numScans);
-for i = 1:numScans
-    val = mag;
-    val(1) = 0;
-    val(1:step*(i-1)) = 0;
-    val(step*i:end) = 0;
-    [~,idx] = max(val);
-    dataIdx(i) = idx;
-end
+% %get angle magnitudes
+% mag = sqrt(sum(camInfo.T_Skm1_Sk(:,4:6).^2,2));
+% 
+% [~,idx] = sort(mag,'descend');
+% mag(idx(ceil(0.75*length(mag)):end)) = 0;
+% 
+% %divide into sections
+% step = floor(length(mag)/numScans);
+% for i = 1:numScans
+%     val = mag;
+%     val(1) = 0;
+%     val(1:step*(i-1)) = 0;
+%     val(step*i:end) = 0;
+%     [~,idx] = max(val);
+%     dataIdx(i) = idx;
+% end
 
 % [~,idx] = sort(mag,'descend');
 % dataIdx = idx(1:numScans);
@@ -35,19 +35,36 @@ end
 warning('off','images:initSize:adjustingMag');
 
 %% load images and scans
-images = cell(numScans,2);
+images = cell(numScans,1);
 scans = cell(numScans,1);
 
 for j = 1:numScans
-    if(strcmpi(metric,'Colour'))
+    if(strcmpi(metric,'motion'))
         %previous image
-        images{j,1} = ProcessImage(camInfo, dataIdx(j)-sep, false, metric);
+        images{j,1} = ProcessImage(camInfo, dataIdx(j)-sep, true, metric);
         %current image
-        images{j,2} = ProcessImage(camInfo, dataIdx(j), false, metric);
+        images{j,2} = ProcessImage(camInfo, dataIdx(j), true, metric);
+    else
+        images{j,1} = ProcessImage(camInfo, dataIdx(j)-sep, false, metric);
     end
     
+    if(strcmpi(metric,'lev'));
+        if(j == 1)
+            imtot = images{j,1};
+        else
+            imtot = imtot + images{j,1};
+        end
+    end
+        
     %matching lidar scan
-    scans{j} = ProcessScan(lidarInfo, camInfo, dataIdx(j), metric, sep);
+    scans{j} = ProcessScan(lidarInfo, camInfo, dataIdx(j), metric, sep, V2T(TVecIn));
+end
+
+if(strcmpi(metric,'lev'));
+    imtot = imtot/numScans;
+    for j = 1:numScans
+        images{j,1} = images{j,1} - imtot;
+    end
 end
 
 %load camera
@@ -59,7 +76,7 @@ sd = sqrt(vTVecIn)';
 m = TVecIn';
 
 %set up optimizer
-opts.LBounds = [-3.5,-3.5,-3.5,-pi/2,-pi/2,-pi]'; opts.UBounds = [3.5,3.5,3.5,pi/2,pi/2,pi]'; 
+opts.LBounds = [-1,-1,-1,-pi/2,-pi/2,-pi]'; opts.UBounds = [1,1,1,pi/2,pi/2,pi]'; 
 opts.TolX = 1e-9;
 opts.TolFun = 0.0001;
 opts.SaveVariables = 'off';
@@ -72,33 +89,25 @@ m(m > opts.UBounds) = opts.UBounds(m > opts.UBounds);
 m(m < opts.LBounds) = opts.LBounds(m < opts.LBounds);
 
 %keep sd reasonable
-sd(sd > 0.7*opts.UBounds) = 0.7*opts.UBounds(sd > 0.7*opts.UBounds);
+sd(sd > 0.5*opts.UBounds) = 0.5*opts.UBounds(sd > 0.5*opts.UBounds);
 
 %run metric
-if(strcmpi(metric,'Colour'))
-   TVecOut = cmaes(@(tform) RunColourMetric(tform, K, scans, images, 2, true), m,sd, opts);
-elseif(strcmpi(metric,'Lev'))
-    TVecOut = cmaes(@(tform) RunLevMetric(tform, K, scans, images, 2, true), m,sd, opts);
+if(strcmpi(metric,'motion'))
+   [TVecOut,v] = cmaes(@(tform) RunColourMetric(tform, K, scans, images, 1, true), m,sd, opts);
+elseif(strcmpi(metric,'lev'))
+    [TVecOut,v] = cmaes(@(tform) RunLevMetric(tform, K, scans, images, 1), m,sd, opts);
+elseif(strcmpi(metric,'gom'))
+    [TVecOut,v] = cmaes(@(tform) RunGomMetric(tform, K, scans, images, 1), m,sd, opts);
+elseif(strcmpi(metric,'nmi'))
+    [TVecOut,v] = cmaes(@(tform) RunNMIMetric(tform, K, scans, images, 1), m,sd, opts);
 end
 TVecOut = TVecOut';
 
-if(any(abs(TVecOut(1:3)) > 3))
-    warning('Alignment failed');
-    TVecOut = zeros(1,6);
-    vTVecOut = inf*ones(6,1);
-    return;
+if(strcmpi(metric,'motion'))
+    vTVecOut = FindVar(numScans,TVecOut,scans,images, lidarInfo, camInfo, K, dataIdx, [0.0001,0.0001,0.0001,0.0001,0.0001,0.0001]);
+else
+    vTVecOut = vTVecIn;
 end
-
-for j = 1:numScans
-    if(strcmpi(metric,'Colour'))
-        %previous image
-        images{j,1} = ProcessImage(camInfo, dataIdx(j)-1, true, metric);
-        %current image
-        images{j,2} = ProcessImage(camInfo, dataIdx(j), true, metric);
-    end
-end
-
-vTVecOut = FindVar(numScans,TVecOut,scans,images, lidarInfo, camInfo, K, dataIdx, [0.0001,0.0001,0.0001,0.00001,0.00001,0.00001]);
 
 end
 
@@ -214,21 +223,22 @@ function [ image ] = ProcessImage(camInfo, idx, blur, metric)
     %undistort image
     image = Undistort(double(image), camInfo.D, camInfo.K);
     
-    if(strcmpi('motion',metric)
+    if(strcmpi('motion',metric))
         image = imgradient(image);
         image = image + 0.000001;
     elseif(strcmpi('nmi',metric))
-        image = image;
+        image = image - min(image(:));
+        image = image ./ max(image(:));
     elseif(strcmpi('gom',metric))
         [x,y] = gradient(double(image));
-        image(:,:,1) = x;
-        image(:,:,2) = y;
+        image(:,:,1) = x/255;
+        image(:,:,2) = y/255;
     elseif(strcmpi('lev',metric))
         image = LevImage(image);
     end
     
     if blur
-        b = max(size(image))/200;
+        b = max(size(image))/500;
         G = fspecial('gaussian',[100 100],b);
     
         image = imfilter(image,G,'same');
@@ -297,24 +307,32 @@ function [ scan ] = ProcessScan(lidarInfo, camInfo, idx, metric,sep, tInital)
 
     %convert intensity to colours
     cmap = colormap(jet(256));
-    intensity = cmap(round(255*intensity)+1,:);
+    col = cmap(round(255*intensity)+1,:);
 
-    points = [points, intensity];
+    points = [points, col];
 
     if(strcmpi('motion',metric))
-        points = points;
+        %remove points that may be occluded
+        points = OcCut(points);
     elseif(strcmpi('nmi',metric))
         points(:,4) = intensity;
+        points(:,4) = points(:,4) - min(points(:,4));
+        points(:,4) = points(:,4) ./ max(points(:,4));
         points(:,5:6) = 0;
     elseif(strcmpi('gom',metric))
-        [points(:,4),points(:,5)] = Get2DGradProject(points(:,1:3), tInital);
-    elseif(strcmpi('lev',metric))
-        points(:,1:4) = LevLidar(points(:,1:3));
+        points(:,4) = intensity;
         points(:,5:6) = 0;
+        [points(:,4),points(:,5)] = Get2DGradProject(points(:,1:4), inv(tInital));
+        points(:,6) = 0;
+        tmp = sqrt(points(:,4).^2 + points(:,5).^2);
+        points(:,7:9) = cmap(round(255*(MyHistEq(tmp))+1),:);
+    elseif(strcmpi('lev',metric))
+        [tmp, valid] = LevLidar(points(:,1:3));
+        points = points(valid,:);
+        points(:,1:4) = tmp;
+        points(:,5:6) = 0;
+        points(:,7:9) = cmap(round(255*(tmp(:,4)./max(tmp(:,4)))+1),:);
     end
-
-%         %remove points that may be occluded
-%         points = OcCut(points);
 
     %move everything to the gpu
     scan = gpuArray(single(points));

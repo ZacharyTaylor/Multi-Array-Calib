@@ -59,6 +59,8 @@ tformPrev = double(tformPrev);
 %correct previous scans motion error
 velPrev = VelCorrect(velPrev, tFracPrev, tformPrev);
 
+velCurrBase = velCurr;
+
 %correct current scans motion error (will have a bit of error)
 velCurr = VelCorrect(velCurr, tFracCurr, tformPrev);
 

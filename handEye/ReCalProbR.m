@@ -1,4 +1,4 @@
-function [ prob ] = SystemProbR( RData, vRData, estVec, retVecFlag )
+function [ prob ] = ReCalProbR( RData, vRData, estVec, retVecFlag )
 %SYSTEMPROBR uses variance to find a measure of the systems probablity of
 %   being correct (lower score == better)
 %--------------------------------------------------------------------------
@@ -46,16 +46,6 @@ for a = 1:size(RData,3)
             
             %find position error
             temp = logpdfR(RA,RB,VA,VB,estVec(a,:),estVec(b,:));
-            
-            [~,idx] = sort(temp,'descend');
-            idx = idx([ceil(size(temp,1)*0.75):size(temp,1)]);
-            temp(idx) = 0;
-            
-             %v = 4.65;
-             %idx = temp < v;
-             %idx2 = temp < -v;
-             %temp(idx) = temp(idx).*(1-(temp(idx)/v).^2).^2;
-             %temp(idx2) = 0;
             
             %add error
             prob= prob + temp;

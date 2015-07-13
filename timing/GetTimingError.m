@@ -56,9 +56,11 @@ function [out] = GetTimingError(t,Mag,Var,samples,offset, navFlag, dTest)
     err(~isfinite(err)) = 0;
     
     out = zeros(size(err));
-    [~,idx] = sort(err,'ascend');
-    %idx = idx(floor(size(idx(:),1)*0.25):floor(size(idx(:),1)*0.75));
+    [~,idx] = sort(abs(err),'ascend');
     idx = idx(1:floor(size(idx(:),1)*0.75));
     out(idx) = err(idx);
+    %v = 13.4;
+    %err(abs(err) > v) = 0;
+    %out = err.*(1-(err/v).^2).^2;
 
 end

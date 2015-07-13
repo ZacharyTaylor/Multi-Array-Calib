@@ -25,7 +25,7 @@ for i = 1:length(data{1}.results)
     for j = 1:9
         try
             R = V2R(data{j}.results{i}.rot(end,:));
-            R = R / gt;
+            R = R \ gt;
             v(i,:,j) = sqrt(data{j}.results{i}.rotVar(end,:));
             [v(i,1,j),v(i,2,j),v(i,3,j)] = dcm2angle(V2R(v(i,:,j)));
             v(i,:,j) = abs(v(i,:,j))*180/pi;
@@ -42,30 +42,30 @@ end
 %% plot data
 figure;
 subplot(3,1,1)
-boxplot([err(:,1,4),err(:,1,1),err(:,1,7),err(:,2,4),err(:,2,1),err(:,2,7),err(:,3,4),err(:,3,1),err(:,3,7)],{'Roll 25%','Roll 75%','Roll 100%','Pitch 25%','Pitch 75%','Pitch 100%','Yaw 25%','Yaw 75%','Yaw 100%'});
+boxplot([err(:,1,4),err(:,1,1),err(:,1,7),err(:,2,4),err(:,2,1),err(:,2,7),err(:,3,4),err(:,3,1),err(:,3,7)],{'Roll 75%','Roll 25%','Roll 0%','Pitch 75%','Pitch 25%','Pitch 0%','Yaw 75%','Yaw 25%','Yaw 0%'});
 title('20 Seconds of Data');
 
 subplot(3,1,2)
-boxplot([err(:,1,5),err(:,1,2),err(:,1,8),err(:,2,5),err(:,2,2),err(:,2,8),err(:,3,5),err(:,3,2),err(:,3,8)],{'Roll 25%','Roll 75%','Roll 100%','Pitch 25%','Pitch 75%','Pitch 100%','Yaw 25%','Yaw 75%','Yaw 100%'});
+boxplot([err(:,1,5),err(:,1,2),err(:,1,8),err(:,2,5),err(:,2,2),err(:,2,8),err(:,3,5),err(:,3,2),err(:,3,8)],{'Roll 75%','Roll 25%','Roll 0%','Pitch 75%','Pitch 25%','Pitch 0%','Yaw 75%','Yaw 25%','Yaw 0%'});
 ylabel('Rotational Error (degrees)');
 title('100 Seconds of Data');
 
 subplot(3,1,3)
-boxplot([err(:,1,6),err(:,1,3),err(:,1,9),err(:,2,6),err(:,2,3),err(:,2,9),err(:,3,6),err(:,3,3),err(:,3,9)],{'Roll 25%','Roll 75%','Roll 100%','Pitch 25%','Pitch 75%','Pitch 100%','Yaw 25%','Yaw 75%','Yaw 100%'});
+boxplot([err(:,1,6),err(:,1,3),err(:,1,9),err(:,2,6),err(:,2,3),err(:,2,9),err(:,3,6),err(:,3,3),err(:,3,9)],{'Roll 75%','Roll 25%','Roll 0%','Pitch 75%','Pitch 25%','Pitch 0%','Yaw 75%','Yaw 25%','Yaw 0%'});
 title('200 Seconds of Data');
 
 err = v;
 
 figure;
 subplot(3,1,1)
-boxplot([err(:,1,4),err(:,1,1),err(:,1,7),err(:,2,4),err(:,2,1),err(:,2,7),err(:,3,4),err(:,3,1),err(:,3,7)],{'Roll 25%','Roll 75%','Roll 100%','Pitch 25%','Pitch 75%','Pitch 100%','Yaw 25%','Yaw 75%','Yaw 100%'});
+boxplot([err(:,1,4),err(:,1,1),err(:,1,7),err(:,2,4),err(:,2,1),err(:,2,7),err(:,3,4),err(:,3,1),err(:,3,7)],{'Roll 75%','Roll 25%','Roll 0%','Pitch 75%','Pitch 25%','Pitch 0%','Yaw 75%','Yaw 25%','Yaw 0%'});
 title('20 Seconds of Data');
 
 subplot(3,1,2)
-boxplot([err(:,1,5),err(:,1,2),err(:,1,8),err(:,2,5),err(:,2,2),err(:,2,8),err(:,3,5),err(:,3,2),err(:,3,8)],{'Roll 25%','Roll 75%','Roll 100%','Pitch 25%','Pitch 75%','Pitch 100%','Yaw 25%','Yaw 75%','Yaw 100%'});
+boxplot([err(:,1,5),err(:,1,2),err(:,1,8),err(:,2,5),err(:,2,2),err(:,2,8),err(:,3,5),err(:,3,2),err(:,3,8)],{'Roll 75%','Roll 25%','Roll 0%','Pitch 75%','Pitch 25%','Pitch 0%','Yaw 75%','Yaw 25%','Yaw 0%'});
 ylabel('Rotational Standard Deviation (degrees)');
 title('100 Seconds of Data');
 
 subplot(3,1,3)
-boxplot([err(:,1,6),err(:,1,3),err(:,1,9),err(:,2,6),err(:,2,3),err(:,2,9),err(:,3,6),err(:,3,3),err(:,3,9)],{'Roll 25%','Roll 75%','Roll 100%','Pitch 25%','Pitch 75%','Pitch 100%','Yaw 25%','Yaw 75%','Yaw 100%'});
+boxplot([err(:,1,6),err(:,1,3),err(:,1,9),err(:,2,6),err(:,2,3),err(:,2,9),err(:,3,6),err(:,3,3),err(:,3,9)],{'Roll 75%','Roll 25%','Roll 0%','Pitch 75%','Pitch 25%','Pitch 0%','Yaw 75%','Yaw 25%','Yaw 0%'});
 title('200 Seconds of Data');

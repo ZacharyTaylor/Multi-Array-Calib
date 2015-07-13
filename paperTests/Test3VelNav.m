@@ -6,7 +6,7 @@ CalibPath(true);
 sensorData = LoadSensorData(dataset,'Vel','Nav');
 
 %% run calibration
-[sensorData, offsets, varOffsets] = CorrectTimestamps(sensorData, 10000);
+%[sensorData, offsets, varOffsets] = CorrectTimestamps(sensorData, 10000);
 
 %get random contiguous scans to use
 sDataBase = RandTformTimes(sensorData, scansTimeRange);
@@ -15,13 +15,19 @@ sDataBase = RandTformTimes(sensorData, scansTimeRange);
 sData = SampleData2(sDataBase);
 
 %remove uninformative data
-sData = RejectPoints(sData, 100, 0.00001);
+sDataE = RejectPoints(sData, 1000, 1e-10);
 
-sDataE = sData;
 sDataE{1}.T_Var_Skm1_Sk(:) = 1;
 sDataE{1}.T_Var_S1_Sk = cumsum(sDataE{1}.T_Var_Skm1_Sk);
 sDataE{2}.T_Var_Skm1_Sk(:) = 1;
 sDataE{2}.T_Var_S1_Sk = cumsum(sDataE{2}.T_Var_Skm1_Sk);
+
+sData = RejectPoints(sData, 1000, 0.00001);
+
+% sData{1}.T_Var_Skm1_Sk(:) = medfilt1(sData{1}.T_Var_Skm1_Sk(:),10);
+% sData{1}.T_Var_S1_Sk = cumsum(sData{1}.T_Var_Skm1_Sk);
+% sData{2}.T_Var_Skm1_Sk(:) = medfilt1(sData{2}.T_Var_Skm1_Sk(:),10);
+% sData{2}.T_Var_S1_Sk = cumsum(sData{2}.T_Var_Skm1_Sk);
 
 %find rotation
 rotVec = RoughR(sDataE);

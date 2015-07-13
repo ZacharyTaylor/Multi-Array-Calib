@@ -70,8 +70,8 @@ for b = 2:size(sensorData,1)
         tb(3*j-2:3*j) = weight(j).* tb(3*j-2:3*j);
     end
 
-    temp = ([Ra;Rb]\[tb;ta]);
-    %temp = Ra\tb;
+    %temp = ([Ra;Rb]\[tb;ta]);
+    temp = Ra\tb;
     %temp = Rb\ta;
     
     estVecT(b,:) = temp(1:3)';
