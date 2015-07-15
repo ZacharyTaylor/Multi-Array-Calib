@@ -4,27 +4,19 @@
 
 %number of scans to use
 scansTimeRange = 100;
-%scansTimeRange = 5:5:100;
 
 %number of scans to combine in metric refine step
-numScans = 1;
-
-%number of times to perform test
-reps = 10;
+numScans = 20;
 
 %samples
 timeSamples = 10000;
 
-metric = 'nmi';
+metric = 'motion';
 
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Shrimp','Cam1','Cam2');
-
-%gives results in terms of positions rather then coordinate frames
-%less usful more intuative
-%sensorData = InvertSensorData(sensorData);
+sensorData = LoadSensorData('Kitti','Vel','Cam1');
 
 % %% fix timestamps
 fprintf('Finding Timing Offsets\n');
