@@ -46,11 +46,11 @@ for i = 1:length(viconData.times)
     in = readMessages(bag, i);
     
     tformMat = eye(4);
-    tformMat(1:3,1:3)  = quat2dcm([in{1}.Transform.Rotation.W, in{1}.Transform.Rotation.X, in{1}.Transform.Rotation.Y, in{1}.Transform.Rotation.Z]);
+    tformMat(1:3,1:3)  = quat2rot([in{1}.Transform.Rotation.W, in{1}.Transform.Rotation.X, in{1}.Transform.Rotation.Y, in{1}.Transform.Rotation.Z]');
     tformMat(1:3,4) = [in{1}.Transform.Translation.X, in{1}.Transform.Translation.Y, in{1}.Transform.Translation.Z];
 
     %get variance
-    tformVar = [0.01,0.01,0.01,0.01*pi/180,0.01*pi/180,0.01*pi/180];
+    tformVar = [0.001,0.001,0.001,0.001*pi/180,0.001*pi/180,0.001*pi/180];
     tformVar = tformVar.^2;
 
     %write to navData

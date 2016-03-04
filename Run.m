@@ -46,7 +46,7 @@ fprintf('Finding Camera Scale\n');
 sDataS = EasyScale(sData, rotVec, rotVarL,zeros(2,3),ones(2,3));
 
 %show what we are dealing with
-%PlotData(sDataS,rotVec);
+PlotData(sDataS,rotVec);
 
 fprintf('Finding Translation\n');
 tranVec = RoughT(sDataS, rotVec);
