@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package>
+  <name>ros_vrpn_client</name>
+  <version>0.0.0</version>
+  <description>
+     ROS node which is a client for Virtual Reality Peripheral
+     Networks and publishes a TF frame and TransformStamped for
+     tracked bodies.
+
+     Tested with the Optitrak motion capture system from NaturalPoint.
+  </description>
+  <url></url>
+  <author>Advait Jain, Chi-Hung King, Advisor: Prof. Charlie Kemp, Lab: Healthcare Robotics Lab at Georgia Tech</author>
+  <maintainer email="pascal.gohl@mavt.ethz.ch">Pascal Gohl</maintainer>
+  <license>New BSD</license>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <build_depend>catkin</build_depend>
+  <build_depend>catkin_simple</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>roscpp</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>vrpn_catkin</run_depend>
+  <run_depend>cmake_modules</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>glog_catkin</run_depend>
+
+</package>

@@ -1,16 +1,15 @@
-function [ camData ] = GenCam( path, plotCam, range, dataset, idx )
+function [ camData ] = GenCam( bag, plotCam, topic, calibTopic, range )
 %GENCAM Generates camera transformations
 %--------------------------------------------------------------------------
 %   Required Inputs:
 %--------------------------------------------------------------------------
-%   path- path to the dataset to use
+%   bag- bag containing image data
 %   plotCam- bool, true for displaying a plot of trajectory while running
 %       (note slows things down in a big way for large datasets)
+%   topic- topic containing images
+%   calibTopic- topic containing camera calibration
 %   range- 1xm vector giving the index of the images to use, leave empty []
 %       for all images
-%   dataset- string specifing the dataset type (shrimp, ford or kitti)
-%   idx- index of the camera to use (1-4 for kitti, 1-5 for ford, 1-6
-%       for shrimp)
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -28,27 +27,12 @@ function [ camData ] = GenCam( path, plotCam, range, dataset, idx )
 %   http://www.zjtaylor.com
 
 %check inputs
-validateattributes(path,{'char'},{'vector'});
 validateattributes(plotCam,{'logical'},{'scalar'});
-validateattributes(dataset,{'char'},{'vector'});
-validateattributes(idx,{'numeric'},{'scalar','nonzero','positive','integer'});
+validateattributes(topic,{'char'},{'vector'});
+validateattributes(calibTopic,{'char'},{'vector'});
 
-if(~exist(path,'dir'))
-    error('%s is not a valid directory');
-end
-
-
-%Get the correct camera information
-switch(dataset)
-    case('Kitti')
-        camData = KittiCamInfo(path, idx);
-    case('Ford')
-        camData = FordCamInfo(path, idx);
-    case('Shrimp')
-        camData = ShrimpCamInfo(path, idx);
-    otherwise
-        error('%s is not a valid dataset',dataset);
-end
+%Get the camera information
+camData = CamInfo(bag, topic, calibTopic);
 
 %setup help info
 camData.help = ['camData stores the following information:\n'...
@@ -67,26 +51,26 @@ camData.help = ['camData stores the following information:\n'...
 %set sensor type
 camData.type = 'camera';
 
-%find all camera images
-camData.files = [dir([camData.folder,'*.jpg']);dir([camData.folder,'*.png'])];
-
 %fill range if empty
 if(isempty(range))
-   range = 1:length(camData.files);
+   range = 1:length(camData.times);
 end
 
 validateattributes(range,{'numeric'},{'vector','positive','nonzero','integer'});
 
+%only read relevent messages
+bag = select(bag,'Topic',topic);
+
 %get range of data
-camData.files = camData.files(range);
-camData.time = camData.time(range);
+camData.times = camData.times(range);
+bag = select(bag,'Time',[camData.times, camData.times]);
 
 %preallocate memory
-camData.T_Skm1_Sk = zeros(size(camData.files(:),1),6);
-camData.T_S1_Sk = zeros(size(camData.files(:),1),6);
+camData.T_Skm1_Sk = zeros(size(camData.times(:),1),6);
+camData.T_S1_Sk = zeros(size(camData.times(:),1),6);
 
-camData.T_Var_Skm1_Sk = zeros(size(camData.files(:),1),6);
-camData.T_Var_S1_Sk = zeros(size(camData.files(:),1),6);
+camData.T_Var_Skm1_Sk = zeros(size(camData.times(:),1),6);
+camData.T_Var_S1_Sk = zeros(size(camData.times(:),1),6);
 camData.T_Var_Skm1_Sk(1,:) = 1000*ones(1,6);
 
 %setup for plotting
@@ -97,25 +81,22 @@ if(plotCam)
 end
 
 %load the first image
-image = imread([camData.folder camData.files(1).name]); 
-if(size(image,3) == 3)
-    image = rgb2gray(image);
-end
-image = Undistort(image, camData.D, camData.K);
+image = readMessages(bag, 1);
+image = reshape(image{1}.Data,image{1}.Width,image{1}.Height)';
+
+image = Undistort(image, camData.D, camData.K, camData.DistModel);
 
 %find the transforms for each image
-for frame = 2:size(camData.files,1)
+for frame = 2:size(camData.times,1)
 
-    UpdateMessage('Finding Transform for image %i of %i for camera %i', frame,size(camData.files,1),idx);
+    UpdateMessage('Finding Transform for image %i of %i for camera topic %s', frame,size(camData.times,1),topic);
 
     imageOld = image;
     
     %read new data
-    image = imread([camData.folder camData.files(frame).name]); 
-    if(size(image,3) == 3)
-        image = rgb2gray(image);
-    end
-    image = Undistort(image, camData.D, camData.K);
+    image = readMessages(bag, frame);
+    image = reshape(image{1}.Data,image{1}.Width,image{1}.Height)';
+    image = Undistort(image, camData.D, camData.K, camData.DistModel);
 
     %find transformation
     try

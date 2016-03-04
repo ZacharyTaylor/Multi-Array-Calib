@@ -1,13 +1,12 @@
-% this script generates all the required transforms for the kitti and
-% shrimp dataset (currently wont do the camera as I am tweaking it)
-
 %% user set variables
 
 %path to data
-%dataPath = 'C:\Users\Zachary\Documents\Datasets\IJRR-Dataset-1\'; dataset = 'Ford';
-%dataPath = 'C:\Users\Zachary\Documents\Datasets\Shrimp\high-clutter-2\'; dataset = 'Shrimp';
-%dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_10_03_drive_0027_extract\'; dataset = 'Kitti';
-dataPath = 'C:\Users\Zachary\Documents\Datasets\Kitti\2011_09_26_drive_0035_extract\'; dataset = 'Kitti';
+bagFile = 'handheld2.bag';
+
+%topics
+viconTopic = '/auk/vrpn_client/raw_transform';
+camTopic = '/auk/cam0/image_raw';
+camCailbTopic = '/auk/cam0/calibration';
 
 %Sets if the sensor transforms will be plotted
 plotTforms = false;

@@ -1,4 +1,4 @@
-function [ image ] = Undistort(imageD, D, K)
+function [ image ] = Undistort(imageD, D, K, distModel)
 %FORDCAMINFO Sets the directory layout, masks and intrinsics for the ford
 %   dataset
 %--------------------------------------------------------------------------
@@ -7,6 +7,7 @@ function [ image ] = Undistort(imageD, D, K)
 %   imageD- distorted input image
 %   D- 5x1 distortion vector
 %   K-3x4 camera matrix
+%   distModel- distortion model either 'equi' or 'radtan'
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -20,9 +21,22 @@ function [ image ] = Undistort(imageD, D, K)
 %   http://stackoverflow.com/questions/12117825/how-can-i-undistort-an-image-in-matlab-using-the-known-camera-parameters
 
 validateattributes(imageD,{'numeric'},{'2d'});
-validateattributes(D,{'numeric'},{'size',[5,1]});
-validateattributes(K,{'numeric'},{'size',[3,4]});
+validateattributes(D,{'numeric'},{'vector'});
+validateattributes(K,{'numeric'},{'size',[3,3]});
+validateattributes(distModel,{'char'},{'vector'});
 
+if(strcmpi('equi',distModel))
+    equi = true;
+elseif(strcmpi('radtan',distModel))
+    equi = false;
+else
+    error('Only distortion models equi and radtan are supported');
+end
+
+D = D(:);
+if(length(D) < 5);
+    D(5) = 0;
+end
 
 fx = K(1,1);
 fy = K(2,2);
@@ -30,9 +44,15 @@ cx = K(1,3);
 cy = K(2,3);
 k1 = D(1);
 k2 = D(2);
-k3 = D(5);
-p1 = D(3);
-p2 = D(4);
+
+if(equi)
+    k3 = D(3);
+    k4 = D(4);
+else
+    k3 = D(5);
+    p1 = D(3);
+    p2 = D(4);
+end
 
 image = zeros(size(imageD));
 [i, j] = find(~isnan(image));
@@ -41,12 +61,20 @@ image = zeros(size(imageD));
 Xp = K\[j i ones(length(i),1)]';
 
 % Now we calculate how those points distort i.e forward map them through the distortion
-r2 = Xp(1,:).^2+Xp(2,:).^2;
 x = Xp(1,:);
 y = Xp(2,:);
 
-x = x.*(1+k1*r2 + k2*r2.^2 + k3*r2.^3) + 2*p1.*x.*y + p2*(r2 + 2*x.^2);
-y = y.*(1+k1*r2 + k2*r2.^2 + k3*r2.^3) + 2*p2.*x.*y + p1*(r2 + 2*y.^2);
+if(equi)
+    theta = atan(sqrt(x.^2 + y.^2));
+    theta = (theta + k1*theta + k2*theta.^3 + k3*theta.^5 + k4*theta.^7);
+    omega = atan2(y,x);
+    x = theta.*cos(omega);
+    y = theta.*sin(omega);
+else
+    r2 = x.^2 + y.^2;
+    x = x.*(1+k1*r2 + k2*r2.^2 + k3*r2.^3) + 2*p1.*x.*y + p2*(r2 + 2*x.^2);
+    y = y.*(1+k1*r2 + k2*r2.^2 + k3*r2.^3) + 2*p2.*x.*y + p1*(r2 + 2*y.^2);
+end
 
 % u and v are now the distorted cooridnates
 u = reshape(fx*x + cx,size(image));

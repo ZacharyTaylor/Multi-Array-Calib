@@ -29,7 +29,10 @@ function [T_Ckm1_Ck, T_Var_Ckm1_Ck] = GetCamTform(imOld, imNew, mask, K )
 validateattributes(imOld,{'numeric'},{'2d'});
 validateattributes(imNew,{'numeric'},{'2d','size',size(imOld)});
 validateattributes(mask,{'logical'},{'2d','size',size(imOld)});
-validateattributes(K,{'numeric'},{'size',[3,4]});
+validateattributes(K,{'numeric'},{'size',[3,3]});
+
+%turn K into 3x4 matrix
+K(3,4) = 0;
 
 %detect features in first image
 points = detectMinEigenFeatures(imOld);

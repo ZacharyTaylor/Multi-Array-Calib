@@ -15,6 +15,10 @@ function [] = CalibPath( set )
 %   zacharyjeremytaylor@gmail.com
 %   http://www.zjtaylor.com
 
+if(nargin == 0)
+    set = true;
+end
+
 validateattributes(set,{'logical'},{'scalar'});
 pathFolders = {};
 
@@ -24,14 +28,11 @@ pathFolders = [pathFolders,'./genCam'];
 %contains functions for handling velodyne data and generating vel tforms
 pathFolders = [pathFolders,'./genVel'];
 
-%contains functions for handling nav data and generating nav tforms
-pathFolders = [pathFolders,'./genNav'];
+%contains functions for handling vicon data and generating vicon tforms
+pathFolders = [pathFolders,'./genVicon'];
 
 %contains functions for performing hand-eye calibartion
 pathFolders = [pathFolders,'./handEye'];
-
-%contains functions for matching the output of overlaping sensors
-pathFolders = [pathFolders,'./imageMetric'];
 
 %contains transformation representations and converters
 pathFolders = [pathFolders,'./tforms'];
@@ -42,17 +43,8 @@ pathFolders = [pathFolders,'./timing'];
 %contains rough variance approximations used with translation estimates
 pathFolders = [pathFolders,'./varApprox'];
 
-%holds precalculated transformations
-pathFolders = [pathFolders,'./storedTforms'];
-
-%holds results
-pathFolders = [pathFolders,'./results'];
-
-%holds tests run for paper
-pathFolders = [pathFolders,'./paperTests'];
-
-%holds plots for paper
-pathFolders = [pathFolders,'./paperPlots'];
+%contains custom ros messages
+pathFolders = [pathFolders,'./rosMsgs/matlab_gen/msggen'];
 
 %holds the rest
 pathFolders = [pathFolders,'./misc'];
@@ -64,6 +56,10 @@ for i = 1:length(pathFolders)
         rmpath(pathFolders{i});
     end
 end
+
+%modifies matlabs java class-path to allow custom ros messages
+javaaddpath('./rosMsgs/matlab_gen/jar/ros_vrpn_client-0.0.0.jar');
+javaaddpath('./rosMsgs/matlab_gen/jar/visensor_node-1.1.0.jar');
 
 end
 
