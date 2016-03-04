@@ -39,7 +39,7 @@ for i = 1:size(sensorData,1)
     Mag(:,i) = sqrt(sum(sensorData{i}.T_Skm1_Sk(:,4:6).^2,2));
     Var(:,i) = sum(sensorData{i}.T_Var_Skm1_Sk(:,4:6),2);
     
-    temp = diff(double(sensorData{i}.time));
+    temp = diff(double(sensorData{i}.times));
     times(:,i) = [temp(1);temp]/1000000;
 end
 

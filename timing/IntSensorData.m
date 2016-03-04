@@ -46,23 +46,10 @@ function[ sensorInt ] = IntData( sensorData, times )
     sensorInt.T_Skm1_Sk_raw = zeros(length(times),6);
     sensorInt.T_Var_S1_Sk = zeros(length(times),6);
     sensorInt.T_Var_Skm1_Sk = zeros(length(times),6);
-    sensorInt.time = times(:);
-    if(length(sensorInt.files) > 1)
-        sensorInt.files = repmat(sensorInt.files(1),length(times),1);
-    end
+    sensorInt.times = times(:);
 
-    %for each time point
-    for i = 1:length(times)
-
-        %find closest matching time
-        [~,idx] = min(abs(double(times(i)) - double(sensorData.time)));
-        if(size(sensorData.files,1) > 1)
-            sensorInt.files(i) = sensorData.files(idx);
-        end
-    end
-
-    sensorInt.T_Var_S1_Sk = interp1(double(sensorData.time), sensorData.T_Var_S1_Sk, double(sensorInt.time),'pchip');
-    sensorInt.T_S1_Sk = interp1(double(sensorData.time), sensorData.T_S1_Sk, double(sensorInt.time),'pchip');
+    sensorInt.T_Var_S1_Sk = interp1(double(sensorData.times), sensorData.T_Var_S1_Sk, double(sensorInt.times),'pchip');
+    sensorInt.T_S1_Sk = interp1(double(sensorData.times), sensorData.T_S1_Sk, double(sensorInt.times),'pchip');
         
     %split into relative transforms
     for i = 2:size(sensorInt.T_S1_Sk,1)
@@ -70,7 +57,7 @@ function[ sensorInt ] = IntData( sensorData, times )
     end
 
     %split up variance
-    if(strcmpi(sensorInt.type,'Nav'))
+    if(strcmpi(sensorInt.type,'vicon'))
         sensorInt.T_Var_Skm1_Sk = sensorInt.T_Var_S1_Sk;
     else
         for i = size(sensorInt.T_Var_Skm1_Sk,1):-1:2

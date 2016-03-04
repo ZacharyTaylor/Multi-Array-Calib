@@ -2,21 +2,13 @@
 
 %% user set variables
 
-%number of scans to use
-scansTimeRange = 100;
-
-%number of scans to combine in metric refine step
-numScans = 20;
-
 %samples
 timeSamples = 10000;
-
-metric = 'motion';
 
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Kitti','Vel','Cam1');
+sensorData = LoadSensorData('Vicon1','Cam1','Cam2');
 
 % %% fix timestamps
 fprintf('Finding Timing Offsets\n');
@@ -28,11 +20,8 @@ disp(sqrt(varOffsets));
 
 %% run calibration
     
-%get random contiguous scans to use
-sDataBase = RandTformTimes(sensorData, scansTimeRange);
-
 %evenly sample data
-sData = SampleData2(sDataBase);
+sData = SampleData2(sensorData);
 
 %remove uninformative data
 sData = RejectPoints(sData, 10, 0.00001);
@@ -75,11 +64,3 @@ disp(sqrt(tranVarM));
 %get grid of transforms
 fprintf('Generating transformation grid\n');
 [TGrid, vTGrid] = GenTformGrid(tranVec, rotVec, tranVarM, rotVarM);
-
-%refine transforms using metrics
-fprintf('Refining transformations\n');
-[TGridR, vTGridR] = MetricRefine(TGrid, vTGrid, sDataBase, numScans, metric);
-
-%correct for differences in grid
-fprintf('Combining results\n');
-[finalVec, finalVar] = OptGrid(TGridR, vTGridR);

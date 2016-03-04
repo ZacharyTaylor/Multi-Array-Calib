@@ -4,9 +4,9 @@
 bagFile = 'handheld2.bag';
 
 %topics
-viconTopic = '/auk/vrpn_client/raw_transform';
-camTopic = '/auk/cam0/image_raw';
-camCailbTopic = '/auk/cam0/calibration';
+viconTopics = {'/auk/vrpn_client/raw_transform'};
+camTopics = {'/auk/cam0/image_raw','/auk/cam1/image_raw'};
+camCalibTopics = {'/auk/cam0/calibration','/auk/cam1/calibration'};
 
 %Sets if the sensor transforms will be plotted
 plotTforms = false;
@@ -17,42 +17,14 @@ CalibPath(true);
 %% process sensors
 
 %do things in parrallel to save time
-for i = 2
-    switch i
-        case 1
-            VelData = GenVel(dataPath, plotTforms, [], dataset);
-            ParSave(['./storedTforms/' dataset 'VelDataC.mat'], VelData, 'velData');
-        case 2
-            NavData = GenNav(dataPath, plotTforms, [], dataset);
-            ParSave(['./storedTforms/'  dataset 'NavData.mat'], NavData, 'navData'); 
-        case 3
-            CamData = GenCam(dataPath, plotTforms, [], dataset, 1);
-            ParSave(['./storedTforms/' dataset 'Cam1Data.mat'], CamData, 'cam1Data');
-        case 4
-            CamData = GenCam(dataPath, plotTforms, [], dataset, 2);
-            ParSave(['./storedTforms/' dataset 'Cam2Data.mat'], CamData, 'cam2Data');
-        case 5
-            CamData = GenCam(dataPath, plotTforms, [], dataset, 3);
-            ParSave(['./storedTforms/' dataset 'Cam3Data.mat'], CamData, 'cam3Data');
-        case 6
-            CamData = GenCam(dataPath, plotTforms, [], dataset, 4);
-            ParSave(['./storedTforms/' dataset 'Cam4Data.mat'], CamData, 'cam4Data');
-        case 7
-            %Kitti only has 4 cameras
-            if(~strcmpi(dataset,'Kitti'))
-                CamData = GenCam(dataPath, plotTforms, [], dataset, 5);
-                ParSave(['./storedTforms/' dataset 'Cam5Data.mat'], CamData, 'cam5Data');
-            end
-        case 8
-            %only shrimp has 6 cameras
-            if(strcmpi(dataset,'Shrimp'))
-                CamData = GenCam(dataPath, plotTforms, [], dataset, 6);
-                ParSave(['./storedTforms/' dataset 'Cam6Data.mat'], CamData, 'cam6Data');
-            end
-        otherwise
-            errror('Parfor setup incorrectly');
+for i = 1:(length(viconTopics)+length(camTopics))
+    if(i <= length(camTopics))
+        camData = GenCam(bag, plotTforms, camTopics{i}, camCalibTopics{i}, []);
+        ParSave(['./storedTforms/' 'Cam' num2str(i) 'Data.mat'], camData, ['Cam' num2str(i) 'Data']);
+    elseif(i <= (length(viconTopics)+length(camTopics)))
+        viconData = GenVicon(bag, plotTforms, viconTopics{i-length(camTopics)}, []);
+        ParSave(['./storedTforms/' 'Vicon' num2str(i-length(camTopics)) 'Data.mat'], viconData, ['Vicon' num2str(i-length(camTopics)) 'Data']);
     end
 end
     
 CalibPath(false);
-%delete(gcp);

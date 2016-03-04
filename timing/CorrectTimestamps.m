@@ -35,10 +35,10 @@ addpath('./timing');
 %sort sensorData by time
 for i = 1:length(sensorData)
     %sort points in order of time they occoured
-    [~,idx] = sort(sensorData{i}.time);
+    [~,idx] = sort(sensorData{i}.times);
     
     %remove points with same timestamp
-    valid = diff(double(sensorData{i}.time(idx))) > 0;
+    valid = diff(double(sensorData{i}.times(idx))) > 0;
     idx = idx(valid);
     
     %sort sensorData
@@ -55,7 +55,7 @@ navFlag = false(length(sensorData),1);
 for i = 1:length(sensorData)
     
     %get timestamps
-    t{i} = double(sensorData{i}.time);
+    t{i} = double(sensorData{i}.times);
     
     %get absolute angle magnitude
     Mag{i} = sqrt(sum(sensorData{i}.T_S1_Sk(:,4:6).^2,2));
@@ -68,17 +68,17 @@ end
 
 %apply offsets
 for i = 1:length(sensorData)
-    sensorData{i}.time = double(sensorData{i}.time);
-    sensorData{i}.time = sensorData{i}.time - offsets(i,1);
-    tMin = min(sensorData{i}.time);
-    sensorData{i}.time = sensorData{i}.time - tMin;
-    sensorData{i}.time = sensorData{i}.time.*offsets(i,2);
-    sensorData{i}.time = sensorData{i}.time + tMin;
+    sensorData{i}.times = double(sensorData{i}.times);
+    sensorData{i}.times = sensorData{i}.times - offsets(i,1);
+    tMin = min(sensorData{i}.times);
+    sensorData{i}.times = sensorData{i}.times - tMin;
+    sensorData{i}.times = sensorData{i}.times.*offsets(i,2);
+    sensorData{i}.times = sensorData{i}.times + tMin;
 end
 
 %apply offset variance
 for i = 1:length(sensorData)
-    err = (sqrt(varOff(i,1))./median(diff(double(sensorData{i}.time)))).*((sensorData{i}.T_Skm1_Sk));
+    err = (sqrt(varOff(i,1))./median(diff(double(sensorData{i}.times)))).*((sensorData{i}.T_Skm1_Sk));
     sensorData{i}.T_Var_Skm1_Sk = sensorData{i}.T_Var_Skm1_Sk + err.^2;
     if(navFlag(i))
         sensorData{i}.T_Var_S1_Sk = sensorData{i}.T_Var_Skm1_Sk;

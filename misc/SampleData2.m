@@ -34,14 +34,14 @@ addpath('./timing');
 tMin = 0;
 tMax = inf;
 for i = 1:length(sensorData)
-    tMin = max(tMin,sensorData{i}.time(1));
-    tMax = min(tMax,sensorData{i}.time(end));
+    tMin = max(tMin,sensorData{i}.times(1));
+    tMax = min(tMax,sensorData{i}.times(end));
 end
 
 %get number of points in range
 samples = inf;
 for i = 1:length(sensorData)
-    temp = sum(and(sensorData{i}.time >= tMin, sensorData{i}.time <= tMax));
+    temp = sum(and(sensorData{i}.times >= tMin, sensorData{i}.times <= tMax));
     if(temp < samples)
         samples = temp;
     end

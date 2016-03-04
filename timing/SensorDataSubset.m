@@ -41,11 +41,7 @@ end
 
 function [ sData ] = FindSubset( sData, idx )
 
-    if(length(sData.files) > 1)
-        sData.files = sData.files(idx,:);
-    end
-
-    sData.time = sData.time(idx,:);
+    sData.times = sData.times(idx,:);
     sData.T_Skm1_Sk = sData.T_Skm1_Sk(idx,:);
     sData.T_S1_Sk = sData.T_S1_Sk(idx,:);
     sData.T_Var_Skm1_Sk = sData.T_Var_Skm1_Sk(idx,:);
