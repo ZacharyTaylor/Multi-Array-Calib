@@ -8,7 +8,7 @@ timeSamples = 10000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Vicon1','Cam1','Cam2');
+sensorData = LoadSensorData('Vicon1','VI1');
 
 % %% fix timestamps
 fprintf('Finding Timing Offsets\n');
