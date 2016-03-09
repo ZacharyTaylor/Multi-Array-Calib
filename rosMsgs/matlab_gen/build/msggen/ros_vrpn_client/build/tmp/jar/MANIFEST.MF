@@ -4,7 +4,7 @@ Export-Package: ros_vrpn_client;version="0.0.0";uses:="geometry_msgs,o
 Bundle-Version: 0.0.0
 Tool: Bnd-2.1.0.20130426-122213
 Bundle-Name: ros_vrpn_client
-Bnd-LastModified: 1457096112857
+Bnd-LastModified: 1457510045555
 Created-By: 1.7.0_60 (Oracle Corporation)
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.ros.rosjava_messages.ros_vrpn_client

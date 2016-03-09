@@ -1,11 +1,11 @@
-function [ camData ] = CamInfo( bag, topic, calibTopic )
+function [ camData ] = CamInfo( bag, topic, calib )
 %FORDCAMINFO Sets the layout, masks and intrinsics of the camera
 %--------------------------------------------------------------------------
 %   Required Inputs:
 %--------------------------------------------------------------------------
 %   bag- bag containing image data
 %   topic- topic containing images
-%   calibTopic- topic containing camera calibration
+%   calib- struct containing camera calibration
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -26,20 +26,19 @@ camData = struct;
 
 %check inputs
 validateattributes(topic,{'char'},{'vector'});
-validateattributes(calibTopic,{'char'},{'vector'});
 
-%get first calibration message
-calibBag = select(bag,'Topic',calibTopic);
+%get first camera image message
+calibBag = select(bag,'Topic',topic);
 calibBag = select(bag,'Time',[calibBag.MessageList.Time(1),calibBag.MessageList.Time(1)]);
-calibMsg = readMessages(calibBag);
+imageMsg = readMessages(calibBag);
 
 %get intrinsics
-camData.DistModel = calibMsg{1}.DistModel;
-camData.D = calibMsg{1}.DistCoeff;
-camData.K = [calibMsg{1}.FocalLength(1),0,calibMsg{1}.PrincipalPoint(1);0,calibMsg{1}.FocalLength(2),calibMsg{1}.PrincipalPoint(2);0,0,1];
+camData.DistModel = calib.DistModel;
+camData.D = calib.D;
+camData.K = calib.K;
 
 %mask
-camData.mask = true(calibMsg{1}.ImageHeight,calibMsg{1}.ImageWidth);
+camData.mask = true(imageMsg{1}.Height,imageMsg{1}.Width);
 
 %timestamps
 timingBag = select(bag,'Topic',topic);

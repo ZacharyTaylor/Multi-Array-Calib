@@ -25,8 +25,8 @@ pathFolders = {};
 %contains functions for handling camera data and generating camera tforms
 pathFolders = [pathFolders,'./genCam'];
 
-%contains functions for handling velodyne data and generating vel tforms
-pathFolders = [pathFolders,'./genVel'];
+%contains functions for handling visual inertial data and generating vi tforms
+pathFolders = [pathFolders,'./genVIO'];
 
 %contains functions for handling vicon data and generating vicon tforms
 pathFolders = [pathFolders,'./genVicon'];
@@ -59,7 +59,6 @@ end
 
 %modifies matlabs java class-path to allow custom ros messages
 javaaddpath('./rosMsgs/matlab_gen/jar/ros_vrpn_client-0.0.0.jar');
-javaaddpath('./rosMsgs/matlab_gen/jar/visensor_node-1.1.0.jar');
 
 end
 

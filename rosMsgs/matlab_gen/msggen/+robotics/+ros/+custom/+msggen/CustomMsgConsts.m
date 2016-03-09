@@ -7,13 +7,6 @@ classdef CustomMsgConsts
     
     properties (Constant)
         ros_vrpn_client_viconEstimator = 'ros_vrpn_client/viconEstimator'
-        visensor_msgs_visensor_calibration = 'visensor_msgs/visensor_calibration'
-        visensor_msgs_visensor_calibration_service = 'visensor_msgs/visensor_calibration_service'
-        visensor_msgs_visensor_calibration_serviceRequest = 'visensor_msgs/visensor_calibration_serviceRequest'
-        visensor_msgs_visensor_calibration_serviceResponse = 'visensor_msgs/visensor_calibration_serviceResponse'
-        visensor_msgs_visensor_imu = 'visensor_msgs/visensor_imu'
-        visensor_msgs_visensor_time_host = 'visensor_msgs/visensor_time_host'
-        visensor_msgs_visensor_trigger = 'visensor_msgs/visensor_trigger'
     end
     
     methods (Static, Hidden)
@@ -23,15 +16,8 @@ classdef CustomMsgConsts
             
             persistent msgList
             if isempty(msgList)
-                msgList = cell(8, 1);
+                msgList = cell(1, 1);
                 msgList{1} = 'ros_vrpn_client/viconEstimator';
-                msgList{2} = 'visensor_msgs/visensor_calibration';
-                msgList{3} = 'visensor_msgs/visensor_calibration_service';
-                msgList{4} = 'visensor_msgs/visensor_calibration_serviceRequest';
-                msgList{5} = 'visensor_msgs/visensor_calibration_serviceResponse';
-                msgList{6} = 'visensor_msgs/visensor_imu';
-                msgList{7} = 'visensor_msgs/visensor_time_host';
-                msgList{8} = 'visensor_msgs/visensor_trigger';
             end
             
             messageList = msgList;
@@ -43,8 +29,7 @@ classdef CustomMsgConsts
             
             persistent svcList
             if isempty(svcList)
-                svcList = cell(1, 1);
-                svcList{1} = 'visensor_msgs/visensor_calibration_service';
+                svcList = cell(0, 1);
             end
             
             % The message list was already sorted, so don't need to sort

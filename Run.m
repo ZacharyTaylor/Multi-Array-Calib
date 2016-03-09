@@ -8,9 +8,9 @@ timeSamples = 10000;
 %% load sensor data
 CalibPath(true);
 %make sure to read in cameras last (due to issue with how I compensate for scale)
-sensorData = LoadSensorData('Vicon1','VI1');
+sensorData = LoadSensorData('VI1','Vicon1','Cam1');
 
-% %% fix timestamps
+%% fix timestamps
 fprintf('Finding Timing Offsets\n');
 [sensorData, offsets, varOffsets] = CorrectTimestamps(sensorData, timeSamples);
 fprintf('Offsets:\n');
@@ -21,7 +21,7 @@ disp(sqrt(varOffsets));
 %% run calibration
     
 %evenly sample data
-sData = SampleData2(sensorData);
+sData = SampleData(sensorData);
 
 %remove uninformative data
 sData = RejectPoints(sData, 10, 0.00001);

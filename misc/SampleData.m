@@ -1,5 +1,5 @@
-function [ sensorData ] = SampleData( sensorData, samples )
-%SAMPLEDATA Uniformly samples data
+function [ sensorData ] = SampleData( sensorData )
+%SAMPLEDATA2 Uniformly samples data at rate of slowest sensor
 %--------------------------------------------------------------------------
 %   Inputs:
 %--------------------------------------------------------------------------
@@ -23,7 +23,6 @@ function [ sensorData ] = SampleData( sensorData, samples )
 %   http://www.zjtaylor.com
 
 %check inputs
-validateattributes(samples,{'numeric'},{'scalar','positive','integer','nonzero'});
 validateattributes(sensorData,{'cell'},{'vector'});
 for i = 1:length(sensorData)
     validateattributes(sensorData{i},{'struct'},{});
@@ -35,8 +34,17 @@ addpath('./timing');
 tMin = 0;
 tMax = inf;
 for i = 1:length(sensorData)
-    tMin = max(tMin,sensorData{i}.time(1));
-    tMax = min(tMax,sensorData{i}.time(end));
+    tMin = max(tMin,sensorData{i}.times(1));
+    tMax = min(tMax,sensorData{i}.times(end));
+end
+
+%get number of points in range
+samples = inf;
+for i = 1:length(sensorData)
+    temp = sum(and(sensorData{i}.times >= tMin, sensorData{i}.times <= tMax));
+    if(temp < samples)
+        samples = temp;
+    end
 end
 
 %turn points into times

@@ -1,4 +1,4 @@
-function [ camData ] = GenCam( bag, plotCam, topic, calibTopic, range )
+function [ camData ] = GenCam( bag, plotCam, topic, calib, range )
 %GENCAM Generates camera transformations
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -7,7 +7,7 @@ function [ camData ] = GenCam( bag, plotCam, topic, calibTopic, range )
 %   plotCam- bool, true for displaying a plot of trajectory while running
 %       (note slows things down in a big way for large datasets)
 %   topic- topic containing images
-%   calibTopic- topic containing camera calibration
+%   calib- struct containing calibration information
 %   range- 1xm vector giving the index of the images to use, leave empty []
 %       for all images
 %
@@ -29,10 +29,9 @@ function [ camData ] = GenCam( bag, plotCam, topic, calibTopic, range )
 %check inputs
 validateattributes(plotCam,{'logical'},{'scalar'});
 validateattributes(topic,{'char'},{'vector'});
-validateattributes(calibTopic,{'char'},{'vector'});
 
 %Get the camera information
-camData = CamInfo(bag, topic, calibTopic);
+camData = CamInfo(bag, topic, calib);
 
 %setup help info
 camData.help = ['camData stores the following information:\n'...
