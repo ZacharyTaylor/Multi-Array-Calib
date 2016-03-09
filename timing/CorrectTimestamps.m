@@ -1,4 +1,4 @@
-function [ sensorData, offsets, varOff ] = CorrectTimestamps( sensorData, samples )
+function [ sensorData, offsets, varOff ] = CorrectTimestamps( sensorData, samples, applyOffset )
 %CORRECTTIMESTAMPS correct for any offset in intersensor timesteps
 %--------------------------------------------------------------------------
 %   Required Inputs:
@@ -6,6 +6,7 @@ function [ sensorData, offsets, varOff ] = CorrectTimestamps( sensorData, sample
 %   sensorData- nx1 cell containing sensor data sturcts
 %   samples - scalar, number of points to sample the data at (uniformly
 %       distributed) when finding timestamps
+%   applyOffset - bool, if the found timing offsets should be applied
 %
 %--------------------------------------------------------------------------
 %   Outputs:
@@ -65,6 +66,9 @@ end
 
 %find the timing offsets
 [offsets, varOff] = FindTimingOffsets(Mag,Var,t,samples, navFlag);
+offsets(:,1) = 0;
+offsets(:,2) = 1;
+varOff(:) = 0;
 
 %apply offsets
 for i = 1:length(sensorData)

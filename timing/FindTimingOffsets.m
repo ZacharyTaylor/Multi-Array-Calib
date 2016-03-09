@@ -41,17 +41,6 @@ for i = 1:length(Mag)
     dTest{i} = zeros(1,samples);
 end
 
-%get overlap
-% offsets = [1000*ones(length(t)-1,1),ones(length(t)-1,1)];
-% for i = 2:length(Mag)
-%     rt = t([1,i]);
-%     rMag = Mag([1,i]);
-%     rVar = Var([1,i]);
-%     rNavFlag = navFlag([i,1]);
-%     rdTest = dTest([i,1]);
-%     offsets(i-1,:) = fminsearch(@(offset) sum(GetTimingError(rt,rMag,rVar,10000,offset, rNavFlag, rdTest)),offsets(i-1,:));
-% end
-
 offsets = [1000*ones(length(t)-1,1),ones(length(t)-1,1)];
 for i = 2:length(Mag)
     
